@@ -1,0 +1,10 @@
+{% extends "major_features/layout.html" %}
+
+{% block body %}
+<h2>Phương pháp quản lý hàng tồn kho</h2>
+<div>
+    {% for method in warehouse_management_methods %}
+    <p>{{ method.name|safe }}</p>
+    {% endfor %}
+</div>
+{% endblock %}
