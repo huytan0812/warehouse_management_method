@@ -7,4 +7,9 @@
     <p>{{ method.name|safe }}</p>
     {% endfor %}
 </div>
+<form action="">
+    {% csrf_token %}
+    {{ date_picker_form.as_p }}
+    <input type="submit" value="Submit">
+</form>
 {% endblock %}
