@@ -1,0 +1,13 @@
+{% extends "major_features/layout.html" %}
+
+{% block body %}
+<h2>{{ datepicker|date:"d/m/Y" }}</h2>
+
+{% if warehouse_management_method_form %}
+<form action="" method="post">
+    {% csrf_token %}
+    {{ warehouse_management_method_form.as_p }}
+    <input type="submit" value="Submit">
+</form>
+{% endif %}
+{% endblock %}
