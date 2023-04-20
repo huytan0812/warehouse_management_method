@@ -7,6 +7,17 @@ class WarehouseManagementMethod(models.Model):
     def __str__(self):
         return f"{self.name}"
     
+class AccoutingPeriod(models.Model):
+    warehouse_management_method = models.ForeignKey(WarehouseManagementMethod, on_delete=models.CASCADE, null=False, blank=False, related_name="%(class)s_applied_in_periods")
+    date_applied = models.DateField(null=False, blank=False)
+    # Explicitly the default value of date_end field is the last day of the month
+    # After that month, renew the date_end field to the value of the last day of next month
+    # If not, create a new AccountingPeriod object
+    date_end = models.DateField(null=False, blank=False)
+
+    def __str__(self):
+        return f"Accounting period starts on {self.date_applied} & end on {self.date_end} in the usage of {self.warehouse_management_method.name}"
+    
 class Supplier(models.Model):
     name = models.CharField(max_length=200, blank=False, null=False, default="")
 
