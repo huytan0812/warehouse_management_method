@@ -8,6 +8,11 @@ class WarehouseManagementMethod(models.Model):
         return f"{self.name}"
     
 class AccoutingPeriod(models.Model):
+    """
+    The creation of this entity is ensuring the consistency of the Applied Warehouse Management Method that user choose,
+    & for the purpose of filtering AccountingPeriod
+    """
+
     warehouse_management_method = models.ForeignKey(WarehouseManagementMethod, on_delete=models.CASCADE, null=False, blank=False, related_name="%(class)s_applied_in_periods")
     date_applied = models.DateField(null=False, blank=False)
     # Explicitly the default value of date_end field is the last day of the month
