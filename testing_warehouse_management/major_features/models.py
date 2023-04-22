@@ -3,9 +3,10 @@ from django.db import models
 # Create your models here.
 class WarehouseManagementMethod(models.Model):
     name = models.TextField(null=False, blank=False, default="", max_length=1000)
+    is_currently_applied = models.BooleanField(null=True, blank=True, default=False)
 
     def __str__(self):
-        return f"{self.name}"
+        return f"{self.name} is currently applied: {self.is_currently_applied}"
     
 class AccoutingPeriod(models.Model):
     """

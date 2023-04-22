@@ -1,15 +1,19 @@
+from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render
 from datetime import datetime
+from django.core.exceptions import ObjectDoesNotExist
 import calendar
+
+from django.urls import reverse
 from . models import *
 from . forms import *
 
 # Create your views here.
 def index(request):
-    warehouse_management_methods = WarehouseManagementMethod.objects.all()
+    currently_applied_method = WarehouseManagementMethod.objects.filter(is_currently_applied=True)
     date_picker_form = DatePickerForm()
     context = {
-        'warehouse_management_methods': warehouse_management_methods,
+        'method': currently_applied_method[0],
         'date_picker_form': date_picker_form
     }
 
@@ -31,12 +35,33 @@ def date_details(request):
         datepicker_form = DatePickerForm(request.POST)
 
         if datepicker_form.is_valid():
+            get_datepicker_by_POST = request.POST.get("date_field")
             get_datepicker = datepicker_form.cleaned_data["date_field"]
             context = {
                 'datepicker': datepicker_form.cleaned_data["date_field"],
+                'datepicker_by_POST': get_datepicker_by_POST
             }
 
             if is_last_day_of_month(get_datepicker):
                 context["warehouse_management_method_form"] = WarehouseManagementMethodForm()
 
             return render(request, "major_features/date_details.html", context)
+        
+def apply_warehouse_management(request):
+    if request.method == "POST":
+        warehouse_management_method_form = WarehouseManagementMethodForm(request.POST)
+
+        if warehouse_management_method_form.is_valid():
+            method_by_POST = request.POST.get("name", "")
+
+            # Handling POST key
+            try:
+                method = WarehouseManagementMethod.objects.get(pk=int(method_by_POST))
+            except WarehouseManagementMethod.DoesNotExist:
+                raise Exception("Invalid Method")
+            
+            # Update the is_currently_applied field of that method
+            method.is_currently_applied = True
+            method.save(update_fields=["is_currently_applied"])
+
+            return HttpResponseRedirect(reverse('index'))
