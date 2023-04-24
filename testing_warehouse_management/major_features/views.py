@@ -10,12 +10,17 @@ from . forms import *
 
 # Create your views here.
 def index(request):
+    CHOSEN_METHOD_COUNT = 1
     currently_applied_method = WarehouseManagementMethod.objects.filter(is_currently_applied=True)
     date_picker_form = DatePickerForm()
+
     context = {
-        'method': currently_applied_method[0],
         'date_picker_form': date_picker_form
     }
+
+    # Handling if a method was chosen before
+    if len(currently_applied_method) == CHOSEN_METHOD_COUNT:
+        context['method'] = currently_applied_method[0]
 
     return render(request, "major_features/index.html", context)
 
@@ -32,6 +37,7 @@ def is_last_day_of_month(date_obj):
 def date_details(request):
 
     if request.method == "POST":
+
         datepicker_form = DatePickerForm(request.POST)
 
         if datepicker_form.is_valid():
@@ -43,16 +49,21 @@ def date_details(request):
             }
 
             if is_last_day_of_month(get_datepicker):
+                context["keep_method_form"] = KeepMethodForm()
                 context["warehouse_management_method_form"] = WarehouseManagementMethodForm()
 
             return render(request, "major_features/date_details.html", context)
         
 def apply_warehouse_management(request):
     if request.method == "POST":
+        keep_method_form = KeepMethodForm(request.POST)
         warehouse_management_method_form = WarehouseManagementMethodForm(request.POST)
 
-        if warehouse_management_method_form.is_valid():
+        if warehouse_management_method_form.is_valid() and keep_method_form.is_valid():
             method_by_POST = request.POST.get("name", "")
+            is_keep = keep_method_form.cleaned_data["is_keep"]
+
+            return HttpResponse(f"is_keep: {is_keep}", content_type="text/plain")
 
             # Handling POST key
             try:
