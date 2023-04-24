@@ -2,11 +2,16 @@
 
 {% block body %}
 <h2>Phương pháp quản lý hàng tồn kho</h2>
+
 {% if method %}
 <p>Phương pháp đang được chọn: <strong>{{ method.name }}</strong></p>
+
 {% else %}
-<p><strong>Không có phương pháp nào được chọn</strong></p>
+<div class="alert alert-danger" role="alert">
+    Không có phương pháp nào được chọn
+</div>
 {% endif %}
+
 <form action="{% url 'date_details' %}" method="post">
     {% csrf_token %}
     {{ date_picker_form.as_p }}
