@@ -9,10 +9,11 @@
 {% else %}
 <div class="alert alert-danger" role="alert">
     Không có phương pháp nào được chọn
+    <a href="{% url 'apply_warehouse_management' %}">Tiến hành chọn phương pháp</a>
 </div>
 {% endif %}
 
-<form action="{% url 'date_details' %}" method="post">
+<form action="{% url 'ending_accounting_period' %}" method="post">
     {% csrf_token %}
     {{ date_picker_form.as_p }}
     <input type="submit" value="Submit">
