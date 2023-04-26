@@ -11,17 +11,22 @@ from . forms import *
 
 # Create your views here.
 def index(request):
-    CHOSEN_METHOD_COUNT = 1
-    currently_applied_method = WarehouseManagementMethod.objects.filter(is_currently_applied=True)
+
     date_picker_form = DatePickerForm()
 
     context = {
         'date_picker_form': date_picker_form
     }
 
+    CHOSEN_METHOD_COUNT = 1
+    method_count = WarehouseManagementMethod.objects.filter(is_currently_applied=True).count()
+
     # Handling if a method was chosen before
-    if currently_applied_method.count() == CHOSEN_METHOD_COUNT:
-        context['method'] = currently_applied_method[0]
+    if  method_count == CHOSEN_METHOD_COUNT:
+        currently_accounting_period_id = AccoutingPeriod.objects.aggregate(Max("id")).get("id__max", 0)
+        currently_accounting_period_obj = AccoutingPeriod.objects.select_related('warehouse_management_method').get(pk=int(currently_accounting_period_id))
+        context['method'] = currently_accounting_period_obj.warehouse_management_method
+        context['accounting_period'] = currently_accounting_period_obj
 
     return render(request, "major_features/index.html", context)
 
@@ -81,55 +86,39 @@ def keep_method(request):
 
 def apply_warehouse_management(request):
 
-    """
-    Handling POST request of KeepMethodForm & WarehouseManagementMethodForm from apply_warehouse_management.html
-    """
-    method_count = WarehouseManagementMethod.objects.filter(is_currently_applied=True).count()
-    if method_count == 0 or is_last_day_of_month(get_date_utc_now()):
-        warehouse_management_method_form = WarehouseManagementMethodForm()
-    else:
-        return HttpResponse("Warning: Invalid access", content_type="text/plain")
+    if request.method == "GET":
+        # Only setting method_count = 0
+        # or datepicker is last day of a month
+        # when deploy production
+        method_count = WarehouseManagementMethod.objects.filter(is_currently_applied=True).count()
 
+        if method_count == 0 or is_last_day_of_month(get_date_utc_now()):
+            warehouse_management_method_form = WarehouseManagementMethodForm()
+            context = {
+                'warehouse_management_method_form': warehouse_management_method_form
+            }
+            return render(request, "major_features/apply_warehouse_management.html", context)
+        
+        else:
+            return HttpResponse("Warning: Invalid access", content_type="text/plain")
+    
     if request.method == "POST":
-        keep_method_form = KeepMethodForm(request.POST)
         warehouse_management_method_form = WarehouseManagementMethodForm(request.POST)
 
-        if warehouse_management_method_form.is_valid() and keep_method_form.is_valid():
-            is_keep = keep_method_form.cleaned_data["is_keep"]
-
-            if is_keep == True:
-                renew_previous_method()
-            else:
-                method_by_POST = request.POST.get("name", "")
-
-                # Bug is here:
-                # When no method was chosen
-                # method_by_post is a blank string ""
-                # therefore new_chosen_method will raise an error
-
-                # Handling POST key
-                try:
-                    new_chosen_method = WarehouseManagementMethod.objects.get(pk=int(method_by_POST))
-                except WarehouseManagementMethod.DoesNotExist:
-                    raise Exception("Invalid Method")
-                
-                # Handle if there are no method was chosen before
-                if WarehouseManagementMethod.objects.filter(is_currently_applied=True).count() == 0:
-                    # Update the is_currently_applied field of that method
-                    new_chosen_method.is_currently_applied = True
-                    new_chosen_method_obj = new_chosen_method.save(update_fields=["is_currently_applied"])
-                    # Creating a new AccountingPeriod object
-                    create_new_accounting_period(new_chosen_method_obj)
-
-                else:
-                    inactivating_previous_method()                
-                    activating_new_chosen_method(new_chosen_method)
-                    create_new_accounting_period_obj(new_chosen_method)
+        if warehouse_management_method_form.is_valid():
+            method_id_by_POST = request.POST.get("name", "")
             
-            return HttpResponseRedirect(reverse('index'))
-        else:
-            return HttpResponse("Invalid", content_type="text/plain")
+            try:
+                method = WarehouseManagementMethod.objects.get(pk=int(method_id_by_POST))
+            except WarehouseManagementMethod.DoesNotExits:
+                raise Exception("Invalid Method")
+            
+            method.is_currently_applied = True
+            method_obj = method.save(update_fields=["is_currently_applied"])
 
+            create_new_accounting_period(method)
+
+            return HttpResponseRedirect(reverse('index'))
 
 def create_new_accounting_period(method):
 
@@ -143,7 +132,7 @@ def create_new_accounting_period(method):
     new_accounting_period_obj = AccoutingPeriod.objects.create(
         warehouse_management_method=method,
         date_applied=date_utc_now,
-        date_end=date(date_utc_now.year, date_utc_now.month, last_day_of_month)
+        date_end=date(date_utc_now.year, date_utc_now.month, last_day_of_month.day)
     )
 
     return new_accounting_period_obj

@@ -9,7 +9,7 @@ class DatePickerForm(forms.Form):
     date_field = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}))
 
 class WarehouseManagementMethodForm(ModelForm):
-    name = forms.ModelChoiceField(queryset=WarehouseManagementMethod.objects.all(), required=False)
+    name = forms.ModelChoiceField(queryset=WarehouseManagementMethod.objects.all(), required=True)
     class Meta:
         model = WarehouseManagementMethod
         fields = ["name"]

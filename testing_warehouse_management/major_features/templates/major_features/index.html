@@ -5,7 +5,8 @@
 
 {% if method %}
 <p>Phương pháp đang được chọn: <strong>{{ method.name }}</strong></p>
-
+<p><strong>Ngày bắt đầu ghi sổ kế toán: </strong>{{ accounting_period.date_applied }}</p>
+<p><strong>Ngày kết thúc: </strong>{{ accounting_period.date_end }}</p>
 {% else %}
 <div class="alert alert-danger" role="alert">
     Không có phương pháp nào được chọn
@@ -13,7 +14,7 @@
 </div>
 {% endif %}
 
-<form action="{% url 'ending_accounting_period' %}" method="post">
+<form action="{% url 'date_handling' %}" method="post">
     {% csrf_token %}
     {{ date_picker_form.as_p }}
     <input type="submit" value="Submit">
