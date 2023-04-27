@@ -87,8 +87,11 @@ def keep_current_method(request):
         keep_method_form = KeepMethodForm(request.POST)
         if keep_method_form.is_valid():
             is_keep = keep_method_form.cleaned_data["is_keep"]
-            choices = keep_method_form.fields["is_keep"].choices
-            return HttpResponse(f"is_keep: {is_keep}, choices: {choices}", content_type="text/plain")
+            if is_keep == True:
+                renew_previous_method()
+                return HttpResponseRedirect(reverse('index'))
+            else:
+                return HttpResponseRedirect(reverse('apply_warehouse_management'))
         else:
             return HttpResponse("Invalid", content_type="text/plain")
 
@@ -115,8 +118,10 @@ def apply_warehouse_management(request):
             except WarehouseManagementMethod.DoesNotExits:
                 raise Exception("Invalid Method")
             
-            method.is_currently_applied = True
-            method_obj = method.save(update_fields=["is_currently_applied"])
+            if WarehouseManagementMethod.objects.filter(is_currently_applied=True).count() == 1:
+                deactivating_previous_method()
+            
+            activating_new_chosen_method(method)
 
             create_new_accounting_period(method)
 
@@ -155,14 +160,13 @@ def renew_previous_method():
     latest_accounting_period_obj = latest_accounting_period.save(update_fields=["date_end"])
     return latest_accounting_period_obj
 
-    
+def deactivating_previous_method():
+    previous_chosen_method = WarehouseManagementMethod.objects.filter(is_currently_applied=True)[0]
+    previous_chosen_method.is_currently_applied = False
+    previous_chosen_method_save_obj = previous_chosen_method.save(update_fields=["is_currently_applied"])
+    return previous_chosen_method_save_obj()
 
-
-def inactivating_previous_method():
-    pass
-
-def activating_new_chosen_method():
-    pass
-
-def create_new_accounting_period_obj():
-    pass
+def activating_new_chosen_method(method):
+    method.is_currently_applied = True
+    method_obj = method.save(update_fields=["is_currently_applied"])
+    return method_obj
