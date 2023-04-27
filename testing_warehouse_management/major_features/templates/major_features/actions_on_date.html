@@ -8,7 +8,13 @@
 {% if keep_method_form %}
 <form action="{% url 'keep_current_method' %}" method="post">
     {% csrf_token %}
-    {{ keep_method_form.as_p }}
+    <fieldset>
+        <legend>
+            Bạn có muốn giữ phương pháp hiện tại: {{ method_name }} không?
+        </legend>
+        {{ keep_method_form.as_p }}
+    </fieldset>
+    <p><a href="{% url 'apply_warehouse_management' %}">Chọn phương pháp khác</a></p>
     <input type="submit" value="Submit">
 </form>
 {% endif %}

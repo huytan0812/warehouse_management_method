@@ -68,8 +68,10 @@ def date_handling(request):
             }
 
             if is_last_day_of_month(get_datepicker):
-                if WarehouseManagementMethod.objects.filter(is_currently_applied=True).count() == 1:
+                chosen_method = WarehouseManagementMethod.objects.filter(is_currently_applied=True)
+                if chosen_method.count() == 1:
                     context["keep_method_form"] = KeepMethodForm()
+                    context["method_name"] = chosen_method[0].name
 
             return render(request, "major_features/actions_on_date.html", context)
 
@@ -96,17 +98,11 @@ def apply_warehouse_management(request):
         # Only setting method_count = 0
         # or datepicker is last day of a month
         # when deploy production
-        method_count = WarehouseManagementMethod.objects.filter(is_currently_applied=True).count()
-
-        if method_count == 0 or is_last_day_of_month(get_date_utc_now()):
-            warehouse_management_method_form = WarehouseManagementMethodForm()
-            context = {
-                'warehouse_management_method_form': warehouse_management_method_form
-            }
-            return render(request, "major_features/apply_warehouse_management.html", context)
-        
-        else:
-            return HttpResponse("Warning: Invalid access", content_type="text/plain")
+        warehouse_management_method_form = WarehouseManagementMethodForm()
+        context = {
+            'warehouse_management_method_form': warehouse_management_method_form
+        }
+        return render(request, "major_features/apply_warehouse_management.html", context)
     
     if request.method == "POST":
         warehouse_management_method_form = WarehouseManagementMethodForm(request.POST)
