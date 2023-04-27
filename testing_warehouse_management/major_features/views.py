@@ -68,11 +68,10 @@ def date_handling(request):
             }
 
             if is_last_day_of_month(get_datepicker):
-                context["warehouse_management_method_form"] = WarehouseManagementMethodForm()
                 if WarehouseManagementMethod.objects.filter(is_currently_applied=True).count() == 1:
                     context["keep_method_form"] = KeepMethodForm()
 
-            return render(request, "major_features/apply_warehouse_management.html", context)
+            return render(request, "major_features/actions_on_date.html", context)
 
 def get_date_utc_now():
     datetime_now = datetime.now()
@@ -81,8 +80,15 @@ def get_date_utc_now():
     date_utc_now = datetime_utc_now.date()
     return date_utc_now
 
-def keep_method(request):
-    pass
+def keep_current_method(request):
+    if request.method == "POST":
+        keep_method_form = KeepMethodForm(request.POST)
+        if keep_method_form.is_valid():
+            is_keep = keep_method_form.cleaned_data["is_keep"]
+            choices = keep_method_form.fields["is_keep"].choices
+            return HttpResponse(f"is_keep: {is_keep}, choices: {choices}", content_type="text/plain")
+        else:
+            return HttpResponse("Invalid", content_type="text/plain")
 
 def apply_warehouse_management(request):
 

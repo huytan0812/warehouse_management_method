@@ -1,13 +1,10 @@
 {% extends "major_features/layout.html" %}
 
 {% block body %}
-<h2>{{ datepicker|date:"d/m/Y" }}</h2>
-<h2>{{ datepicker_by_POST }}</h2>
 
 {% if warehouse_management_method_form %}
 <form action="{% url 'apply_warehouse_management' %}" method="post">
     {% csrf_token %}
-    {{ keep_method_form.as_p }}
     {{ warehouse_management_method_form.as_p }}
     <input type="submit" value="Submit">
 </form>

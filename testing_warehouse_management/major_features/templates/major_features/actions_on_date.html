@@ -1,0 +1,18 @@
+{% extends "major_features/layout.html" %}
+
+{% block body %}
+
+<h2>{{ datepicker|date:"d/m/Y" }}</h2>
+<h2>{{ datepicker_by_POST }}</h2>
+
+{% if keep_method_form %}
+<form action="{% url 'keep_current_method' %}" method="post">
+    {% csrf_token %}
+    {{ keep_method_form.as_p }}
+    <input type="submit" value="Submit">
+</form>
+{% endif %}
+
+<a href="#">Lô hàng nhập kho theo ngày {{ datepicker|date:"d/m/Y" }}</a>
+<a href="#">Lô hàng xuất kho theo ngày {{ datepicker|date:"d/m/Y" }}</a>
+{% endblock %}
