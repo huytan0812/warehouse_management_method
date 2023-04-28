@@ -164,7 +164,7 @@ def deactivating_previous_method():
     previous_chosen_method = WarehouseManagementMethod.objects.filter(is_currently_applied=True)[0]
     previous_chosen_method.is_currently_applied = False
     previous_chosen_method_save_obj = previous_chosen_method.save(update_fields=["is_currently_applied"])
-    return previous_chosen_method_save_obj()
+    return previous_chosen_method_save_obj
 
 def activating_new_chosen_method(method):
     method.is_currently_applied = True
