@@ -75,6 +75,18 @@ def date_handling(request):
 
             return render(request, "major_features/actions_on_date.html", context)
 
+def import_shipments(request):
+    context = {
+
+    }
+    return render(request, "major_features/import_shipments.html", context)
+
+def export_shipments(request):
+    context = {
+
+    }
+    return render(request, "major_features/export_shipments.html", context)
+
 def get_date_utc_now():
     datetime_now = datetime.now()
     UTC = pytz.utc
