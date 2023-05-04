@@ -62,9 +62,13 @@ def date_handling(request):
         if datepicker_form.is_valid():
             get_datepicker_by_POST = request.POST.get("date_field")
             get_datepicker = datepicker_form.cleaned_data["date_field"]
+
+            datepicker_format_for_url = "%d-%m-%Y"
+
             context = {
-                'datepicker': datepicker_form.cleaned_data["date_field"],
-                'datepicker_by_POST': get_datepicker_by_POST
+                'datepicker': get_datepicker,
+                'datepicker_by_POST': get_datepicker_by_POST,
+                'datepicker_to_str': get_datepicker.strftime(datepicker_format_for_url)
             }
 
             if is_last_day_of_month(get_datepicker):
@@ -75,15 +79,15 @@ def date_handling(request):
 
             return render(request, "major_features/actions_on_date.html", context)
 
-def import_shipments(request):
+def import_shipments(request, testing_date):
     context = {
-
+        'datepicker': testing_date
     }
     return render(request, "major_features/import_shipments.html", context)
 
-def export_shipments(request):
+def export_shipments(request, testing_date):
     context = {
-
+        'datepicker': testing_date
     }
     return render(request, "major_features/export_shipments.html", context)
 

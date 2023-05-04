@@ -19,6 +19,8 @@
 </form>
 {% endif %}
 
-<a href="{% url 'import_shipments' %}">Lô hàng nhập kho theo ngày {{ datepicker|date:"d/m/Y" }}</a>
-<a href="{% url 'export_shipments' %}">Lô hàng xuất kho theo ngày {{ datepicker|date:"d/m/Y" }}</a>
+<a href="{% url 'import_shipments' datepicker %}">Lô hàng nhập kho theo ngày {{ datepicker|date:"d/m/Y" }}</a>
+<a href="{% url 'export_shipments' datepicker %}">Lô hàng xuất kho theo ngày {{ datepicker|date:"d/m/Y" }}</a>
+
+<p>Testing date: {{ datepicker_to_str }}</p>
 {% endblock %}
