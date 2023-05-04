@@ -1,5 +1,5 @@
 {% extends "major_features/layout.html" %}
 
 {% block body %}
-<h2>Trang theo dõi các lô hàng xuất kho theo ngày: {{ datepicker }}</h2>
+<h2>Trang theo dõi các lô hàng xuất kho theo ngày: {{ datepicker|date:"d/m/Y" }}</h2>
 {% endblock %}
