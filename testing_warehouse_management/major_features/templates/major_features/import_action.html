@@ -1,0 +1,46 @@
+{% extends "major_features/layout.html" %}
+
+{% block body %}
+<h2>Đơn nhập kho lô hàng</h2>
+<form action="" method="post">
+    {% csrf_token %}
+    <fieldset>
+        <legend>
+            Thông tin tổng quan lô hàng
+        </legend>
+        {{ import_shipment_form.as_p }}
+    </fieldset>
+
+    <fieldset>
+        <legend>
+            Chi tiết lô hàng nhập kho:
+        </legend>
+        <table class="table">
+            <thead>
+              <tr>
+                <th scope="col">#</th>
+                <th scope="col">Sản phẩm</th>
+                <th scope="col">Số lượng nhập kho</th>
+                <th scope="col">Đơn giá nhập kho</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">1</th>
+                {% for field in import_purchase_form %}
+                    <td>{{ field }}</td>
+                {% endfor %}
+              </tr>
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="4" style="text-align: center; vertical-align: middle; border: 0px;">
+                        <button style="border-radius: 20%; border-color: cadetblue;">+</button>
+                    </td>
+                </tr>
+            </tfoot>
+          </table>
+    </fieldset>
+
+</form>
+{% endblock %}

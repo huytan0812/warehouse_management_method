@@ -17,3 +17,36 @@ class WarehouseManagementMethodForm(ModelForm):
         widgets = {
             'name': forms.Select(attrs={}),
         }
+
+class ImportShipmentForm(ModelForm):
+    
+    class Meta:
+        model = ImportShipment
+        fields = ["import_shipment_code", "supplier_id", "date"]
+        widgets = {
+            'import_shipment_code': forms.TextInput(attrs={}),
+            'supplier_id': forms.Select(attrs={}),
+            'date': forms.DateInput(attrs={'type': "date"}),
+        }
+        labels = {
+            'import_shipment_code': "Mã lô hàng nhập kho",
+            'supplier_id': "Chọn nhà cung cấp",
+            'date': "Ngày",
+        }
+
+
+class ImportPurchaseForm(ModelForm):
+
+    class Meta:
+        model = ImportPurchase
+        fields = ["product_id", "quantity_import", "import_cost"]
+        widgets = {
+            'product_id': forms.Select(attrs={}),
+            'quantity_import': forms.NumberInput(attrs={}),
+            'import_cost': forms.NumberInput(attrs={})
+        }
+        labels = {
+            'product_id': "",
+            'quantity_import': "",
+            'import_cost': "",
+        }

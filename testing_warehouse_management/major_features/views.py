@@ -85,6 +85,13 @@ def import_shipments(request, testing_date):
     }
     return render(request, "major_features/import_shipments.html", context)
 
+def import_action(request):
+    context = {
+        'import_shipment_form': ImportShipmentForm(),
+        'import_purchase_form': ImportPurchaseForm()
+    }
+    return render(request, "major_features/import_action.html", context)
+
 def export_shipments(request, testing_date):
     context = {
         'datepicker': testing_date

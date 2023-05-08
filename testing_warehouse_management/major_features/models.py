@@ -47,6 +47,7 @@ class Product(models.Model):
         return f"{self.name}"
     
 class ImportShipment(models.Model):
+    import_shipment_code = models.CharField(max_length=20, unique=True, null=False, blank=False, default="")
     supplier_id = models.ForeignKey(Supplier, on_delete=models.CASCADE, null=False, blank=False, related_name="%(class)s_sent_import_shipments")
     date = models.DateField(null=False, blank=False)
     total_shipment_value = models.IntegerField(null=True, blank=True, default=0)
@@ -65,6 +66,7 @@ class ImportPurchase(models.Model):
         return f"Import Purchase of {self.quantity_import} {self.product_id.name} in packaging of Import Shipment Id: {self.import_shipment_id.id}"
     
 class ExportShipment(models.Model):
+    export_shipment_code = models.CharField(max_length=20, unique=True, null=False, blank=False, default="")
     agency_id = models.ForeignKey(Agency, null=False, blank=False, on_delete=models.CASCADE, related_name="%(class)s_received_export_shipments")
     date = models.DateField(null=False, blank=False)
     total_shipment_value = models.IntegerField(null=True, blank=True, default=0)
