@@ -1,3 +1,5 @@
+// Postpone until necessary
+
 document.addEventListener("DOMContentLoaded", function() {
     console.log("Hello World");
     let importPurchaseFormsContainer = document.getElementById("import-purchase-forms-container");

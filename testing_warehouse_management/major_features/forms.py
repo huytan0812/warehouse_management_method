@@ -46,7 +46,7 @@ class ImportPurchaseForm(ModelForm):
             'import_cost': forms.NumberInput(attrs={})
         }
         labels = {
-            'product_id': "",
-            'quantity_import': "",
-            'import_cost': "",
+            'product_id': "Sản phẩm",
+            'quantity_import': "Số lượng nhập kho",
+            'import_cost': "Đơn giá nhập kho",
         }
