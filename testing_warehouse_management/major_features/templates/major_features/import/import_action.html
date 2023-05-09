@@ -26,7 +26,7 @@
                 <th scope="col">Đơn giá nhập kho</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody id="import-purchase-forms-container">
               <tr class="import-purchase-form" id="new-import-purchase-row">
                 <th scope="row">1</th>
                 {% for field in import_purchase_form %}
@@ -37,12 +37,14 @@
             <tfoot>
                 <tr>
                     <td colspan="4" style="text-align: center; vertical-align: middle; border: 0px;">
-                        <button style="border-radius: 20%; border-color: cadetblue;">+</button>
+                        <button id="add-purchase-form" style="border-radius: 20%; border-color: cadetblue;">+</button>
                     </td>
                 </tr>
             </tfoot>
           </table>
-    </fieldset>
+        </fieldset>
+
+        <input type="submit" value="Submit">
 
 </form>
 {% endblock %}
