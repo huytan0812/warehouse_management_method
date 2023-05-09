@@ -1,5 +1,7 @@
 {% extends "major_features/layout.html" %}
 
+{% load static %}
+
 {% block body %}
 <h2>Đơn nhập kho lô hàng</h2>
 <form action="" method="post">
@@ -25,7 +27,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr>
+              <tr class="import-purchase-form" id="new-import-purchase-row">
                 <th scope="row">1</th>
                 {% for field in import_purchase_form %}
                     <td>{{ field }}</td>
@@ -43,4 +45,8 @@
     </fieldset>
 
 </form>
+{% endblock %}
+
+{% block script %}
+<script src="{% static 'major_features/major_features_js/import/import_action.js' %}"></script>
 {% endblock %}
