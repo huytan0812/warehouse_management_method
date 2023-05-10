@@ -4,3 +4,6 @@ from . models import *
 # Register your models here.
 admin.site.register(WarehouseManagementMethod)
 admin.site.register(AccoutingPeriod)
+admin.site.register(Product)
+admin.site.register(Supplier)
+admin.site.register(Agency)

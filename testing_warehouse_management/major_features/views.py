@@ -86,11 +86,30 @@ def import_shipments(request, testing_date):
     return render(request, "major_features/import/import_shipments.html", context)
 
 def import_action(request):
+    if request.method == "POST":
+        import_shipment_form = ImportShipmentForm(request.POST)
+        import_purchase_form = ImportPurchaseForm(request.POST)
+
+        if import_shipment_form.is_valid() and import_purchase_form.is_valid():
+            if "save_and_continue" in request.POST:
+                return save_and_continue()
+            
+            if "save_and_complete" in request.POST:
+                return save_and_complete()
+        else:
+            return HttpResponse("Invalid Form", content_type="text/plain")
+            
     context = {
         'import_shipment_form': ImportShipmentForm(),
         'import_purchase_form': ImportPurchaseForm()
     }
     return render(request, "major_features/import/import_action.html", context)
+
+def save_and_continue(request):
+    pass
+
+def save_and_complete(request):
+    pass
 
 def export_shipments(request, testing_date):
     context = {

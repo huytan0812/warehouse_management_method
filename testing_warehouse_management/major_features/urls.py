@@ -12,4 +12,6 @@ urlpatterns = [
     path("import_shipments/<date:testing_date>", views.import_shipments, name="import_shipments"),
     path("import_action", views.import_action, name="import_action"),
     path("export_shipments/<date:testing_date>", views.export_shipments, name="export_shipments"),
+    path("import_action/save_and_continue", views.save_and_continue, name="save_and_continue"),
+    path("import_action/save_and_complete", views.save_and_complete, name="save_and_complete"),
 ]
