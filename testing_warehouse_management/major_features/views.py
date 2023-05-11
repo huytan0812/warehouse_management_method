@@ -91,8 +91,14 @@ def import_action(request):
         import_purchase_form = ImportPurchaseForm(request.POST)
 
         if import_shipment_form.is_valid() and import_purchase_form.is_valid():
+
+            import_shipment_obj = import_shipment_form.save()
+            import_purchase_obj = import_purchase_form.save(commit=False)
+            import_purchase_obj.import_shipment_id = import_shipment_obj
+            import_purchase_obj.save()
+
             if "save_and_continue" in request.POST:
-                return save_and_continue()
+                return HttpResponseRedirect(reverse('save_and_continue'))
             
             if "save_and_complete" in request.POST:
                 return save_and_complete()
@@ -106,7 +112,10 @@ def import_action(request):
     return render(request, "major_features/import/import_action.html", context)
 
 def save_and_continue(request):
-    pass
+    context = {
+        "import_shipment_form": ImportShipmentForm()
+    }
+    return render(request, "major_features/import/save_and_continue.html", context)
 
 def save_and_complete(request):
     pass
