@@ -63,7 +63,7 @@ class ImportPurchase(models.Model):
     import_cost = models.IntegerField(null=False, blank=False, default=1)
 
     def __str__(self):
-        return f"Import Purchase of {self.quantity_import} {self.product_id.name} in packaging of Import Shipment Id: {self.import_shipment_id.id}"
+        return f"Import Purchase of {self.quantity_import} {self.product_id.name} in packaging of Import Shipment Id: {self.import_shipment_id.import_shipment_code}"
     
 class ExportShipment(models.Model):
     export_shipment_code = models.CharField(max_length=20, unique=True, null=False, blank=False, default="")

@@ -1,8 +1,7 @@
 {% extends "major_features/layout.html" %}
 
 {% block body %}
-<h2>Save & continue page</h2>
-
+<h2>Save & complete page</h2>
 <div id="import-shipment-container">
     <p>Mã lô hàng: <strong>{{ import_shipment_code }}</strong></p>
     <p>Nhà cung cấp lô hàng: <strong>{{ import_shipment_supplier }}</strong></p>
@@ -35,10 +34,8 @@
       </table>
 </div>
 
-<form action="{% url 'save_and_continue' import_shipment_code %}" method="post">
-    {% csrf_token %}
-    {{ import_purchase_form.as_p }}
-    <button type="submit" name="save_and_continue">Lưu và tiếp tục nhập kho sản phẩm theo lô hàng trên</button>
-    <button type="submit" name="save_and_complete">Hoàn tất</button>
-</form>
+<p>Tổng giá trị nhập kho của lô hàng {{ import_shipment_code }}: <strong>{{ import_shipment_value }}</strong></p>
+
+<a href="{% url 'index' %}">Trang chủ</a>
+
 {% endblock %}

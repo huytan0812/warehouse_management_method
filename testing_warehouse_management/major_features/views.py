@@ -98,10 +98,10 @@ def import_action(request):
             import_purchase_obj.save()
 
             if "save_and_continue" in request.POST:
-                return HttpResponseRedirect(reverse('save_and_continue'))
+                return HttpResponseRedirect(reverse('save_and_continue', kwargs={'import_shipment_code': import_shipment_obj.import_shipment_code}))
             
             if "save_and_complete" in request.POST:
-                return save_and_complete()
+                return HttpResponseRedirect(reverse('save_and_complete', kwargs={'import_shipment_code': import_shipment_obj.import_shipment_code}))
         else:
             return HttpResponse("Invalid Form", content_type="text/plain")
             
@@ -111,13 +111,63 @@ def import_action(request):
     }
     return render(request, "major_features/import/import_action.html", context)
 
-def save_and_continue(request):
+def save_and_continue(request, import_shipment_code):
+    import_shipment_obj = ImportShipment.objects.select_related('supplier_id').get(import_shipment_code=import_shipment_code)
+
+    if request.method == "POST":
+        import_purchase_form = ImportPurchaseForm(request.POST)
+
+        if import_purchase_form.is_valid():
+            import_purchase_obj = import_purchase_form.save(commit=False)
+            import_purchase_obj.import_shipment_id = import_shipment_obj
+            import_purchase_obj.save()
+
+            if "save_and_continue" in request.POST:
+                return HttpResponseRedirect(reverse("save_and_continue", kwargs={'import_shipment_code': import_shipment_obj.import_shipment_code}))
+        
+            if "save_and_complete" in request.POST:
+                return HttpResponseRedirect(reverse('save_and_complete', kwargs={'import_shipment_code': import_shipment_obj.import_shipment_code}))
+
+        else:
+            return HttpResponse("Invalid form", content_type="text/plain")
+
+    import_shipment_purchases = ImportPurchase.objects.select_related('product_id').filter(import_shipment_id=import_shipment_obj)
+
     context = {
-        "import_shipment_form": ImportShipmentForm()
+        'import_shipment_code': import_shipment_obj.import_shipment_code,
+        'import_shipment_supplier': import_shipment_obj.supplier_id,
+        'import_shipment_date': import_shipment_obj.date,
+        'import_shipment_purchases': import_shipment_purchases,
+        "import_purchase_form": ImportPurchaseForm()
     }
     return render(request, "major_features/import/save_and_continue.html", context)
 
-def save_and_complete(request):
+def save_and_complete(request, import_shipment_code):
+    import_shipment_obj = ImportShipment.objects.select_related('supplier_id').get(import_shipment_code=import_shipment_code)
+    import_shipment_purchases = ImportPurchase.objects.select_related('product_id').filter(import_shipment_id=import_shipment_obj)
+
+    total_import_shipment_value = 0
+    for import_purchase in import_shipment_purchases:
+        import_purchase_value = import_purchase.quantity_import * import_purchase.import_cost
+        total_import_shipment_value += import_purchase_value
+
+    import_shipment_obj.total_shipment_value = total_import_shipment_value
+    import_shipment_obj.save(update_fields=["total_shipment_value"])
+
+    context = {
+        'import_shipment_code': import_shipment_obj.import_shipment_code,
+        'import_shipment_supplier': import_shipment_obj.supplier_id,
+        'import_shipment_date': import_shipment_obj.date,
+        'import_shipment_purchases': import_shipment_purchases,
+        'import_shipment_value': import_shipment_obj.total_shipment_value,
+        "import_purchase_form": ImportPurchaseForm()
+    }
+    return render(request, "major_features/import/save_and_complete.html", context)
+
+def import_purchase_update(request, import_purchase_id):
+    pass
+
+def import_purchase_delete(request, import_purchase_id):
     pass
 
 def export_shipments(request, testing_date):
