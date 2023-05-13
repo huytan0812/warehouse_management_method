@@ -166,7 +166,16 @@ def save_and_complete(request, import_shipment_code):
 
 def import_purchase_update(request, import_purchase_id):
     import_purchase_obj = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').get(pk=import_purchase_id)
+    import_shipment_code = import_purchase_obj.import_shipment_id.import_shipment_code
     import_purchase_form = ImportPurchaseForm(instance=import_purchase_obj)
+
+    if request.method == "POST":
+        import_purchase_form = ImportPurchaseForm(request.POST, instance=import_purchase_obj)
+        if import_purchase_form.is_valid():
+            import_purchase_form.save()
+            return HttpResponseRedirect(reverse('save_and_continue', kwargs={'import_shipment_code': import_shipment_code}))
+        else:
+            return HttpResponse("Invalid form", content_type="text/plain")
 
     context = {
         'import_purchase_form': import_purchase_form,
@@ -176,7 +185,12 @@ def import_purchase_update(request, import_purchase_id):
     return render(request, "major_features/import/edit_import_purchase.html", context)
 
 def import_purchase_delete(request, import_purchase_id):
-    pass
+    import_purchase_obj = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').get(pk=import_purchase_id)
+    import_shipment_code = import_purchase_obj.import_shipment_id.import_shipment_code
+
+    import_purchase_obj.delete()
+
+    return HttpResponseRedirect(reverse('save_and_continue', kwargs={'import_shipment_code': import_shipment_code}))
 
 def export_shipments(request, testing_date):
     context = {

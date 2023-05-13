@@ -1,7 +1,7 @@
 {% extends "major_features/layout.html" %}
 
 {% block body %}
-<h2>Chỉnh sửa đơn hàng nhập kho thuộc lô hàng {{ import_purchase_obj.import_purchase_id.import_shipment_code }}</h2>
+<h2>Chỉnh sửa đơn hàng nhập kho thuộc lô hàng {{ import_purchase_obj.import_shipment_id.import_shipment_code }}</h2>
 
 <form action="{% url 'import_purchase_update' import_purchase_obj.id %}" method="post">
     {% csrf_token %}
