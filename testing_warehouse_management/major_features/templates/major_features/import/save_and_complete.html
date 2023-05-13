@@ -36,6 +36,8 @@
 
 <p>Tổng giá trị nhập kho của lô hàng {{ import_shipment_code }}: <strong>{{ import_shipment_value }}</strong></p>
 
+<a href="{% url 'save_and_continue' import_shipment_code %}">Thêm đơn hàng mới cho lô hàng {{ import_shipment_code }}</a>
+
 <a href="{% url 'index' %}">Trang chủ</a>
 
 {% endblock %}

@@ -41,4 +41,6 @@
     <button type="submit" name="save_and_continue">Lưu và tiếp tục nhập kho sản phẩm theo lô hàng trên</button>
     <button type="submit" name="save_and_complete">Lưu và hoàn tất</button>
 </form>
+
+<a href="{% url 'save_and_complete' import_shipment_code %}">Hoàn tất việc nhập kho lô hàng</a>
 {% endblock %}
