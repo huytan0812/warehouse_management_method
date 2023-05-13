@@ -1,0 +1,29 @@
+{% extends "major_features/layout.html" %}
+
+{% block body %}
+<h2>Chi tiết lô hàng nhập kho {{ import_shipment_obj.import_shipment_code }}</h2>
+<div id="import-shipment-details">
+    <table class="table">
+        <thead>
+          <tr>
+            <th scope="col">Mã đơn hàng</th>
+            <th scope="col">Sản phẩm</th>
+            <th scope="col">Số lượng nhập kho</th>
+            <th scope="col">Số lượng còn lại</th>
+            <th scope="col">Đơn giá nhập kho</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for import_purchase in import_purchases %}
+          <tr>
+            <td>{{ import_purchase.id }}</td>
+            <td>{{ import_purchase.product_id.name }}</td>
+            <td>{{ import_purchase.quantity_import }}</td>
+            <td>{{ import_purchase.quantity_remain }}</td>
+            <td>{{ import_purchase.import_cost }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+</div>
+{% endblock %}

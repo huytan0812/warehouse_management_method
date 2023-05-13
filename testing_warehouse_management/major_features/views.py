@@ -80,10 +80,24 @@ def date_handling(request):
             return render(request, "major_features/actions_on_date.html", context)
 
 def import_shipments(request, testing_date):
+    import_shipments = ImportShipment.objects.select_related('supplier_id').filter(date=testing_date)
+
     context = {
-        'datepicker': testing_date
+        'datepicker': testing_date,
+        'import_shipments': import_shipments
     }
     return render(request, "major_features/import/import_shipments.html", context)
+
+def import_shipment_details(request, import_shipment_code):
+    import_shipment_obj = ImportShipment.objects.get(import_shipment_code=import_shipment_code)
+    import_shipment_purchases = ImportPurchase.objects.select_related('product_id').filter(import_shipment_id=import_shipment_obj)
+
+    context = {
+        'import_shipment_obj': import_shipment_obj,
+        'import_purchases': import_shipment_purchases
+    }
+
+    return render(request, "major_features/import/import_shipment_details.html", context)
 
 def import_action(request):
     if request.method == "POST":

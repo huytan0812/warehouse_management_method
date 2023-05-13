@@ -10,6 +10,7 @@ urlpatterns = [
     path("apply_warehouse_management", views.apply_warehouse_management, name="apply_warehouse_management"),
     path("keep_current_method", views.keep_current_method, name="keep_current_method"),
     path("import_shipments/<date:testing_date>", views.import_shipments, name="import_shipments"),
+    path("import_shipment_details/<str:import_shipment_code>", views.import_shipment_details, name="import_shipment_details"),
     path("import_action", views.import_action, name="import_action"),
     path("export_shipments/<date:testing_date>", views.export_shipments, name="export_shipments"),
     path("import_action/save_and_continue/<str:import_shipment_code>", views.save_and_continue, name="save_and_continue"),

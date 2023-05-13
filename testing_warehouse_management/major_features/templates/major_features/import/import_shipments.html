@@ -2,5 +2,29 @@
 
 {% block body %}
 <h2>Trang theo dõi các lô hàng nhập kho theo ngày: {{ datepicker|date:"d/m/Y" }}</h2>
+<div id="import-shipment-container">
+    <table class="table">
+        <thead>
+          <tr>
+            <th scope="col">Mã lô hàng</th>
+            <th scope="col">Nhà cung cấp</th>
+            <th scope="col">Ngày nhập kho</th>
+            <th scope="col">Tổng giá trị lô hàng</th>
+            <th scope="col">Theo dõi</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for import_shipment in import_shipments %}
+          <tr>
+            <td>{{ import_shipment.import_shipment_code }}</td>
+            <td>{{ import_shipment.supplier_id.name }}</td>
+            <td>{{ import_shipment.date }}</td>
+            <td>{{ import_shipment.total_shipment_value }}</td>
+            <td><a href="{% url 'import_shipment_details' import_shipment.import_shipment_code %}">Lô hàng</a></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+</div>
 <a href="{% url 'import_action' %}">Nhập kho lô hàng</a>
 {% endblock %}
