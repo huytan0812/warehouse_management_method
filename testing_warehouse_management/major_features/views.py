@@ -165,7 +165,15 @@ def save_and_complete(request, import_shipment_code):
     return render(request, "major_features/import/save_and_complete.html", context)
 
 def import_purchase_update(request, import_purchase_id):
-    pass
+    import_purchase_obj = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').get(pk=import_purchase_id)
+    import_purchase_form = ImportPurchaseForm(instance=import_purchase_obj)
+
+    context = {
+        'import_purchase_form': import_purchase_form,
+        'import_purchase_obj': import_purchase_obj
+    }
+
+    return render(request, "major_features/import/edit_import_purchase.html", context)
 
 def import_purchase_delete(request, import_purchase_id):
     pass
