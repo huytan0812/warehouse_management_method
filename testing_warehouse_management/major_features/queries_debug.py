@@ -1,6 +1,7 @@
 import pytz
 import calendar
 from datetime import date, datetime, timedelta
+from . models import *
 
 def renew_previous_method(date_obj):
     # Get the latest accounting period
@@ -30,3 +31,15 @@ def convert_to_next_last_day():
 
     for date_obj in dates:
         print(renew_previous_method(date_obj))
+
+def validating_shipment_value():
+    import_shipments = ImportShipment.objects.all()
+    for import_shipment_obj in import_shipments:
+        import_shipment_obj_purchases = ImportPurchase.objects.filter(import_shipment_id=import_shipment_obj)
+        current_import_shipment_obj_value = 0
+        for purchase in import_shipment_obj_purchases:
+            current_import_shipment_obj_value += purchase.quantity_remain * purchase.import_cost
+        print(f"Import Shipment Code: {import_shipment_obj.import_shipment_code} {import_shipment_obj.total_shipment_value} | {current_import_shipment_obj_value}")
+        if current_import_shipment_obj_value != import_shipment_obj.total_shipment_value:
+            return False
+    return True
