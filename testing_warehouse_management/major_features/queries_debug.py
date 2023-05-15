@@ -43,3 +43,9 @@ def validating_shipment_value():
         if current_import_shipment_obj_value != import_shipment_obj.total_shipment_value:
             return False
     return True
+
+def assigning_quantity_remain():
+    import_purchases = ImportPurchase.objects.all()
+    for purchase in import_purchases:
+        purchase.quantity_remain = purchase.quantity_import
+    return ImportPurchase.objects.bulk_update(import_purchases, ["quantity_remain"])
