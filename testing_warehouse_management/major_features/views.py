@@ -8,6 +8,7 @@ from django.db.models import Max
 from django.urls import reverse
 from . models import *
 from . forms import *
+from . warehouse_management_methods import *
 
 # Create your views here.
 def index(request):
