@@ -1,5 +1,7 @@
 {% extends "major_features/layout.html" %}
 
 {% block body %}
+<p>Phương pháp xác định giá trị hàng tồn kho đang được chọn: <strong>{{ method.name }}</strong></p>
 <h2>Trang theo dõi các lô hàng xuất kho theo ngày: {{ datepicker|date:"d/m/Y" }}</h2>
+<a href="#">Thực hiện xuất kho lô hàng</a>
 {% endblock %}
