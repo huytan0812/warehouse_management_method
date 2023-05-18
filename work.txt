@@ -1,0 +1,10 @@
+- In this project, I use one accounting period last one month. In real world, one accounting period may last one month, one quarter, & one year
+- At the end of the month, I need to do two things:
+    +) Rendering a menu of remain warehouse management methods for user to choose, & a button represents that the current method
+    should be kept until the end of last month
+    +) Summarize all products quantity on hand according to product's import purchases & export orders
+- Tempoprary questions:
+    +) Does signal handler in Django acts like asynchronous or multi threading
+    +) Between using normal function in views.py & signal handler, which one better & why?
+    => Deciding to choose signal handler to handle the export shipment view & import shipment view (particularly assigning value for 
+    product's quantity on hand field & product's current total value field). That is my task today

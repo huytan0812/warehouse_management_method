@@ -13,9 +13,11 @@ from . warehouse_management_methods import *
 # Create your views here.
 def index(request):
 
+    products = Product.objects.all()
     date_picker_form = DatePickerForm()
 
     context = {
+        'products': products,
         'date_picker_form': date_picker_form
     }
 
