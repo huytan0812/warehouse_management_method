@@ -1,8 +1,32 @@
+from django.db import connection, reset_queries
+import time
+import functools
 import pytz
 import calendar
 from datetime import date, datetime, timedelta
 from django.db.models import Sum
 from . models import *
+
+def query_debugger(func):
+    @functools.wraps(func)
+    def inner_func(*args, **kwargs):
+        reset_queries()
+
+        start_queries = len(connection.queries)
+
+        start = time.perf_counter()
+        result = func(*args, **kwargs)
+        end = time.perf_counter()
+
+        end_queries = len(connection.queries)
+
+        print("Function : " + func.__name__)
+        print("Number of Queries : {}".format(end_queries - start_queries))
+        print("Finished in : {}".format(end - start))
+
+        return result
+
+    return inner_func
 
 def renew_previous_method(date_obj):
     # Get the latest accounting period
@@ -51,13 +75,14 @@ def assigning_quantity_remain():
         purchase.quantity_remain = purchase.quantity_import
     return ImportPurchase.objects.bulk_update(import_purchases, ["quantity_remain"])
 
+@query_debugger
 def assigning_quantity_on_hand():
     products = Product.objects.all()
     for product in products:
-        import_purchases_by_product = ImportPurchase.objects.filter(product_id=product)
+        import_purchases_by_product = ImportPurchase.objects.filter(product_id=product.pk)
         import_purchases_by_product_sum = import_purchases_by_product.aggregate(Sum('quantity_remain')).get("quantity_remain__sum", 0)
         product.quantity_on_hand = import_purchases_by_product_sum
-    return Product.objects.bulk_update(products, ["quantity_on_hand"])
+    Product.objects.bulk_update(products, ["quantity_on_hand"])
 
 def is_equal_quantity_on_hand():
     products = Product.objects.all()
@@ -69,18 +94,20 @@ def is_equal_quantity_on_hand():
             return False
     return True
 
+@query_debugger
 def assigning_current_total_value():
     product_current_total_value = {}
     purchases = ImportPurchase.objects.select_related('product_id').all()
+    products = Product.objects.all()
     for purchase in purchases:
         if purchase.product_id.name not in product_current_total_value:
             product_current_total_value[purchase.product_id.name] = purchase.quantity_remain * purchase.import_cost
         else:
             product_current_total_value[purchase.product_id.name] += purchase.quantity_remain * purchase.import_cost
     for obj in product_current_total_value:
-        product = Product.objects.get(name=obj)
+        product = products.get(name=obj)
         product.current_total_value = product_current_total_value[obj]
-        product.save(update_fields=["current_total_value"])
+    Product.objects.bulk_update(products, ["quantity_on_hand"])
     
 def is_equal_current_total_value():
     product_current_total_value = {}
@@ -107,5 +134,19 @@ def is_equal_current_total_value():
 
     return True
 
+@query_debugger
+def count_queries():
+    products = Product.objects.all()
+    for product in products:
+        purchase = ImportPurchase.objects.filter(product_id=product)
+        purchase_sum = purchase.aggregate(Sum("quantity_remain")).get("quantity_remain__sum", 0)
+        product.quantity_on_hand = purchase_sum
+    Product.objects.bulk_update(products, ["quantity_on_hand"])
 
-
+@query_debugger
+def assigning_address_for_supplier():
+    suppliers = Supplier.objects.all()
+    suppliers[0].address = "Nha Trang City"
+    suppliers[1].address = "Nha Trang City"
+    suppliers[2].address = "Nha Trang City"
+    Supplier.objects.bulk_update(suppliers, ["address"])
