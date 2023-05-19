@@ -1,6 +1,7 @@
 import pytz
 import calendar
 from datetime import date, datetime, timedelta
+from django.db.models import Sum
 from . models import *
 
 def renew_previous_method(date_obj):
@@ -49,3 +50,62 @@ def assigning_quantity_remain():
     for purchase in import_purchases:
         purchase.quantity_remain = purchase.quantity_import
     return ImportPurchase.objects.bulk_update(import_purchases, ["quantity_remain"])
+
+def assigning_quantity_on_hand():
+    products = Product.objects.all()
+    for product in products:
+        import_purchases_by_product = ImportPurchase.objects.filter(product_id=product)
+        import_purchases_by_product_sum = import_purchases_by_product.aggregate(Sum('quantity_remain')).get("quantity_remain__sum", 0)
+        product.quantity_on_hand = import_purchases_by_product_sum
+    return Product.objects.bulk_update(products, ["quantity_on_hand"])
+
+def is_equal_quantity_on_hand():
+    products = Product.objects.all()
+    for product in products:
+        import_purchases_by_product = ImportPurchase.objects.filter(product_id=product)
+        import_purchases_by_product_sum = import_purchases_by_product.aggregate(Sum("quantity_remain")).get("quantity_remain__sum", 0)
+        print(f"Product: {product.quantity_on_hand} - Purchase: {import_purchases_by_product_sum}")
+        if product.quantity_on_hand != import_purchases_by_product_sum:
+            return False
+    return True
+
+def assigning_current_total_value():
+    product_current_total_value = {}
+    purchases = ImportPurchase.objects.select_related('product_id').all()
+    for purchase in purchases:
+        if purchase.product_id.name not in product_current_total_value:
+            product_current_total_value[purchase.product_id.name] = purchase.quantity_remain * purchase.import_cost
+        else:
+            product_current_total_value[purchase.product_id.name] += purchase.quantity_remain * purchase.import_cost
+    for obj in product_current_total_value:
+        product = Product.objects.get(name=obj)
+        product.current_total_value = product_current_total_value[obj]
+        product.save(update_fields=["current_total_value"])
+    
+def is_equal_current_total_value():
+    product_current_total_value = {}
+    purchases = ImportPurchase.objects.select_related('product_id').all()
+    
+    for purchase in purchases:
+        if purchase.product_id.name not in product_current_total_value:
+            product_current_total_value[purchase.product_id.name] = purchase.quantity_remain * purchase.import_cost
+        else:
+            product_current_total_value[purchase.product_id.name] += purchase.quantity_remain * purchase.import_cost
+
+    product_sum = 0
+    for obj in product_current_total_value:
+        product = Product.objects.get(name=obj)
+        product_sum += product_current_total_value[obj]
+        if product.current_total_value != product_current_total_value[obj]:
+            return False
+        
+    product_agg_sum = Product.objects.all().aggregate(Sum('current_total_value')).get("current_total_value__sum", 0)
+    print(f"Product Aggregate Sum: {product_agg_sum} - Product Sum: {product_sum}")
+
+    if product_sum != product_agg_sum:
+        return False
+
+    return True
+
+
+

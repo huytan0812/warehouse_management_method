@@ -38,7 +38,7 @@ class Agency(models.Model):
     
 class Product(models.Model):
     sku = models.CharField(primary_key=True, default="000000", max_length=14)
-    name = models.CharField(null=False, blank=False, default="", max_length=500)
+    name = models.CharField(null=False, blank=False, default="", unique=True, max_length=500)
     quantity_on_hand = models.IntegerField(null=True, blank=True, default=0)
     minimum_quantity = models.IntegerField(null=True, blank=True, default=1)
     current_total_value = models.IntegerField(null=True, blank=True, default=1)
