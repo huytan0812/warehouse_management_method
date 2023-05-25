@@ -110,9 +110,17 @@ def import_action(request):
         if import_shipment_form.is_valid() and import_purchase_form.is_valid():
 
             import_shipment_obj = import_shipment_form.save()
+
             import_purchase_obj = import_purchase_form.save(commit=False)
             import_purchase_obj.import_shipment_id = import_shipment_obj
             import_purchase_obj.quantity_remain = import_purchase_obj.quantity_import
+
+            product = import_purchase_obj.product_id
+            product.quantity_on_hand += import_purchase_obj.quantity_import
+            product.current_total_value += import_purchase_obj.quantity_import * import_purchase_obj.import_cost
+
+            # Later implement trasaction.atomic()
+            product.save(update_fields=["quantity_on_hand", "current_total_value"])
             import_purchase_obj.save()
 
             if "save_and_continue" in request.POST:
@@ -139,6 +147,13 @@ def save_and_continue(request, import_shipment_code):
             import_purchase_obj = import_purchase_form.save(commit=False)
             import_purchase_obj.import_shipment_id = import_shipment_obj
             import_purchase_obj.quantity_remain = import_purchase_obj.quantity_import
+
+            product = import_purchase_obj.product_id
+            product.quantity_on_hand += import_purchase_obj.quantity_import
+            product.current_total_value += import_purchase_obj.quantity_import * import_purchase_obj.import_cost
+
+            # Later implement trasaction.atomic()
+            product.save(update_fields=["quantity_on_hand", "current_total_value"])
             import_purchase_obj.save()
 
             if "save_and_continue" in request.POST:
