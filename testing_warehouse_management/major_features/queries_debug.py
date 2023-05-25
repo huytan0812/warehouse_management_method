@@ -1,11 +1,13 @@
 from django.db import connection, reset_queries
 import time
 import functools
+from django.db import connection
 import pytz
 import calendar
 from datetime import date, datetime, timedelta
 from django.db.models import Sum
 from . models import *
+
 
 def query_debugger(func):
     @functools.wraps(func)
@@ -107,7 +109,8 @@ def assigning_current_total_value():
     for obj in product_current_total_value:
         product = products.get(name=obj)
         product.current_total_value = product_current_total_value[obj]
-    Product.objects.bulk_update(products, ["quantity_on_hand"])
+    query_obj = Product.objects.bulk_update(products, ["quantity_on_hand"])
+    return query_obj.query
     
 def is_equal_current_total_value():
     product_current_total_value = {}
