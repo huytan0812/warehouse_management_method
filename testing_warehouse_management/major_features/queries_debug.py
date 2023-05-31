@@ -1,4 +1,4 @@
-from django.db import connection, reset_queries
+from django.db import connection, reset_queries, transaction
 import time
 import functools
 import pytz
