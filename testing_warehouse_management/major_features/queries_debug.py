@@ -71,11 +71,16 @@ def validating_shipment_value():
             return False
     return True
 
+@query_debugger
 def assigning_quantity_remain():
     import_purchases = ImportPurchase.objects.all()
     for purchase in import_purchases:
         purchase.quantity_remain = purchase.quantity_import
-    return ImportPurchase.objects.bulk_update(import_purchases, ["quantity_remain"])
+    ImportPurchase.objects.bulk_update(import_purchases, ["quantity_remain"])
+    connection_queries = connection.queries
+    for connection_query in connection_queries:
+        print(connection_query)
+    print(f"Queries: {len(connection_queries)}")
 
 @query_debugger
 def assigning_quantity_on_hand():
@@ -85,6 +90,10 @@ def assigning_quantity_on_hand():
         import_purchases_by_product_sum = import_purchases_by_product.aggregate(Sum('quantity_remain')).get("quantity_remain__sum", 0)
         product.quantity_on_hand = import_purchases_by_product_sum
     Product.objects.bulk_update(products, ["quantity_on_hand"])
+    connection_queries = connection.queries
+    for connection_query in connection_queries:
+        print(connection_query)
+    print(f"Queries: {len(connection_queries)}")
 
 def is_equal_quantity_on_hand():
     products = Product.objects.all()
@@ -109,9 +118,9 @@ def assigning_current_total_value():
     for obj in product_current_total_value:
         product = products.get(name=obj)
         product.current_total_value = product_current_total_value[obj]
-    query_obj = Product.objects.bulk_update(products, ["quantity_on_hand"])
-    return query_obj.query
-    
+    Product.objects.bulk_update(products, ["quantity_on_hand"])
+
+@query_debugger 
 def is_equal_current_total_value():
     product_current_total_value = {}
     purchases = ImportPurchase.objects.select_related('product_id').all()
@@ -132,6 +141,11 @@ def is_equal_current_total_value():
     product_agg_sum = Product.objects.all().aggregate(Sum('current_total_value')).get("current_total_value__sum", 0)
     print(f"Product Aggregate Sum: {product_agg_sum} - Product Sum: {product_sum}")
 
+    connection_queries = connection.queries
+    for connection_query in connection_queries:
+        print(connection_query)
+    print(f"Queries: {len(connection_queries)}")
+
     if product_sum != product_agg_sum:
         return False
 
@@ -145,11 +159,16 @@ def count_queries():
         purchase_sum = purchase.aggregate(Sum("quantity_remain")).get("quantity_remain__sum", 0)
         product.quantity_on_hand = purchase_sum
     Product.objects.bulk_update(products, ["quantity_on_hand"])
+    connection_queries = connection.queries
+    for connection_query in connection_queries:
+        print(connection_query)
+    print(f"Queries: {len(connection_queries)}")
 
 @query_debugger
 def assigning_address_for_supplier():
     suppliers = Supplier.objects.all()
-    suppliers[0].address = "Nha Trang City"
-    suppliers[1].address = "Nha Trang City"
-    suppliers[2].address = "Nha Trang City"
-    Supplier.objects.bulk_update(suppliers, ["address"])
+    for supplier in suppliers:
+        print(supplier.name)
+    connection_queries = connection.queries
+    for connection_query in connection_queries:
+        print(connection_query)
