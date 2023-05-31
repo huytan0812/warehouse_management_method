@@ -6,6 +6,7 @@ import calendar
 import pytz
 from django.db.models import Max
 from django.urls import reverse
+from django.db import transaction
 from . models import *
 from . forms import *
 from . warehouse_management_methods import *
@@ -112,16 +113,17 @@ def import_action(request):
             import_shipment_obj = import_shipment_form.save()
 
             import_purchase_obj = import_purchase_form.save(commit=False)
-            import_purchase_obj.import_shipment_id = import_shipment_obj
-            import_purchase_obj.quantity_remain = import_purchase_obj.quantity_import
 
-            product = import_purchase_obj.product_id
-            product.quantity_on_hand += import_purchase_obj.quantity_import
-            product.current_total_value += import_purchase_obj.quantity_import * import_purchase_obj.import_cost
+            product = Product.objects.select_for_update().get(name=import_purchase_obj.product_id)
+            with transaction.atomic():
+                import_purchase_obj.import_shipment_id = import_shipment_obj
+                import_purchase_obj.quantity_remain = import_purchase_obj.quantity_import
 
-            # Later implement trasaction.atomic()
-            product.save(update_fields=["quantity_on_hand", "current_total_value"])
-            import_purchase_obj.save()
+                product.quantity_on_hand += import_purchase_obj.quantity_import
+                product.current_total_value += import_purchase_obj.quantity_import * import_purchase_obj.import_cost
+
+                product.save(update_fields=["quantity_on_hand", "current_total_value"])
+                import_purchase_obj.save()
 
             if "save_and_continue" in request.POST:
                 return HttpResponseRedirect(reverse('save_and_continue', kwargs={'import_shipment_code': import_shipment_obj.import_shipment_code}))
@@ -145,16 +147,17 @@ def save_and_continue(request, import_shipment_code):
 
         if import_purchase_form.is_valid():
             import_purchase_obj = import_purchase_form.save(commit=False)
-            import_purchase_obj.import_shipment_id = import_shipment_obj
-            import_purchase_obj.quantity_remain = import_purchase_obj.quantity_import
 
-            product = import_purchase_obj.product_id
-            product.quantity_on_hand += import_purchase_obj.quantity_import
-            product.current_total_value += import_purchase_obj.quantity_import * import_purchase_obj.import_cost
+            product = Product.objects.select_for_update().get(name=import_purchase_obj.product_id)
+            with transaction.atomic():
+                import_purchase_obj.import_shipment_id = import_shipment_obj
+                import_purchase_obj.quantity_remain = import_purchase_obj.quantity_import
 
-            # Later implement trasaction.atomic()
-            product.save(update_fields=["quantity_on_hand", "current_total_value"])
-            import_purchase_obj.save()
+                product.quantity_on_hand += import_purchase_obj.quantity_import
+                product.current_total_value += import_purchase_obj.quantity_import * import_purchase_obj.import_cost
+
+                product.save(update_fields=["quantity_on_hand", "current_total_value"])
+                import_purchase_obj.save()
 
             if "save_and_continue" in request.POST:
                 return HttpResponseRedirect(reverse("save_and_continue", kwargs={'import_shipment_code': import_shipment_obj.import_shipment_code}))
@@ -177,16 +180,17 @@ def save_and_continue(request, import_shipment_code):
     return render(request, "major_features/import/save_and_continue.html", context)
 
 def save_and_complete(request, import_shipment_code):
-    import_shipment_obj = ImportShipment.objects.select_related('supplier_id').get(import_shipment_code=import_shipment_code)
-    import_shipment_purchases = ImportPurchase.objects.select_related('product_id').filter(import_shipment_id=import_shipment_obj)
+    import_shipment_obj = ImportShipment.objects.select_related('supplier_id').select_for_update().get(import_shipment_code=import_shipment_code)
+    import_shipment_purchases = ImportPurchase.objects.select_related('product_id').select_for_update().filter(import_shipment_id=import_shipment_obj)
 
     total_import_shipment_value = 0
-    for import_purchase in import_shipment_purchases:
-        import_purchase_value = import_purchase.quantity_import * import_purchase.import_cost
-        total_import_shipment_value += import_purchase_value
+    with transaction.atomic():
+        for import_purchase in import_shipment_purchases:
+            import_purchase_value = import_purchase.quantity_import * import_purchase.import_cost
+            total_import_shipment_value += import_purchase_value
 
-    import_shipment_obj.total_shipment_value = total_import_shipment_value
-    import_shipment_obj.save(update_fields=["total_shipment_value"])
+        import_shipment_obj.total_shipment_value = total_import_shipment_value
+        import_shipment_obj.save(update_fields=["total_shipment_value"])
 
     context = {
         'import_shipment_code': import_shipment_obj.import_shipment_code,
