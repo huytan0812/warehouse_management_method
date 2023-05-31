@@ -1,4 +1,4 @@
-from django.db import connection, reset_queries
+from django.db import connection, reset_queries, transaction
 import time
 import functools
 from django.db import connection
@@ -100,7 +100,7 @@ def is_equal_quantity_on_hand():
     for product in products:
         import_purchases_by_product = ImportPurchase.objects.filter(product_id=product)
         import_purchases_by_product_sum = import_purchases_by_product.aggregate(Sum("quantity_remain")).get("quantity_remain__sum", 0)
-        print(f"Product: {product.quantity_on_hand} - Purchase: {import_purchases_by_product_sum}")
+        print(f"Product {product.name}: {product.quantity_on_hand} - Purchase: {import_purchases_by_product_sum}")
         if product.quantity_on_hand != import_purchases_by_product_sum:
             return False
     return True
@@ -169,6 +169,22 @@ def assigning_address_for_supplier():
     suppliers = Supplier.objects.all()
     for supplier in suppliers:
         print(supplier.name)
+    connection_queries = connection.queries
+    for connection_query in connection_queries:
+        print(connection_query)
+
+def for_testing_transaction():
+    products = Product.objects.all().select_for_update(of=("self",))
+    suppliers = Supplier.objects.all()
+    for supplier in suppliers:
+        print(supplier.name)
+
+    with transaction.atomic():
+        for product in products:
+            print(product.name)
+
+        print(products.explain(ANALYZE=True))
+    
     connection_queries = connection.queries
     for connection_query in connection_queries:
         print(connection_query)
