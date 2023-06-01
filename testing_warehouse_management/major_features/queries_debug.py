@@ -188,3 +188,21 @@ def for_testing_transaction():
     connection_queries = connection.queries
     for connection_query in connection_queries:
         print(connection_query)
+
+@query_debugger
+def for_testing_advance_transaction():
+    import_shipment_purchases = ImportPurchase.objects.select_related('product_id').select_for_update().filter(import_shipment_id=10)
+
+    total_shipment_value = 0
+    with transaction.atomic():
+        import_shipment_obj = ImportShipment.objects.select_related('supplier_id').select_for_update().filter(pk=10)
+        for purchase in import_shipment_purchases:
+            total_shipment_value += purchase.quantity_import * purchase.import_cost
+            print(purchase.product_id.name)
+        print(import_shipment_obj[0].total_shipment_value)
+        print(f"Total Shipment Value in transaction block: {total_shipment_value}")
+    print(f"Total Shipment Value out transaction block: {total_shipment_value}")
+    
+    connection_queries = connection.queries
+    for connection_query in connection_queries:
+        print(connection_query)
