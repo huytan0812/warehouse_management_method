@@ -6,7 +6,7 @@ import calendar
 import pytz
 from django.db.models import Max
 from django.urls import reverse
-from django.db import transaction
+from django.db import transaction, IntegrityError
 from . models import *
 from . forms import *
 from . warehouse_management_methods import *
@@ -116,13 +116,19 @@ def import_action(request):
 
             product = Product.objects.select_for_update().filter(name=import_purchase_obj.product_id)
             with transaction.atomic():
+                product_quantity_on_hand = product[0].quantity_on_hand
+                product_current_total_value = product[0].current_total_value
+
                 import_purchase_obj.import_shipment_id = import_shipment_obj
                 import_purchase_obj.quantity_remain = import_purchase_obj.quantity_import
 
-                product[0].quantity_on_hand += import_purchase_obj.quantity_import
-                product[0].current_total_value += import_purchase_obj.quantity_import * import_purchase_obj.import_cost
+                product_quantity_on_hand += import_purchase_obj.quantity_import
+                product_current_total_value += import_purchase_obj.quantity_import * import_purchase_obj.import_cost
 
-                product[0].save(update_fields=["quantity_on_hand", "current_total_value"])
+                # Model instance saving
+                product.update(quantity_on_hand=product_quantity_on_hand, current_total_value=product_current_total_value)
+
+                # ModelForm object saving
                 import_purchase_obj.save()
 
             if "save_and_continue" in request.POST:
@@ -149,14 +155,21 @@ def save_and_continue(request, import_shipment_code):
             import_purchase_obj = import_purchase_form.save(commit=False)
 
             product = Product.objects.select_for_update().filter(name=import_purchase_obj.product_id)
+
             with transaction.atomic():
+                product_quantity_on_hand = product[0].quantity_on_hand
+                product_current_total_value = product[0].current_total_value
+
                 import_purchase_obj.import_shipment_id = import_shipment_obj
                 import_purchase_obj.quantity_remain = import_purchase_obj.quantity_import
 
-                product[0].quantity_on_hand += import_purchase_obj.quantity_import
-                product[0].current_total_value += import_purchase_obj.quantity_import * import_purchase_obj.import_cost
+                product_quantity_on_hand += import_purchase_obj.quantity_import
+                product_current_total_value += import_purchase_obj.quantity_import * import_purchase_obj.import_cost
 
-                product[0].save(update_fields=["quantity_on_hand", "current_total_value"])
+                # Model instance saving
+                product.update(quantity_on_hand=product_quantity_on_hand, current_total_value=product_current_total_value)
+
+                # ModelForm object saving
                 import_purchase_obj.save()
 
             if "save_and_continue" in request.POST:
@@ -179,26 +192,28 @@ def save_and_continue(request, import_shipment_code):
     }
     return render(request, "major_features/import/save_and_continue.html", context)
 
+@transaction.atomic
 def save_and_complete(request, import_shipment_code):
-    total_import_shipment_value = 0
 
-    # Bug right here
     import_shipment_obj = ImportShipment.objects.select_related('supplier_id').select_for_update().filter(import_shipment_code=import_shipment_code)
     import_shipment_purchases = ImportPurchase.objects.select_related('product_id').select_for_update().filter(import_shipment_id=import_shipment_obj[0])
+    total_import_shipment_value = 0
 
-    with transaction.atomic():
-        for import_purchase in import_shipment_purchases:
-            import_purchase_value = import_purchase.quantity_import * import_purchase.import_cost
-            total_import_shipment_value += import_purchase_value
+    try:
+        with transaction.atomic():
+            for import_purchase in import_shipment_purchases:
+                import_purchase_value = import_purchase.quantity_import * import_purchase.import_cost
+                total_import_shipment_value += import_purchase_value
 
-        import_shipment_obj[0].total_shipment_value = total_import_shipment_value
-        import_shipment_obj[0].save(update_fields=["total_shipment_value"])
+            import_shipment_obj.update(total_shipment_value=total_import_shipment_value)
+    except IntegrityError:
+        raise Exception("Integrity Bug")
 
     context = {
         'import_shipment_code': import_shipment_obj[0].import_shipment_code,
         'import_shipment_supplier': import_shipment_obj[0].supplier_id,
         'import_shipment_date': import_shipment_obj[0].date,
-        'import_shipment_purchases': ImportPurchase.objects.select_related('product_id').filter(import_shipment_id=import_shipment_obj[0]),
+        'import_shipment_purchases': import_shipment_purchases,
         'import_shipment_value': import_shipment_obj[0].total_shipment_value,
         "import_purchase_form": ImportPurchaseForm()
     }

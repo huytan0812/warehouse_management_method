@@ -135,6 +135,7 @@ def is_equal_current_total_value():
     for obj in product_current_total_value:
         product = Product.objects.get(name=obj)
         product_sum += product_current_total_value[obj]
+        print(f"Testing dictionary: {obj} - {product_current_total_value[obj]} | From database: {product.name} - {product.current_total_value}")
         if product.current_total_value != product_current_total_value[obj]:
             return False
         
