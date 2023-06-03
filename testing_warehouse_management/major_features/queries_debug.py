@@ -207,3 +207,42 @@ def for_testing_advance_transaction():
     connection_queries = connection.queries
     for connection_query in connection_queries:
         print(connection_query)
+
+@query_debugger
+def for_testing_advance_transaction_scenario1(import_shipment_id):
+    import_shipment_purchases = ImportPurchase.objects.select_related('product_id').select_for_update(of=("self","product_id",)).filter(import_shipment_id=import_shipment_id)
+    with transaction.atomic():
+        for purchase in import_shipment_purchases:
+            print(purchase.product_id.name)
+        print(import_shipment_purchases.explain(ANALYZE=True))
+
+    connection_queries = connection.queries
+    for connection_query in connection_queries:
+        print(connection_query)
+
+@query_debugger
+def advance_testing_quantity_on_hand():
+    import_shipment_past = ImportShipment.objects.filter(date__lt="2023-06-03").only("id")
+    import_purchases_past = ImportPurchase.objects.select_related('product_id').filter(import_shipment_id__in=import_shipment_past)
+    product_quantity_on_hand_past = {}
+    for purchase in import_purchases_past:
+        if purchase.product_id.name not in product_quantity_on_hand_past:
+            product_quantity_on_hand_past[purchase.product_id.name] = purchase.quantity_import
+        else:
+            product_quantity_on_hand_past[purchase.product_id.name] += purchase.quantity_import
+
+
+    import_shipment_today = ImportShipment.objects.filter(date="2023-06-03").only("id")
+    import_purchases_today = ImportPurchase.objects.select_related('product_id').filter(import_shipment_id__in=import_shipment_today)
+    product_quantity_on_hand_today = {}
+    for purchase in import_purchases_today:
+        if purchase.product_id.name not in product_quantity_on_hand_today:
+            product_quantity_on_hand_today[purchase.product_id.name] = purchase.quantity_import
+        else:
+            product_quantity_on_hand_today[purchase.product_id.name] += purchase.quantity_import
+
+    print(import_shipment_past)
+    print(product_quantity_on_hand_past)
+
+    print(import_shipment_today)
+    print(product_quantity_on_hand_today)
