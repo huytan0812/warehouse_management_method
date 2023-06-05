@@ -246,3 +246,29 @@ def advance_testing_quantity_on_hand():
 
     print(import_shipment_today)
     print(product_quantity_on_hand_today)
+
+@query_debugger
+def advance_testing_transaction_scenario2(import_shipment_id):
+    import_purchases = ImportPurchase.objects.select_related('product_id').select_for_update(of=("self", "product_id",)).filter(import_shipment_id=import_shipment_id)
+
+    with transaction.atomic():
+        for purchase in import_purchases:
+            print(purchase.product_id.name)
+        print(import_purchases.explain(ANALYZE=True))
+
+    connection_queries = connection.queries
+    for connection_query in connection.queries:
+        print(connection_query)
+
+@query_debugger
+def advance_testing_transaction_scenario3(product_id = []):
+    products = Product.objects.select_for_update(of=("self",)).filter(pk__in=product_id)
+
+    with transaction.atomic():
+        for product in products:
+            print(product.name)
+        print(products.explain(ANALYZE=True))
+        
+    connection_queries = connection.queries
+    for connection_query in connection_queries:
+        print(connection_query)

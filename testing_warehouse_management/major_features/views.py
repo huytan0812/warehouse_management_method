@@ -113,23 +113,11 @@ def import_action(request):
             import_shipment_obj = import_shipment_form.save()
 
             import_purchase_obj = import_purchase_form.save(commit=False)
+            import_purchase_obj.import_shipment_id = import_shipment_obj
+            import_purchase_obj.quantity_remain = import_purchase_obj.quantity_import
 
-            product = Product.objects.select_for_update().filter(name=import_purchase_obj.product_id)
-            with transaction.atomic():
-                product_quantity_on_hand = product[0].quantity_on_hand
-                product_current_total_value = product[0].current_total_value
-
-                import_purchase_obj.import_shipment_id = import_shipment_obj
-                import_purchase_obj.quantity_remain = import_purchase_obj.quantity_import
-
-                product_quantity_on_hand += import_purchase_obj.quantity_import
-                product_current_total_value += import_purchase_obj.quantity_import * import_purchase_obj.import_cost
-
-                # Model instance saving
-                product.update(quantity_on_hand=product_quantity_on_hand, current_total_value=product_current_total_value)
-
-                # ModelForm object saving
-                import_purchase_obj.save()
+            # ModelForm object saving
+            import_purchase_obj.save()
 
             if "save_and_continue" in request.POST:
                 return HttpResponseRedirect(reverse('save_and_continue', kwargs={'import_shipment_code': import_shipment_obj.import_shipment_code}))
@@ -153,24 +141,11 @@ def save_and_continue(request, import_shipment_code):
 
         if import_purchase_form.is_valid():
             import_purchase_obj = import_purchase_form.save(commit=False)
+            import_purchase_obj.import_shipment_id = import_shipment_obj
+            import_purchase_obj.quantity_remain = import_purchase_obj.quantity_import
 
-            product = Product.objects.select_for_update().filter(name=import_purchase_obj.product_id)
-
-            with transaction.atomic():
-                product_quantity_on_hand = product[0].quantity_on_hand
-                product_current_total_value = product[0].current_total_value
-
-                import_purchase_obj.import_shipment_id = import_shipment_obj
-                import_purchase_obj.quantity_remain = import_purchase_obj.quantity_import
-
-                product_quantity_on_hand += import_purchase_obj.quantity_import
-                product_current_total_value += import_purchase_obj.quantity_import * import_purchase_obj.import_cost
-
-                # Model instance saving
-                product.update(quantity_on_hand=product_quantity_on_hand, current_total_value=product_current_total_value)
-
-                # ModelForm object saving
-                import_purchase_obj.save()
+            # ModelForm object saving
+            import_purchase_obj.save()
 
             if "save_and_continue" in request.POST:
                 return HttpResponseRedirect(reverse("save_and_continue", kwargs={'import_shipment_code': import_shipment_obj.import_shipment_code}))
@@ -197,13 +172,26 @@ def save_and_complete(request, import_shipment_code):
 
     import_shipment_obj = ImportShipment.objects.select_related('supplier_id').select_for_update().filter(import_shipment_code=import_shipment_code)
     import_shipment_purchases = ImportPurchase.objects.select_related('product_id').select_for_update().filter(import_shipment_id=import_shipment_obj[0])
+
     total_import_shipment_value = 0
+
+    product_additional_fields = {}
 
     try:
         with transaction.atomic():
             for import_purchase in import_shipment_purchases:
+                # Import Shipment Calculating total_shipmen_value handling
                 import_purchase_value = import_purchase.quantity_import * import_purchase.import_cost
                 total_import_shipment_value += import_purchase_value
+
+                # Product quantity_on_hand handling
+                if import_purchase.product_id.name not in product_additional_fields:
+                    product_additional_fields[import_purchase.product_id.name] = [import_purchase.quantity_import, import_purchase_value]
+                else:
+                    product_additional_fields[import_purchase.product_id.name][0] += import_purchase.quantity_import
+                    product_additional_fields[import_purchase.product_id.name][1] += import_purchase.import_purchase_value
+            
+
 
             import_shipment_obj.update(total_shipment_value=total_import_shipment_value)
     except IntegrityError:
