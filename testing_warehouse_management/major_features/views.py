@@ -191,9 +191,11 @@ def save_and_complete(request, import_shipment_code):
                     product_additional_fields[import_purchase.product_id.name][0] += import_purchase.quantity_import
                     product_additional_fields[import_purchase.product_id.name][1] += import_purchase.import_purchase_value
             
-
+            for product, value_container in product_additional_fields.items():
+                Product.objects.filter(name=product).update(quantity_on_hand=value_container[0], current_total_value=value_container[1])
 
             import_shipment_obj.update(total_shipment_value=total_import_shipment_value)
+            
     except IntegrityError:
         raise Exception("Integrity Bug")
 
