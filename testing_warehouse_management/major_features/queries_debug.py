@@ -109,16 +109,17 @@ def is_equal_quantity_on_hand():
 def assigning_current_total_value():
     product_current_total_value = {}
     purchases = ImportPurchase.objects.select_related('product_id').all()
-    products = Product.objects.all()
     for purchase in purchases:
         if purchase.product_id.name not in product_current_total_value:
             product_current_total_value[purchase.product_id.name] = purchase.quantity_remain * purchase.import_cost
         else:
             product_current_total_value[purchase.product_id.name] += purchase.quantity_remain * purchase.import_cost
-    for obj in product_current_total_value:
-        product = products.get(name=obj)
-        product.current_total_value = product_current_total_value[obj]
-    Product.objects.bulk_update(products, ["quantity_on_hand"])
+
+    with transaction.atomic():
+        for obj in product_current_total_value:
+            Product.objects.filter(name=obj).update(current_total_value=product_current_total_value[obj])
+
+    
 
 @query_debugger 
 def is_equal_current_total_value():
@@ -273,3 +274,20 @@ def advance_testing_transaction_scenario3(product_id = []):
     connection_queries = connection.queries
     for connection_query in connection_queries:
         print(connection_query)
+
+def hashmap(import_shipment_id):
+    import_purchases = ImportPurchase.objects.select_related('product_id').filter(import_shipment_id=import_shipment_id)
+    product_additional_fields = {}
+
+    for purchase in import_purchases:
+        import_purchase_value = purchase.quantity_import * purchase.import_cost
+        if purchase.product_id.name not in product_additional_fields:
+            product_additional_fields[purchase.product_id.name] = [purchase.quantity_import, import_purchase_value]
+        else:
+            product_additional_fields[purchase.product_id.name][0] += purchase.quantity_import
+            product_additional_fields[purchase.product_id.name][1] += import_purchase_value
+
+    for product, value in product_additional_fields.items():
+        product_obj = Product.objects.filter(name=product)
+        print(f"{product_obj} - {value[0]} - {value[1]}")
+

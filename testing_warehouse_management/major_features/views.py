@@ -186,7 +186,7 @@ def save_and_complete(request, import_shipment_code):
 
                 # Product quantity_on_hand handling
                 if import_purchase.product_id.name not in product_additional_fields:
-                    product_additional_fields[import_purchase.product_id.name] = [import_purchase.quantity_import, import_purchase_value]
+                    product_additional_fields[import_purchase.product_id.name] = [import_purchase.product_id.quantity_on_hand + import_purchase.quantity_import, import_purchase_value]
                 else:
                     product_additional_fields[import_purchase.product_id.name][0] += import_purchase.quantity_import
                     product_additional_fields[import_purchase.product_id.name][1] += import_purchase_value
