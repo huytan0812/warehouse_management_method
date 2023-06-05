@@ -227,9 +227,10 @@ def advance_testing_quantity_on_hand():
     product_quantity_on_hand_past = {}
     for purchase in import_purchases_past:
         if purchase.product_id.name not in product_quantity_on_hand_past:
-            product_quantity_on_hand_past[purchase.product_id.name] = purchase.quantity_import
+            product_quantity_on_hand_past[purchase.product_id.name] = [purchase.quantity_import, purchase.quantity_import * purchase.import_cost]
         else:
-            product_quantity_on_hand_past[purchase.product_id.name] += purchase.quantity_import
+            product_quantity_on_hand_past[purchase.product_id.name][0] += purchase.quantity_import
+            product_quantity_on_hand_past[purchase.product_id.name][1] += purchase.quantity_import * purchase.import_cost
 
 
     import_shipment_today = ImportShipment.objects.filter(date="2023-06-03").only("id")
