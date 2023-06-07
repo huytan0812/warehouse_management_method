@@ -16,6 +16,7 @@
             <th scope="col">Sản phẩm</th>
             <th scope="col">Số lượng nhập kho</th>
             <th scope="col">Đơn giá nhập kho</th>
+            <th scope="col">Giá trị</th>
             <th scope="col">Thực hiện</th>
           </tr>
         </thead>
@@ -25,6 +26,7 @@
             <td>{{ import_purchase.product_id.name }}</td>
             <td>{{ import_purchase.quantity_import }}</td>
             <td>{{ import_purchase.import_cost }}</td>
+            <td>{{ import_purchase.quantity_import }} * {{ import_purchase.import_cost }}</td>
             <td>
               <a href="{% url 'import_purchase_update' import_purchase.id %}">Sửa</a> / 
               <a href="{% url 'import_purchase_delete' import_purchase.id %}">Xóa</a>
@@ -33,6 +35,15 @@
           {% endfor %}
         </tbody>
       </table>
+</div>
+
+<div id="purchase-additional-information">
+  {% for purchase, value_container in purchase_additional_fields.items %}
+  <p><strong>{{ purchase }}: </strong>
+    Số lượng nhập kho trong lô hàng trên <strong>{{ value_container[0] }}</strong>
+    Giá trị nhập kho trong lô hàng trên <strong>{{ value_container[1] }}</strong>
+  </p>
+  {% endfor %}
 </div>
 
 <form action="{% url 'save_and_continue' import_shipment_code %}" method="post">
