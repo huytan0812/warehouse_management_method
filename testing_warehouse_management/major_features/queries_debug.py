@@ -87,7 +87,7 @@ def assigning_quantity_on_hand():
     products = Product.objects.all()
     for product in products:
         import_purchases_by_product = ImportPurchase.objects.filter(product_id=product.pk)
-        import_purchases_by_product_sum = import_purchases_by_product.aggregate(Sum('quantity_remain')).get("quantity_remain__sum", 0)
+        import_purchases_by_product_sum = import_purchases_by_product.aggregate(Sum('quantity_import')).get("quantity_import__sum", 0)
         product.quantity_on_hand = import_purchases_by_product_sum
     Product.objects.bulk_update(products, ["quantity_on_hand"])
     connection_queries = connection.queries
@@ -111,9 +111,9 @@ def assigning_current_total_value():
     purchases = ImportPurchase.objects.select_related('product_id').all()
     for purchase in purchases:
         if purchase.product_id.name not in product_current_total_value:
-            product_current_total_value[purchase.product_id.name] = purchase.quantity_remain * purchase.import_cost
+            product_current_total_value[purchase.product_id.name] = purchase.quantity_import * purchase.import_cost
         else:
-            product_current_total_value[purchase.product_id.name] += purchase.quantity_remain * purchase.import_cost
+            product_current_total_value[purchase.product_id.name] += purchase.quantity_import * purchase.import_cost
 
     with transaction.atomic():
         for obj in product_current_total_value:

@@ -217,6 +217,7 @@ def import_purchase_update(request, import_purchase_id):
 
     if request.method == "POST":
         import_purchase_form = ImportPurchaseForm(request.POST, instance=import_purchase_obj)
+        
         if import_purchase_form.is_valid():
             import_purchase_obj = import_purchase_form.save(commit=False)
             import_purchase_obj.quantity_remain = import_purchase_obj.quantity_import
@@ -232,6 +233,11 @@ def import_purchase_update(request, import_purchase_id):
     }
 
     return render(request, "major_features/import/edit_import_purchase.html", context)
+
+# Bug found when accomplishing a import shipment &
+# then delete a import purchase
+# cause a problem of data consistency
+# Start debugging at 'save_and_complete' view
 
 def import_purchase_delete(request, import_purchase_id):
     import_purchase_obj = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').get(pk=import_purchase_id)
