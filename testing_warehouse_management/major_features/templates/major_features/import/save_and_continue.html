@@ -1,5 +1,7 @@
 {% extends "major_features/layout.html" %}
 
+{% load custom_filters %}
+
 {% block body %}
 <h2>Save & continue page</h2>
 
@@ -26,7 +28,7 @@
             <td>{{ import_purchase.product_id.name }}</td>
             <td>{{ import_purchase.quantity_import }}</td>
             <td>{{ import_purchase.import_cost }}</td>
-            <td>{{ import_purchase.quantity_import }} * {{ import_purchase.import_cost }}</td>
+            <td>{{ import_purchase.quantity_import|multiply:import_purchase.import_cost }}</td>
             <td>
               <a href="{% url 'import_purchase_update' import_purchase.id %}">Sửa</a> / 
               <a href="{% url 'import_purchase_delete' import_purchase.id %}">Xóa</a>
@@ -40,8 +42,8 @@
 <div id="purchase-additional-information">
   {% for purchase, value_container in purchase_additional_fields.items %}
   <p><strong>{{ purchase }}: </strong>
-    Số lượng nhập kho trong lô hàng trên <strong>{{ value_container[0] }}</strong>
-    Giá trị nhập kho trong lô hàng trên <strong>{{ value_container[1] }}</strong>
+    Số lượng nhập kho trong lô hàng trên <strong>{{ value_container.purchase_quantity_import }}</strong>
+    Giá trị nhập kho trong lô hàng trên <strong>{{ value_container.purchase_value }}</strong>
   </p>
   {% endfor %}
 </div>

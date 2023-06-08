@@ -160,18 +160,19 @@ def save_and_continue(request, import_shipment_code):
 
     purchase_additional_information = {}
     for purchase in import_shipment_purchases:
-        if purchase.product_id.name not in import_shipment_purchases:
-            purchase_additional_information[purchase.product_id.name] = [purchase.quantity_import, purchase.quantity_import * purchase.import_cost]
+        if purchase.product_id.name not in purchase_additional_information:
+            purchase_additional_information[purchase.product_id.name] = {'purchase_quantity_import': purchase.quantity_import, 
+                                                                         'purchase_value': purchase.quantity_import * purchase.import_cost}
         else:
-            purchase_additional_information[purchase.product_id.name][0] += purchase.quantity_import
-            purchase_additional_information[purchase.product_id.name][1] += purchase.quantity_import * purchase.import_cost
+            purchase_additional_information[purchase.product_id.name]['purchase_quantity_import'] += purchase.quantity_import
+            purchase_additional_information[purchase.product_id.name]['purchase_value'] += purchase.quantity_import * purchase.import_cost
 
     context = {
         'import_shipment_code': import_shipment_obj.import_shipment_code,
         'import_shipment_supplier': import_shipment_obj.supplier_id,
         'import_shipment_date': import_shipment_obj.date,
         'import_shipment_purchases': import_shipment_purchases,
-        'purchase_additiomal_fields': purchase_additional_information,
+        'purchase_additional_fields': purchase_additional_information,
         "import_purchase_form": ImportPurchaseForm()
     }
     return render(request, "major_features/import/save_and_continue.html", context)
