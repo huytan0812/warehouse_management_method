@@ -23,6 +23,7 @@ def query_debugger(func):
         end_queries = len(connection.queries)
 
         print("Function : " + func.__name__)
+        print("Docstring: ", func.__doc__)
         print("Number of Queries : {}".format(end_queries - start_queries))
         print("Finished in : {}".format(end - start))
 
@@ -96,10 +97,15 @@ def assigning_quantity_on_hand():
     print(f"Queries: {len(connection_queries)}")
 
 def is_equal_quantity_on_hand():
+    """
+    Validating the product quantity on hand must equal to
+    the sum of product's import purchases quantity remain
+    """
+
     products = Product.objects.all()
     for product in products:
         import_purchases_by_product = ImportPurchase.objects.filter(product_id=product)
-        import_purchases_by_product_sum = import_purchases_by_product.aggregate(Sum("quantity_import")).get("quantity_import__sum", 0)
+        import_purchases_by_product_sum = import_purchases_by_product.aggregate(Sum("quantity_remain")).get("quantity_remain__sum", 0)
         print(f"Product {product.name}: {product.quantity_on_hand} - Purchase: {import_purchases_by_product_sum}")
         if product.quantity_on_hand != import_purchases_by_product_sum:
             return False
@@ -123,6 +129,13 @@ def assigning_current_total_value():
 
 @query_debugger 
 def is_equal_current_total_value():
+
+    """
+    Validating the product current total value must equal to
+    the sum of multiplier of corresponding 
+    product's import purchases quantity remain & product's import purchases import cost
+    """
+
     product_current_total_value = {}
     purchases = ImportPurchase.objects.select_related('product_id').all()
     
