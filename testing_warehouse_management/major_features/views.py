@@ -7,6 +7,7 @@ import pytz
 from django.db.models import Max
 from django.urls import reverse
 from django.db import transaction, IntegrityError
+from django.views.decorators.cache import cache_control
 from . models import *
 from . forms import *
 from . warehouse_management_methods import *
@@ -177,10 +178,14 @@ def save_and_continue(request, import_shipment_code):
     }
     return render(request, "major_features/import/save_and_continue.html", context)
 
+@cache_control(no_cache=True, must_revalidate=True)
 @transaction.atomic
 def save_and_complete(request, import_shipment_code):
 
     import_shipment_obj = ImportShipment.objects.select_related('supplier_id').select_for_update().filter(import_shipment_code=import_shipment_code)
+    if import_shipment_obj[0].total_shipment_value > 0:
+        return HttpResponse('You cannot backward', content_type="text/plain") 
+
     import_shipment_purchases = ImportPurchase.objects.select_related('product_id').select_for_update().filter(import_shipment_id=import_shipment_obj[0])
 
     total_import_shipment_value = 0

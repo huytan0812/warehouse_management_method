@@ -1,6 +1,18 @@
 {% extends "major_features/layout.html" %}
 
 {% block body %}
+<style>
+  .valid-import-shipment {
+    color: #155724;
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+  }
+  .invalid-import-shipment {
+    color: #721c24;
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+  }
+</style>
 <h2>Trang theo dõi các lô hàng nhập kho theo ngày: {{ datepicker|date:"d/m/Y" }}</h2>
 <div id="import-shipment-container">
     <table class="table">
@@ -15,7 +27,7 @@
         </thead>
         <tbody>
           {% for import_shipment in import_shipments %}
-          <tr>
+          <tr {% if import_shipment.total_shipment_value > 0 %} class="valid-import-shipment" {% else %} class="invalid-import-shipment" {% endif %}>
             <td>{{ import_shipment.import_shipment_code }}</td>
             <td>{{ import_shipment.supplier_id.name }}</td>
             <td>{{ import_shipment.date }}</td>
