@@ -122,9 +122,7 @@ def import_action(request):
 
             if "save_and_continue" in request.POST:
                 return HttpResponseRedirect(reverse('save_and_continue', kwargs={'import_shipment_code': import_shipment_obj.import_shipment_code}))
-            
-            if "save_and_complete" in request.POST:
-                return HttpResponseRedirect(reverse('save_and_complete', kwargs={'import_shipment_code': import_shipment_obj.import_shipment_code}))
+
         else:
             return HttpResponse("Invalid Form", content_type="text/plain")
             
@@ -150,9 +148,6 @@ def save_and_continue(request, import_shipment_code):
 
             if "save_and_continue" in request.POST:
                 return HttpResponseRedirect(reverse("save_and_continue", kwargs={'import_shipment_code': import_shipment_obj.import_shipment_code}))
-        
-            if "save_and_complete" in request.POST:
-                return HttpResponseRedirect(reverse('save_and_complete', kwargs={'import_shipment_code': import_shipment_obj.import_shipment_code}))
 
         else:
             return HttpResponse("Invalid form", content_type="text/plain")

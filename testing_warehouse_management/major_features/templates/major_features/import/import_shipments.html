@@ -27,7 +27,13 @@
         </thead>
         <tbody>
           {% for import_shipment in import_shipments %}
-          <tr {% if import_shipment.total_shipment_value > 0 %} class="valid-import-shipment" {% else %} class="invalid-import-shipment" {% endif %}>
+
+          {% if import_shipment.total_shipment_value > 0 %}
+          <tr class="valid-import-shipment">
+          {% else %}
+          <tr class="invalid-import-shipment">
+          {% endif %}
+          
             <td>{{ import_shipment.import_shipment_code }}</td>
             <td>{{ import_shipment.supplier_id.name }}</td>
             <td>{{ import_shipment.date }}</td>

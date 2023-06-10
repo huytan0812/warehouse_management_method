@@ -104,7 +104,7 @@ def is_equal_quantity_on_hand():
 
     products = Product.objects.all()
     for product in products:
-        import_purchases_by_product = ImportPurchase.objects.filter(product_id=product)
+        import_purchases_by_product = ImportPurchase.objects.filter(import_shipment_id__total_shipment_value__gt=0,product_id=product)
         import_purchases_by_product_sum = import_purchases_by_product.aggregate(Sum("quantity_remain")).get("quantity_remain__sum", 0)
         print(f"Product {product.name}: {product.quantity_on_hand} - Purchase: {import_purchases_by_product_sum}")
         if product.quantity_on_hand != import_purchases_by_product_sum:
@@ -137,7 +137,7 @@ def is_equal_current_total_value():
     """
 
     product_current_total_value = {}
-    purchases = ImportPurchase.objects.select_related('product_id').all()
+    purchases = ImportPurchase.objects.select_related('product_id').filter(import_shipment_id__total_shipment_value__gt=0)
     
     for purchase in purchases:
         if purchase.product_id.name not in product_current_total_value:
