@@ -11,6 +11,7 @@ from django.views.decorators.cache import cache_control
 from . models import *
 from . forms import *
 from . warehouse_management_methods import *
+from . decorators import is_activating_accounting_period
 
 # Create your views here.
 def index(request):
