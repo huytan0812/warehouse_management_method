@@ -14,6 +14,7 @@ from . warehouse_management_methods import *
 from . decorators import is_activating_accounting_period
 
 # Create your views here.
+@is_activating_accounting_period
 def index(request):
 
     products = Product.objects.all()
@@ -55,6 +56,7 @@ def is_last_day_of_month(datepicker):
     """
     return True if datepicker == get_lastday_of_month(datepicker) else False
 
+@is_activating_accounting_period
 def date_handling(request):
 
     """
@@ -85,6 +87,7 @@ def date_handling(request):
 
             return render(request, "major_features/actions_on_date.html", context)
 
+@is_activating_accounting_period
 def import_shipments(request, testing_date):
     import_shipments = ImportShipment.objects.select_related('supplier_id').filter(date=testing_date)
 
@@ -105,6 +108,7 @@ def import_shipment_details(request, import_shipment_code):
 
     return render(request, "major_features/import/import_shipment_details.html", context)
 
+@is_activating_accounting_period
 def import_action(request):
     if request.method == "POST":
         import_shipment_form = ImportShipmentForm(request.POST)
@@ -256,7 +260,10 @@ def import_purchase_update(request, import_purchase_id):
 # Start debugging at 'save_and_complete' view
 
 def import_purchase_delete(request, import_purchase_id):
-    import_purchase_obj = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').get(pk=import_purchase_id)
+    try:
+        import_purchase_obj = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').get(pk=import_purchase_id)
+    except ImportPurchase.DoesNotExist:
+        raise Exception("Invalid import purchase")
     import_shipment_code = import_purchase_obj.import_shipment_id.import_shipment_code
 
     import_purchase_obj.delete()
