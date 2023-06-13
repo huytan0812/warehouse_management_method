@@ -17,4 +17,7 @@ urlpatterns = [
     path("import_action/save_and_complete/<str:import_shipment_code>", views.save_and_complete, name="save_and_complete"),
     path("import_action/import_purchase_update/<int:import_purchase_id>", views.import_purchase_update, name="import_purchase_update"),
     path("import_action/import_purchase_delete/<int:import_purchase_id>", views.import_purchase_delete, name="import_purchase_delete"),
+
+    # decorators view
+    path("activating_accounting_period", views.activating_accounting_period, name="activating_accounting_period"),
 ]

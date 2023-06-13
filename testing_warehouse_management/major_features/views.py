@@ -14,7 +14,6 @@ from . warehouse_management_methods import *
 from . decorators import is_activating_accounting_period
 
 # Create your views here.
-@is_activating_accounting_period
 def index(request):
 
     products = Product.objects.all()
@@ -56,7 +55,6 @@ def is_last_day_of_month(datepicker):
     """
     return True if datepicker == get_lastday_of_month(datepicker) else False
 
-@is_activating_accounting_period
 def date_handling(request):
 
     """
@@ -87,7 +85,6 @@ def date_handling(request):
 
             return render(request, "major_features/actions_on_date.html", context)
 
-@is_activating_accounting_period
 def import_shipments(request, testing_date):
     import_shipments = ImportShipment.objects.select_related('supplier_id').filter(date=testing_date)
 
@@ -283,6 +280,9 @@ def get_date_utc_now():
     date_utc_now = datetime_utc_now.date()
     return date_utc_now
 
+# Warehouse Management Method
+# Handling section
+
 def keep_current_method(request):
     if request.method == "POST":
         keep_method_form = KeepMethodForm(request.POST)
@@ -327,6 +327,15 @@ def apply_warehouse_management(request):
             create_new_accounting_period(method)
 
             return HttpResponseRedirect(reverse('index'))
+
+def activating_accounting_period(request):
+
+    context = {}
+    chosen_method = WarehouseManagementMethod.objects.filter(is_currently_applied=True)
+    context["keep_method_form"] = KeepMethodForm()
+    context["method_name"] = chosen_method[0].name
+
+    return render(request, "warehouse/activate_accounting_period", context)
 
 def create_new_accounting_period(method):
 

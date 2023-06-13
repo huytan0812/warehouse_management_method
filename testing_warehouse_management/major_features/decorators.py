@@ -2,6 +2,8 @@ from functools import wraps
 from datetime import datetime
 from django.db import transaction
 from django.db.models import Max
+from django.http import HttpResponseRedirect
+from django.urls import reverse
 from . models import WarehouseManagementMethod, AccoutingPeriod
 
 # Outer function() takes a view_function() as an argument
@@ -35,7 +37,7 @@ def is_activating_accounting_period(view_function):
             accounting_period_obj = AccoutingPeriod.objects.get(pk=latest_accounting_period_id)
         today = datetime.today().date()
         if accounting_period_obj.date_end < today:
-            return "You cannot get the access to the web application"
+            return HttpResponseRedirect(reverse('activating_accounting_period'))
         view_function(*args, **kwargs)
     return wrapper_function
 
