@@ -8,3 +8,5 @@
     +) Between using normal function in views.py & signal handler, which one better & why?
     => Deciding to choose signal handler to handle the export shipment view & import shipment view (particularly assigning value for 
     product's quantity on hand field & product's current total value field). That is my task today
+- All export shipment in an accounting period must have the same warehouse management method
+- We have to ensure that condition to maintain the data integrity & consistency

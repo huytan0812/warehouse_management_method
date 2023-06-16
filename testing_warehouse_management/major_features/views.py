@@ -275,10 +275,18 @@ def import_purchase_delete(request, import_purchase_id):
     return HttpResponseRedirect(reverse('save_and_continue', kwargs={'import_shipment_code': import_shipment_code}))
 
 def export_shipments(request, testing_date):
+
+    current_method = WarehouseManagementMethod.objects.filter(is_currently_applied=True)
     context = {
+        'current_method': current_method,
         'datepicker': testing_date
     }
     return render(request, "major_features/export/export_shipments.html", context)
+
+@is_activating_accounting_period
+def export_action(request):
+    context = {}
+    return render(request, "major_features/export/export_action.html", context)
 
 def get_date_utc_now():
     datetime_now = datetime.now()
