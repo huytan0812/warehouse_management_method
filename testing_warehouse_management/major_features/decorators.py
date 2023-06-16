@@ -38,7 +38,7 @@ def is_activating_accounting_period(view_function):
         today = datetime.today().date()
         if accounting_period_obj.date_end < today:
             return HttpResponseRedirect(reverse('activating_accounting_period'))
-        view_function(*args, **kwargs)
+        return view_function(*args, **kwargs)
     return wrapper_function
 
 @is_activating_accounting_period

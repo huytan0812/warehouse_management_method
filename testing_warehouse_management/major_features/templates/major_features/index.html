@@ -42,4 +42,12 @@
     {{ date_picker_form.as_p }}
     <input type="submit" value="Submit">
 </form>
+
+{% if alert_message %}
+<div class="alert alert-danger" role="alert">
+  {{ alert_message }}
+  <a href="{% url 'activating_accounting_period' %}">Nhấn vào link này để tiến hành cập nhật phương pháp</a>
+</div>
+{% endif %}
+
 {% endblock %}

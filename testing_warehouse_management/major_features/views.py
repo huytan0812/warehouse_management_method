@@ -34,6 +34,13 @@ def index(request):
         context['method'] = currently_accounting_period_obj.warehouse_management_method
         context['accounting_period'] = currently_accounting_period_obj
 
+        today = datetime.today().date()
+        if currently_accounting_period_obj.date_end < today:
+            context['alert_message'] = """
+            Cảnh báo phương pháp quản lý hàng tồn kho chưa được cập nhật lại hoặc thay đổi sang phương pháp khác.
+            Bạn sẽ không thể thực hiện nhập kho hay xuất kho
+            """
+
     return render(request, "major_features/index.html", context)
 
 def get_lastday_of_month(date_obj):
@@ -335,7 +342,7 @@ def activating_accounting_period(request):
     context["keep_method_form"] = KeepMethodForm()
     context["method_name"] = chosen_method[0].name
 
-    return render(request, "warehouse/activate_accounting_period", context)
+    return render(request, "major_features/activate_accounting_period.html", context)
 
 def create_new_accounting_period(method):
 
