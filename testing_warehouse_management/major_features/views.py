@@ -285,7 +285,14 @@ def export_shipments(request, testing_date):
 
 @is_activating_accounting_period
 def export_action(request):
-    context = {}
+    export_shipment_form = ExportShipmentForm()
+    export_order_form = ExportOrderForm()
+
+    context = {
+        'export_shipment_form': export_shipment_form,
+        'export_order_form': export_order_form
+    }
+
     return render(request, "major_features/export/export_action.html", context)
 
 def get_date_utc_now():

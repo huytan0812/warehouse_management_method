@@ -1,0 +1,21 @@
+{% extends "major_features/layout.html" %}
+
+{% block body %}
+<h2>Đơn xuất kho lô hàng</h2>
+<form action="{% url 'export_action' %}" method="post">
+    {% csrf_token %}
+    <fieldset>
+        <legend>
+            Thông tin tổng quan lô hàng:
+        </legend>
+        {{ export_shipment_form.as_p }}
+    </fieldset>
+
+    <fieldset>
+        <legend>
+            Xuất kho sản phẩm:
+        </legend>
+        {{ export_order_form.as_p }}
+    </fieldset>
+</form>
+{% endblock %}
