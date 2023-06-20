@@ -285,12 +285,26 @@ def export_shipments(request, testing_date):
 
 @is_activating_accounting_period
 def export_action(request):
-    export_shipment_form = ExportShipmentForm()
+    current_method_obj = WarehouseManagementMethod.objects.filter(is_currently_applied=True)[0]
+    export_shipment_form = ExportShipmentForm(warehouse_management_method=current_method_obj)
     export_order_form = ExportOrderForm()
+
+    if request.method == "POST":
+        export_shipment_form = ExportShipmentForm(request.POST)
+        export_order_form = ExportOrderForm(request.POST)
+
+        if export_shipment_form.is_valid() and export_order_form.is_valid():
+           export_shipment_form = export_shipment_form.save()
+           export_order_form_obj = export_order_form.save(commit=False)
+           
+
+        else:
+            return HttpResponse('Invalid Form', content_type="text/plain")
 
     context = {
         'export_shipment_form': export_shipment_form,
-        'export_order_form': export_order_form
+        'export_order_form': export_order_form,
+        'current_method_obj': current_method_obj
     }
 
     return render(request, "major_features/export/export_action.html", context)

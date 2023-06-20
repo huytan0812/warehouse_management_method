@@ -2,6 +2,7 @@
 
 {% block body %}
 <h2>Đơn xuất kho lô hàng</h2>
+<p>Phương pháp tính giá xuất kho đang được áp dụng: <strong>{{ current_method_obj.name }}</strong></p>
 <form action="{% url 'export_action' %}" method="post">
     {% csrf_token %}
     <fieldset>

@@ -6,7 +6,7 @@ class WarehouseManagementMethod(models.Model):
     is_currently_applied = models.BooleanField(null=True, blank=True, default=False)
 
     def __str__(self):
-        return f"{self.name} is currently applied: {self.is_currently_applied}"
+        return f"{self.name}"
     
 class AccoutingPeriod(models.Model):
     """
