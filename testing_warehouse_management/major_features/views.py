@@ -286,7 +286,7 @@ def export_shipments(request, testing_date):
 @is_activating_accounting_period
 def export_action(request):
     current_method_obj = WarehouseManagementMethod.objects.filter(is_currently_applied=True)[0]
-    export_shipment_form = ExportShipmentForm(warehouse_management_method=current_method_obj)
+    export_shipment_form = ExportShipmentForm()
     export_order_form = ExportOrderForm()
 
     if request.method == "POST":
@@ -294,8 +294,31 @@ def export_action(request):
         export_order_form = ExportOrderForm(request.POST)
 
         if export_shipment_form.is_valid() and export_order_form.is_valid():
-           export_shipment_form = export_shipment_form.save()
-           export_order_form_obj = export_order_form.save(commit=False)
+           
+            # Export Shipment    
+            export_shipment_form_obj = export_shipment_form.save(commit=False)
+            export_shipment_form_obj.warehouse_management_method=current_method_obj
+            export_shipment_form_obj.save()
+
+            # Export order
+            export_order_form_obj = export_order_form.save(commit=False)
+            export_order_form_obj.export_shipment_id = export_shipment_form_obj
+
+            if current_method_obj == "FIFO":
+                # Implement to FIFO accounting
+                pass
+            
+            if current_method_obj == "LIFO":
+                # Implement to FIFO accounting
+                pass
+
+            if current_method_obj == "Bình quân gia quyền tức thời":
+                # Implement to FIFO accounting
+                pass
+
+            if current_method_obj == "Bình quân gia quyền cuối kỳ":
+                # Implement to FIFO accounting
+                pass
            
 
         else:

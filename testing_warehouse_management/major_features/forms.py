@@ -59,17 +59,12 @@ class ExportShipmentForm(ModelForm):
             'export_shipment_code': forms.TextInput(attrs={}),
             'agency_id': forms.Select(attrs={}),
             'date': forms.DateInput(attrs={'type': 'date'}),
-            'warehouse_management_method': forms.Select(attrs={})
         }
         labels = {
             'export_shipment_code': "Mã lô hàng xuất kho",
             'agency_id': "Xuất kho cho đại lý",
             'date': "Ngày xuất kho",
         }
-    
-    def __init__(self, *args, **kwargs):
-        current_method = kwargs.pop("warehouse_management_method")
-        super().__init__(*args, **kwargs)
 
 class ExportOrderForm(ModelForm):
     class Meta:
