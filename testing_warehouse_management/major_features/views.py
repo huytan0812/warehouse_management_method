@@ -43,6 +43,9 @@ def index(request):
 
     return render(request, "major_features/index.html", context)
 
+def reports(request):
+    pass
+
 def get_lastday_of_month(date_obj):
 
     """
@@ -92,6 +95,7 @@ def date_handling(request):
 
             return render(request, "major_features/actions_on_date.html", context)
 
+# Import Section
 def import_shipments(request, testing_date):
     import_shipments = ImportShipment.objects.select_related('supplier_id').filter(date=testing_date)
 
@@ -258,11 +262,6 @@ def import_purchase_update(request, import_purchase_id):
 
     return render(request, "major_features/import/edit_import_purchase.html", context)
 
-# Bug found when accomplishing a import shipment &
-# then delete a import purchase
-# cause a problem of data consistency
-# Start debugging at 'save_and_complete' view
-
 def import_purchase_delete(request, import_purchase_id):
     try:
         import_purchase_obj = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').get(pk=import_purchase_id)
@@ -274,6 +273,7 @@ def import_purchase_delete(request, import_purchase_id):
 
     return HttpResponseRedirect(reverse('save_and_continue', kwargs={'import_shipment_code': import_shipment_code}))
 
+# Export Section
 def export_shipments(request, testing_date):
 
     current_method = WarehouseManagementMethod.objects.filter(is_currently_applied=True)

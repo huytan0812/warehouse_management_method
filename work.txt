@@ -10,3 +10,7 @@
     product's quantity on hand field & product's current total value field). That is my task today
 - All export shipment in an accounting period must have the same warehouse management method
 - We have to ensure that condition to maintain the data integrity & consistency
+- At the end of an accounting period switch to another accounting period, we need to summarize all the product's quantity on hand
+according to import purchases & export orders
+- At the end of a month, we need to summarize the total revenue of all product, revenue of each product, product's import purchases value,
+product's export orders value
