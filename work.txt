@@ -14,3 +14,4 @@
 according to import purchases & export orders
 - At the end of a month, we need to summarize the total revenue of all product, revenue of each product, product's import purchases value,
 product's export orders value
+- In a period of time, there is only one accounting period

@@ -29,10 +29,24 @@ def index(request):
 
     # Handling if a method was chosen before
     if  method_count == CHOSEN_METHOD_COUNT:
+
+        # Handling validating if an accounting period object exists
         currently_accounting_period_id = AccoutingPeriod.objects.aggregate(Max("id")).get("id__max", 0)
         currently_accounting_period_obj = AccoutingPeriod.objects.select_related('warehouse_management_method').get(pk=int(currently_accounting_period_id))
         context['method'] = currently_accounting_period_obj.warehouse_management_method
         context['accounting_period'] = currently_accounting_period_obj
+
+        # Handling inventory at the starting of an accounting period
+        previous_accounting_period_id = currently_accounting_period_id - 1
+        is_previous_accounting_period_obj_exists = AccoutingPeriod.objects.filter(id=previous_accounting_period_id).exists()
+        if is_previous_accounting_period_obj_exists:
+            previous_accounting_period_obj = AccoutingPeriod.objects.get(pk=previous_accounting_period_id)
+
+            # Get all import shipments & export shipments
+            # according to the previous_accounting_period_obj
+            import_shipments = ImportShipment.objects.filter(date__range=[
+                previous_accounting_period_obj.date_applied, previous_accounting_period_obj.date_end
+            ])
 
         today = datetime.today().date()
         if currently_accounting_period_obj.date_end < today:
