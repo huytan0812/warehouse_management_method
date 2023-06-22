@@ -5,7 +5,7 @@ from django.db import connection
 import pytz
 import calendar
 from datetime import date, datetime, timedelta
-from django.db.models import Sum
+from django.db.models import Sum, Max
 from . models import *
 
 
@@ -304,3 +304,18 @@ def hashmap(import_shipment_id):
         product_obj = Product.objects.filter(name=product)
         print(f"{product_obj} - {value[0]} - {value[1]}")
 
+@query_debugger
+def previous_accounting_period():
+    currently_accounting_period_id = AccoutingPeriod.objects.aggregate(Max("id")).get("id__max", 0)
+    previous_accounting_period_id = currently_accounting_period_id - 1
+    is_previous_accounting_period_obj_exists = AccoutingPeriod.objects.filter(id=previous_accounting_period_id).exists()
+    if is_previous_accounting_period_obj_exists:
+        previous_accounting_period_obj = AccoutingPeriod.objects.get(pk=previous_accounting_period_id)
+
+        # Get all import shipments
+        # according to the previous_accounting_period_obj
+
+        import_purchases = ImportPurchase.objects.select_related('import_shipment_id').filter(import_shipment_id__date__range=[
+            previous_accounting_period_obj.date_applied, previous_accounting_period_obj.date_end
+        ])
+    return import_purchases

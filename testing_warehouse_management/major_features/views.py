@@ -42,9 +42,10 @@ def index(request):
         if is_previous_accounting_period_obj_exists:
             previous_accounting_period_obj = AccoutingPeriod.objects.get(pk=previous_accounting_period_id)
 
-            # Get all import shipments & export shipments
+            # Get all import shipments
             # according to the previous_accounting_period_obj
-            import_shipments = ImportShipment.objects.filter(date__range=[
+
+            import_purchases = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').filter(import_shipment_id__date__range=[
                 previous_accounting_period_obj.date_applied, previous_accounting_period_obj.date_end
             ])
 
