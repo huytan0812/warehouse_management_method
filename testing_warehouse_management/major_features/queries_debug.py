@@ -319,3 +319,15 @@ def previous_accounting_period():
             previous_accounting_period_obj.date_applied, previous_accounting_period_obj.date_end
         ])
     return import_purchases
+
+@query_debugger
+def previous_accounting_period2():
+    accounting_period = AccoutingPeriod.objects.all().order_by('-date_applied')[:2]
+    if len(accounting_period) > 1:
+        accounting_period_obj = accounting_period[1]
+
+    print(accounting_period_obj)
+    connection_queries = connection.queries
+    for connection_query in connection_queries:
+        print(connection_query)
+    

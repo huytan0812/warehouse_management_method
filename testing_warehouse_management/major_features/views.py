@@ -36,19 +36,6 @@ def index(request):
         context['method'] = currently_accounting_period_obj.warehouse_management_method
         context['accounting_period'] = currently_accounting_period_obj
 
-        # Handling inventory at the starting of an accounting period
-        previous_accounting_period_id = currently_accounting_period_id - 1
-        is_previous_accounting_period_obj_exists = AccoutingPeriod.objects.filter(id=previous_accounting_period_id).exists()
-        if is_previous_accounting_period_obj_exists:
-            previous_accounting_period_obj = AccoutingPeriod.objects.get(pk=previous_accounting_period_id)
-
-            # Get all import shipments
-            # according to the previous_accounting_period_obj
-
-            import_purchases = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').filter(import_shipment_id__date__range=[
-                previous_accounting_period_obj.date_applied, previous_accounting_period_obj.date_end
-            ])
-
         today = datetime.today().date()
         if currently_accounting_period_obj.date_end < today:
             context['alert_message'] = """
@@ -59,7 +46,13 @@ def index(request):
     return render(request, "major_features/index.html", context)
 
 def reports(request):
-    pass
+    # Handling inventory at the starting of an accounting period
+    accounting_periods = AccoutingPeriod.objects.all().order_by('-date_applied')[:2]
+    if len(accounting_periods) > 1:
+        previous_accounting_period_obj = accounting_periods[1]
+        import_purchases = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').filter(import_shipment_id__date__range=[
+            previous_accounting_period_obj.date_applied, previous_accounting_period_obj.date_end
+        ])
 
 def get_lastday_of_month(date_obj):
 

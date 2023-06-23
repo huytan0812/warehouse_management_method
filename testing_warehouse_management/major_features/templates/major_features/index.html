@@ -24,15 +24,6 @@
       </table>
 </div>
 
-<div id="inventory">
-  <p>
-    <strong>Tồn kho đầu kỳ: </strong>
-    <p>Giá trị tồn kho đầu kỳ của sản phẩm __tên_sản_phẩm__: 
-      <a href="#">Chi tiết</a>
-    </p>
-  </p>
-</div>
-
 {% if method %}
 <p>Phương pháp xác định giá trị hàng tồn kho đang được chọn: <strong>{{ method.name }}</strong></p>
 <p><strong>Ngày bắt đầu ghi sổ kế toán: </strong>{{ accounting_period.date_applied }}</p>
@@ -56,5 +47,7 @@
   <a href="{% url 'activating_accounting_period' %}">Nhấn vào link này để tiến hành cập nhật phương pháp</a>
 </div>
 {% endif %}
+
+<p><strong><a href="{% url 'reports' %}">Thống kê</a></strong></p>
 
 {% endblock %}
