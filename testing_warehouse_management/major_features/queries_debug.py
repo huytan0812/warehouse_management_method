@@ -330,4 +330,12 @@ def previous_accounting_period2():
     connection_queries = connection.queries
     for connection_query in connection_queries:
         print(connection_query)
-    
+
+@query_debugger
+def latest_accounting_period():
+    latest_accounting_period_obj = AccoutingPeriod.objects.select_related('warehouse_management_method').latest('id')
+    print(latest_accounting_period_obj)
+
+    connection_queries = connection.queries
+    for connection_query in connection_queries:
+        print(connection_query)

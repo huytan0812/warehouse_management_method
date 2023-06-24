@@ -46,6 +46,9 @@ def index(request):
     return render(request, "major_features/index.html", context)
 
 def reports(request):
+
+    context = {}
+
     # Handling inventory at the starting of an accounting period
     accounting_periods = AccoutingPeriod.objects.all().order_by('-date_applied')[:2]
     if len(accounting_periods) > 1:
@@ -53,6 +56,18 @@ def reports(request):
         import_purchases = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').filter(import_shipment_id__date__range=[
             previous_accounting_period_obj.date_applied, previous_accounting_period_obj.date_end
         ])
+        products_inventory = {}
+        for purchase in import_purchases:
+            if purchase.product_id.name not in products_inventory:
+                products_inventory[purchase.product_id.name] = {'quantity_remain': purchase.quantity_remain, 
+                                                                'inventory_value': purchase.quantity_remain * purchase.import_cost}
+            else:
+                products_inventory[purchase.product_id.name]['quantity_remain'] += purchase.quantity_remain
+                products_inventory[purchase.product_id.name]['inventory_value'] += purchase.quantity_remain * purchase.import_cost
+        context['previous_accounting_period_obj'] = previous_accounting_period_obj
+        context['products_inventory'] = products_inventory
+    
+    return render(request, "major_features/reports.html", context)
 
 def get_lastday_of_month(date_obj):
 
@@ -126,13 +141,17 @@ def import_shipment_details(request, import_shipment_code):
 
 @is_activating_accounting_period
 def import_action(request):
+    latest_accounting_period_obj = AccoutingPeriod.objects.select_related('warehouse_management_method').latest('id')
+
     if request.method == "POST":
         import_shipment_form = ImportShipmentForm(request.POST)
         import_purchase_form = ImportPurchaseForm(request.POST)
 
         if import_shipment_form.is_valid() and import_purchase_form.is_valid():
 
-            import_shipment_obj = import_shipment_form.save()
+            import_shipment_obj = import_shipment_form.save(commit=False)
+            import_shipment_obj.warehouse_management_method = latest_accounting_period_obj
+            import_shipment_obj.save()
 
             import_purchase_obj = import_purchase_form.save(commit=False)
             import_purchase_obj.import_shipment_id = import_shipment_obj
@@ -293,7 +312,7 @@ def export_shipments(request, testing_date):
 
 @is_activating_accounting_period
 def export_action(request):
-    current_method_obj = WarehouseManagementMethod.objects.filter(is_currently_applied=True)[0]
+    latest_accounting_period_obj = AccoutingPeriod.objects.select_related('warehouse_management_method').latest('id')
     export_shipment_form = ExportShipmentForm()
     export_order_form = ExportOrderForm()
 
@@ -305,26 +324,26 @@ def export_action(request):
            
             # Export Shipment    
             export_shipment_form_obj = export_shipment_form.save(commit=False)
-            export_shipment_form_obj.warehouse_management_method=current_method_obj
+            export_shipment_form_obj.warehouse_management_method=latest_accounting_period_obj
             export_shipment_form_obj.save()
 
             # Export order
             export_order_form_obj = export_order_form.save(commit=False)
             export_order_form_obj.export_shipment_id = export_shipment_form_obj
 
-            if current_method_obj == "FIFO":
+            if latest_accounting_period_obj.warehouse_management_method.name == "FIFO":
                 # Implement to FIFO accounting
                 pass
             
-            if current_method_obj == "LIFO":
+            if latest_accounting_period_obj.warehouse_management_method.name == "LIFO":
                 # Implement to FIFO accounting
                 pass
 
-            if current_method_obj == "Bình quân gia quyền tức thời":
+            if latest_accounting_period_obj.warehouse_management_method.name == "Bình quân gia quyền tức thời":
                 # Implement to FIFO accounting
                 pass
 
-            if current_method_obj == "Bình quân gia quyền cuối kỳ":
+            if latest_accounting_period_obj.warehouse_management_method.name == "Bình quân gia quyền cuối kỳ":
                 # Implement to FIFO accounting
                 pass
            
@@ -335,7 +354,7 @@ def export_action(request):
     context = {
         'export_shipment_form': export_shipment_form,
         'export_order_form': export_order_form,
-        'current_method_obj': current_method_obj
+        'latest_accounting_period_obj': latest_accounting_period_obj
     }
 
     return render(request, "major_features/export/export_action.html", context)

@@ -1,0 +1,16 @@
+{% extends "major_features/layout.html" %}
+
+{% block body %}
+
+<h2>Trang thống kê</h2>
+<div id="inventory">
+    <p><strong>Tồn kho đầu kỳ</strong></p>
+    {% for key, value in products_inventory.items %}
+        <p><strong>Sản phẩm {{ key }}: </strong>
+            Số lượng sản phẩm tồn kho {{ value.quantity_remain }} | 
+            Tổng giá trị {{ value.inventory_value }}
+        </p>
+    {% endfor %}
+</div>
+
+{% endblock %}
