@@ -1,5 +1,7 @@
 {% extends "major_features/layout.html" %}
 
+{% load humanize %}
+
 {% block nav %}
 <nav class="navbar navbar-expand-lg navbar-light" style="background-color: #01257D;">
   <div class="collapse navbar-collapse" id="navbarNav">
@@ -8,10 +10,13 @@
           <a class="nav-link" style="color: #00FFFF;" href="{% url 'index' %}">Trang chủ</a>
         </li>
         <li class="nav-item" style="padding: 2.5px 5px 2.5px 5px;">
-          <a class="nav-link" style="color: white;" href="#">Features</a>
+          <a class="nav-link" style="color: white;" href="{% url 'import_shipments' %}">Nhập kho</a>
         </li>
         <li class="nav-item" style="padding: 2.5px 5px 2.5px 5px;">
-          <a class="nav-link" style="color: white;"href="#">Pricing</a>
+          <a class="nav-link" style="color: white;"href="{% url 'export_shipments' %}">Xuất kho</a>
+        </li>
+        <li class="nav-item" style="padding: 2.5px 5px 2.5px 5px;">
+          <a class="nav-link" style="color: white;"href="{% url 'reports' %}">Thống kê</a>
         </li>
       </ul>
   </div>
@@ -20,13 +25,13 @@
 
 {% block body %}
 <div id="products-container">
-    <table class="table">
+    <table class="table table-striped table-dark">
         <thead>
           <tr>
-            <th scope="col">Mã sản phẩm</th>
-            <th scope="col">Tên sản phẩm</th>
-            <th scope="col">Số lượng tồn kho</th>
-            <th scope="col">Tổng giá trị lô hàng</th>
+            <th scope="col" style="text-align: left;">Mã sản phẩm</th>
+            <th scope="col" style="text-align: left;">Tên sản phẩm</th>
+            <th scope="col" style="text-align: right;">Số lượng tồn kho</th>
+            <th scope="col" style="text-align: right;">Tổng giá trị tồn kho</th>
           </tr>
         </thead>
         <tbody>
@@ -34,8 +39,8 @@
             <tr>
                 <td scope="col">{{ product.sku }}</td>
                 <td scope="col">{{ product.name }}</td>
-                <td scope="col">{{ product.quantity_on_hand }}</td>
-                <td scope="col">{{ product.current_total_value}}</td>
+                <td scope="col" style="text-align: right;">{{ product.quantity_on_hand|intcomma }}</td>
+                <td scope="col" style="text-align: right;">{{ product.current_total_value|intcomma }}</td>
               </tr>
             {% endfor %}
         </tbody>

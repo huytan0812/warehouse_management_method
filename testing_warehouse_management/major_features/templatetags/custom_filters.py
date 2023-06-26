@@ -6,3 +6,4 @@ register = template.Library()
 def multiply(value, arg):
     if value and arg:
         return value * arg
+        
