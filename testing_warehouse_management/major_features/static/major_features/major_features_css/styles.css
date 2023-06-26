@@ -1,6 +1,15 @@
 body {
-    width: 100%;
-    height: 100%;
+    margin: auto;
+    width: 1280px;
+    height: 720px;
     font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
     color: blueviolet;
+}
+
+.nav-item:hover{
+    border-bottom: 2px solid #00FFFF;
+}
+
+.nav-link:hover{
+    color: #00FFFF !important;
 }

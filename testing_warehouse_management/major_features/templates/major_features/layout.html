@@ -14,8 +14,11 @@
     <title>Testing Warehouse Management</title>
 </head>
 <body>
-    <div class="container-fluid">
-        <h1>Hello World</h1>
+
+    {% block nav %}
+    {% endblock %}
+
+    <div class="container-fluid" style="margin-top: 10px;">
         {% block body %}
         {% endblock %}
     <div>

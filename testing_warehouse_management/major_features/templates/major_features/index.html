@@ -1,5 +1,23 @@
 {% extends "major_features/layout.html" %}
 
+{% block nav %}
+<nav class="navbar navbar-expand-lg navbar-light" style="background-color: #01257D;">
+  <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav">
+        <li class="nav-item" style="padding: 2.5px 5px 2.5px 5px; border-bottom: 2px solid #00FFFF;">
+          <a class="nav-link" style="color: #00FFFF;" href="{% url 'index' %}">Trang chủ</a>
+        </li>
+        <li class="nav-item" style="padding: 2.5px 5px 2.5px 5px;">
+          <a class="nav-link" style="color: white;" href="#">Features</a>
+        </li>
+        <li class="nav-item" style="padding: 2.5px 5px 2.5px 5px;">
+          <a class="nav-link" style="color: white;"href="#">Pricing</a>
+        </li>
+      </ul>
+  </div>
+</nav>
+{% endblock %}
+
 {% block body %}
 <div id="products-container">
     <table class="table">
