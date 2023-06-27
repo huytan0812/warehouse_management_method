@@ -1,5 +1,28 @@
 {% extends "major_features/layout.html" %}
 
+{% load humanize %}
+
+{% block nav %}
+<nav class="navbar navbar-expand-lg navbar-light" style="background-color: #01257D;">
+  <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav">
+        <li class="nav-item" style="padding: 2.5px 5px 2.5px 5px;">
+          <a class="nav-link" style="color: white;" href="{% url 'index' %}">Trang chủ</a>
+        </li>
+        <li class="nav-item" style="padding: 2.5px 5px 2.5px 5px; border-bottom: 2px solid #00FFFF;">
+          <a class="nav-link" style="color: #00FFFF;" href="{% url 'import_shipments' %}">Nhập kho</a>
+        </li>
+        <li class="nav-item" style="padding: 2.5px 5px 2.5px 5px;">
+          <a class="nav-link" style="color: white;" href="{% url 'export_shipments' %}">Xuất kho</a>
+        </li>
+        <li class="nav-item" style="padding: 2.5px 5px 2.5px 5px;">
+          <a class="nav-link" style="color: white;" href="{% url 'reports' %}">Thống kê</a>
+        </li>
+      </ul>
+  </div>
+</nav>
+{% endblock %}
+
 {% block body %}
 <style>
   .valid-import-shipment {
@@ -37,7 +60,7 @@
             <td>{{ import_shipment.import_shipment_code }}</td>
             <td>{{ import_shipment.supplier_id.name }}</td>
             <td>{{ import_shipment.date }}</td>
-            <td>{{ import_shipment.total_shipment_value }}</td>
+            <td>{{ import_shipment.total_shipment_value|intcomma }}</td>
             <td><a href="{% url 'import_shipment_details' import_shipment.import_shipment_code %}">Lô hàng</a></td>
           </tr>
           {% endfor %}

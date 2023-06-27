@@ -1,6 +1,28 @@
 {% extends "major_features/layout.html" %}
 
+{% load humanize %}
 {% load custom_filters %}
+
+{% block nav %}
+<nav class="navbar navbar-expand-lg navbar-light" style="background-color: #01257D;">
+  <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav">
+        <li class="nav-item" style="padding: 2.5px 5px 2.5px 5px;">
+          <a class="nav-link" style="color: white;" href="{% url 'index' %}">Trang chủ</a>
+        </li>
+        <li class="nav-item" style="padding: 2.5px 5px 2.5px 5px; border-bottom: 2px solid #00FFFF;">
+          <a class="nav-link" style="color: #00FFFF;" href="{% url 'import_shipments' %}">Nhập kho</a>
+        </li>
+        <li class="nav-item" style="padding: 2.5px 5px 2.5px 5px;">
+          <a class="nav-link" style="color: white;" href="{% url 'export_shipments' %}">Xuất kho</a>
+        </li>
+        <li class="nav-item" style="padding: 2.5px 5px 2.5px 5px;">
+          <a class="nav-link" style="color: white;" href="{% url 'reports' %}">Thống kê</a>
+        </li>
+      </ul>
+  </div>
+</nav>
+{% endblock %}
 
 {% block body %}
 <h2>Save & continue page</h2>
@@ -28,7 +50,7 @@
             <td>{{ import_purchase.product_id.name }}</td>
             <td>{{ import_purchase.quantity_import }}</td>
             <td>{{ import_purchase.import_cost }}</td>
-            <td>{{ import_purchase.quantity_import|multiply:import_purchase.import_cost }}</td>
+            <td>{{ import_purchase.quantity_import|multiply:import_purchase.import_cost|intcomma }}</td>
             <td>
               <a href="{% url 'import_purchase_update' import_purchase.id %}">Sửa</a> / 
               <a href="{% url 'import_purchase_delete' import_purchase.id %}">Xóa</a>
@@ -42,8 +64,8 @@
 <div id="purchase-additional-information">
   {% for purchase, value_container in purchase_additional_fields.items %}
   <p><strong>{{ purchase }}: </strong>
-    Số lượng nhập kho trong lô hàng trên <strong>{{ value_container.purchase_quantity_import }}</strong>
-    Giá trị nhập kho trong lô hàng trên <strong>{{ value_container.purchase_value }}</strong>
+    Số lượng nhập kho trong lô hàng trên <strong>{{ value_container.purchase_quantity_import|intcomma }}</strong>
+    Giá trị nhập kho trong lô hàng trên <strong>{{ value_container.purchase_value|intcomma }}</strong>
   </p>
   {% endfor %}
 </div>

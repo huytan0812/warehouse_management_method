@@ -12,7 +12,7 @@ urlpatterns = [
     path("keep_current_method", views.keep_current_method, name="keep_current_method"),
 
     # Import Section
-    path("import_shipments/<date:testing_date>", views.import_shipments, name="import_shipments"),
+    path("import_shipments", views.import_shipments, name="import_shipments"),
     path("import_shipment_details/<str:import_shipment_code>", views.import_shipment_details, name="import_shipment_details"),
     path("import_action", views.import_action, name="import_action"),
     path("import_action/save_and_continue/<str:import_shipment_code>", views.save_and_continue, name="save_and_continue"),
@@ -21,7 +21,7 @@ urlpatterns = [
     path("import_action/import_purchase_delete/<int:import_purchase_id>", views.import_purchase_delete, name="import_purchase_delete"),
 
     # Export section
-    path("export_shipments/<date:testing_date>", views.export_shipments, name="export_shipments"),
+    path("export_shipments", views.export_shipments, name="export_shipments"),
     path("export_action", views.export_action, name="export_action"),
 
     # decorators view

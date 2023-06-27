@@ -8,6 +8,7 @@ from django.db.models import Max
 from django.urls import reverse
 from django.db import transaction, IntegrityError
 from django.views.decorators.cache import cache_control
+from django.core.paginator import Paginator
 from . models import *
 from . forms import *
 from . warehouse_management_methods import *
@@ -119,11 +120,15 @@ def date_handling(request):
             return render(request, "major_features/actions_on_date.html", context)
 
 # Import Section
-def import_shipments(request, testing_date):
-    import_shipments = ImportShipment.objects.select_related('supplier_id').filter(date=testing_date)
+def import_shipments(request):
+
+    import_shipments = ImportShipment.objects.select_related('supplier_id').order_by('-date')
+    import_shipments_paginator = Paginator(import_shipments, 10)
+
+    page_number = request.GET.get("page")
+    page_obj = import_shipments_paginator.get_page(page_number)
 
     context = {
-        'datepicker': testing_date,
         'import_shipments': import_shipments
     }
     return render(request, "major_features/import/import_shipments.html", context)
@@ -301,12 +306,16 @@ def import_purchase_delete(request, import_purchase_id):
     return HttpResponseRedirect(reverse('save_and_continue', kwargs={'import_shipment_code': import_shipment_code}))
 
 # Export Section
-def export_shipments(request, testing_date):
+def export_shipments(request):
+
+    export_shipments = ExportShipment.objects.select_related('agency_id')
+    export_shipments_paginator = Paginator(export_shipments, 10)
+    page_number = request.GET.get("page")
+    page_obj = export_shipments_paginator.get_page(page_number)
 
     current_method = WarehouseManagementMethod.objects.filter(is_currently_applied=True)
     context = {
         'current_method': current_method,
-        'datepicker': testing_date
     }
     return render(request, "major_features/export/export_shipments.html", context)
 

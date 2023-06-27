@@ -1,5 +1,26 @@
 {% extends "major_features/layout.html" %}
 
+{% block nav %}
+<nav class="navbar navbar-expand-lg navbar-light" style="background-color: #01257D;">
+  <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav">
+        <li class="nav-item" style="padding: 2.5px 5px 2.5px 5px;">
+          <a class="nav-link" style="color: white;" href="{% url 'index' %}">Trang chủ</a>
+        </li>
+        <li class="nav-item" style="padding: 2.5px 5px 2.5px 5px; border-bottom: 2px solid #00FFFF;">
+          <a class="nav-link" style="color: #00FFFF;" href="{% url 'import_shipments' %}">Nhập kho</a>
+        </li>
+        <li class="nav-item" style="padding: 2.5px 5px 2.5px 5px;">
+          <a class="nav-link" style="color: white;" href="{% url 'export_shipments' %}">Xuất kho</a>
+        </li>
+        <li class="nav-item" style="padding: 2.5px 5px 2.5px 5px;">
+          <a class="nav-link" style="color: white;" href="{% url 'reports' %}">Thống kê</a>
+        </li>
+      </ul>
+  </div>
+</nav>
+{% endblock %}
+
 {% block body %}
 <h2>Chỉnh sửa đơn hàng nhập kho thuộc lô hàng {{ import_purchase_obj.import_shipment_id.import_shipment_code }}</h2>
 
