@@ -128,9 +128,11 @@ def import_shipments(request):
     page_number = request.GET.get("page")
     page_obj = import_shipments_paginator.get_page(page_number)
 
+    results_count = page_obj.end_index() - page_obj.start_index() + 1
     context = {
         'import_shipments': import_shipments,
-        'page_obj': page_obj
+        'page_obj': page_obj,
+        'results_count': results_count
     }
     return render(request, "major_features/import/import_shipments.html", context)
 

@@ -62,39 +62,37 @@
         </tbody>
         <tfoot>
           <tr>
-            <td colspan="5" style="text-align: right; background-color: white !important;">
+            <td  style="color: #0d6efd; background-color: white !important;"><strong>Kết quả: </strong>
+              {{ results_count }} dòng
+            </td>
+            <td colspan="4" style="text-align: right; background-color: white !important;">
 
               <nav aria-label="Page navigation example" style="display: inline-block;">
               <ul class="pagination" style="margin-top: 15px;">
+
                 {% if page_obj.has_previous %}
                 <li class="page-item">
+                  <a class="page-link" href="?page={{page_obj.previous_page_number}}" aria-label="Previous">
                 {% else %}
                 <li class="page-item disabled">
-                {% endif %}
                   <a class="page-link" href="#" aria-label="Previous">
+                {% endif %}
                     <span aria-hidden="true">&laquo;</span>
                     <span class="sr-only">Trước</span>
                   </a>
                 </li>
 
                 <li class="page-item">
-                  <a class="page-link" href="#">1</a>
-                </li>
-
-                <li class="page-item">
-                  <a class="page-link" href="#">2</a>
-                </li>
-
-                <li class="page-item">
-                  <a class="page-link" href="#">3</a>
+                  <span class="page-link">Trang {{ page_obj.number }} trong {{ page_obj.paginator.num_pages }}</span>
                 </li>
 
                 {% if page_obj.has_next %}
                 <li class="page-item">
+                  <a class="page-link" href="?page={{page_obj.next_page_number}}" aria-label="Next">
                 {% else %}
                 <li class="page-item disabled">
-                {% endif %}
                   <a class="page-link" href="#" aria-label="Next">
+                {% endif %}
                     <span aria-hidden="true">&raquo;</span>
                     <span class="sr-only">Sau</span>
                   </a>
