@@ -11,6 +11,14 @@
         </li>
         <li class="nav-item" style="padding: 2.5px 5px 2.5px 5px; border-bottom: 2px solid #00FFFF;">
           <a class="nav-link" style="color: #00FFFF;" href="{% url 'import_shipments' %}">Nhập kho</a>
+          <ul class="dropdown">
+            <li class="nav-item" style="padding: 2.5px 5px 2.5px 5px;">
+              <a href="{% url 'import_shipments' %}" style="color: white; text-decoration: none;">Theo dõi lô hàng nhập kho</a>
+            </li>
+            <li class="nav-item" style="padding: 2.5px 5px 2.5px 5px;">
+              <a href="{% url 'import_action' %}" style="color: white; text-decoration: none;">Thực hiện nhập kho</a>
+            </li>
+          </ul>
         </li>
         <li class="nav-item" style="padding: 2.5px 5px 2.5px 5px;">
           <a class="nav-link" style="color: white;" href="{% url 'export_shipments' %}">Xuất kho</a>
