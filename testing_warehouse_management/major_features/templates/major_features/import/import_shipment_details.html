@@ -25,8 +25,20 @@
             </li>
           </ul>
         </li>
-        <li class="nav-item" style="padding: 2.5px 5px 2.5px 5px;">
+        <li class="nav-item dropdown-trigger" style="padding: 2.5px 5px 2.5px 5px;">
           <a class="nav-link" style="color: white;" href="{% url 'export_shipments' %}">Xuất kho</a>
+          <ul class="dropdown-ul">
+            <li class="nav-item dropdown-li">
+              <a class="nav-link" href="{% url 'export_shipments' %}" style="color: white; text-decoration: none;">
+                Theo dõi lô hàng xuất kho
+              </a>
+            </li>
+            <li class="nav-item dropdown-li">
+              <a class="nav-link" href="{% url 'export_action' %}" style="color: white; text-decoration: none;">
+                Thực hiện xuất kho
+              </a>
+            </li>
+          </ul>
         </li>
         <li class="nav-item" style="padding: 2.5px 5px 2.5px 5px;">
           <a class="nav-link" style="color: white;" href="{% url 'reports' %}">Thống kê</a>
@@ -39,7 +51,7 @@
 {% block body %}
 <h2>Chi tiết lô hàng nhập kho {{ import_shipment_obj.import_shipment_code }}</h2>
 <div id="import-shipment-details">
-    <table class="table">
+    <table class="table table-bordered table-striped table-dark w-auto" style="margin: auto;">
         <thead>
           <tr>
             <th scope="col">Mã đơn hàng</th>

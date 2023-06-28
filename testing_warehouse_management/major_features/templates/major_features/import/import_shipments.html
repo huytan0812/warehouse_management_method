@@ -24,8 +24,20 @@
             </li>
           </ul>
         </li>
-        <li class="nav-item" style="padding: 2.5px 5px 2.5px 5px;">
+        <li class="nav-item dropdown-trigger" style="padding: 2.5px 5px 2.5px 5px;">
           <a class="nav-link" style="color: white;" href="{% url 'export_shipments' %}">Xuất kho</a>
+          <ul class="dropdown-ul">
+            <li class="nav-item dropdown-li">
+              <a class="nav-link" href="{% url 'export_shipments' %}" style="color: white; text-decoration: none;">
+                Theo dõi lô hàng xuất kho
+              </a>
+            </li>
+            <li class="nav-item dropdown-li">
+              <a class="nav-link" href="{% url 'export_action' %}" style="color: white; text-decoration: none;">
+                Thực hiện xuất kho
+              </a>
+            </li>
+          </ul>
         </li>
         <li class="nav-item" style="padding: 2.5px 5px 2.5px 5px;">
           <a class="nav-link" style="color: white;" href="{% url 'reports' %}">Thống kê</a>
@@ -59,6 +71,7 @@
             <th scope="col">Ngày nhập kho</th>
             <th scope="col">Tổng giá trị lô hàng (Đơn vị tính: VND)</th>
             <th scope="col">Theo dõi chi tiết</th>
+            <th scope="col">Trạng thái</th>
           </tr>
         </thead>
         <tbody>
@@ -69,6 +82,13 @@
             <td style="text-align: left;">{{ import_shipment.date }}</td>
             <td style="text-align: right;">{{ import_shipment.total_shipment_value|intcomma }}</td>
             <td><a href="{% url 'import_shipment_details' import_shipment.import_shipment_code %}">Lô hàng</a></td>
+
+            {% if import_shipment.total_shipment_value > 0 %}
+            <td style="color: #c3e6cb">Đã hoàn tất</td>
+            {% else %}
+            <td style="color: #f5c6cb;">Chưa hoàn tất</td>
+            {% endif %}
+
           </tr>
           {% endfor %}
         </tbody>
