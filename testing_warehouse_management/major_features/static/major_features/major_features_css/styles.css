@@ -6,6 +6,16 @@ body {
     color: blueviolet;
 }
 
+h2 {
+    color: #01257D;
+    margin-top: 20px;
+}
+
+td, th {
+    padding: 15px !important;
+    border: 1px solid white !important;
+}
+
 footer {
     width: 1280px;
     height: 40px;

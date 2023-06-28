@@ -36,36 +36,76 @@
     border-color: #f5c6cb;
   }
 </style>
-<h2>Trang theo dõi các lô hàng nhập kho theo ngày: {{ datepicker|date:"d/m/Y" }}</h2>
-<div id="import-shipment-container">
-    <table class="table">
+<h2 style="text-align: center;">Theo dõi các lô hàng nhập kho</h2>
+
+<div id="import-shipment-container" style="margin-top: 15px;">
+    <table class="table table-bordered table-striped table-dark w-auto" style="margin: auto;">
         <thead>
           <tr>
             <th scope="col">Mã lô hàng</th>
             <th scope="col">Nhà cung cấp</th>
             <th scope="col">Ngày nhập kho</th>
-            <th scope="col">Tổng giá trị lô hàng</th>
-            <th scope="col">Theo dõi</th>
+            <th scope="col">Tổng giá trị lô hàng (Đơn vị tính: VND)</th>
+            <th scope="col">Theo dõi chi tiết</th>
           </tr>
         </thead>
         <tbody>
-          {% for import_shipment in import_shipments %}
-
-          {% if import_shipment.total_shipment_value > 0 %}
-          <tr class="valid-import-shipment">
-          {% else %}
-          <tr class="invalid-import-shipment">
-          {% endif %}
-          
-            <td>{{ import_shipment.import_shipment_code }}</td>
-            <td>{{ import_shipment.supplier_id.name }}</td>
-            <td>{{ import_shipment.date }}</td>
-            <td>{{ import_shipment.total_shipment_value|intcomma }}</td>
+          {% for import_shipment in page_obj %}
+          <tr>
+            <td style="text-align: left;">{{ import_shipment.import_shipment_code }}</td>
+            <td style="text-align: left;">{{ import_shipment.supplier_id.name }}</td>
+            <td style="text-align: left;">{{ import_shipment.date }}</td>
+            <td style="text-align: right;">{{ import_shipment.total_shipment_value|intcomma }}</td>
             <td><a href="{% url 'import_shipment_details' import_shipment.import_shipment_code %}">Lô hàng</a></td>
           </tr>
           {% endfor %}
         </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="5" style="text-align: right; background-color: white !important;">
+
+              <nav aria-label="Page navigation example" style="display: inline-block;">
+              <ul class="pagination" style="margin-top: 15px;">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                {% else %}
+                <li class="page-item disabled">
+                {% endif %}
+                  <a class="page-link" href="#" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                    <span class="sr-only">Trước</span>
+                  </a>
+                </li>
+
+                <li class="page-item">
+                  <a class="page-link" href="#">1</a>
+                </li>
+
+                <li class="page-item">
+                  <a class="page-link" href="#">2</a>
+                </li>
+
+                <li class="page-item">
+                  <a class="page-link" href="#">3</a>
+                </li>
+
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                {% else %}
+                <li class="page-item disabled">
+                {% endif %}
+                  <a class="page-link" href="#" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                    <span class="sr-only">Sau</span>
+                  </a>
+                </li>
+              </ul>
+              </nav>
+            </td>
+          </tr>
+        </tfoot>
       </table>
 </div>
+
 <a href="{% url 'import_action' %}">Thực hiện nhập kho lô hàng</a>
 {% endblock %}

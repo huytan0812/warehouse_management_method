@@ -129,7 +129,8 @@ def import_shipments(request):
     page_obj = import_shipments_paginator.get_page(page_number)
 
     context = {
-        'import_shipments': import_shipments
+        'import_shipments': import_shipments,
+        'page_obj': page_obj
     }
     return render(request, "major_features/import/import_shipments.html", context)
 
