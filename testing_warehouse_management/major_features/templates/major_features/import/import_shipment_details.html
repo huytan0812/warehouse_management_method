@@ -50,8 +50,9 @@
 
 {% block body %}
 <h2>Chi tiết lô hàng nhập kho {{ import_shipment_obj.import_shipment_code }}</h2>
-<div id="import-shipment-details">
+<div id="import-shipment-details" style="margin-top: 20px; margin-bottom: 20px;">
     <table class="table table-bordered table-striped table-dark w-auto" style="margin: auto;">
+      <caption>Chi tiết các đơn hàng trong lô hàng nhập kho {{ import_shipment_obj.import_shipment_code }}</caption>
         <thead>
           <tr>
             <th scope="col">Mã đơn hàng</th>
@@ -73,5 +74,29 @@
           {% endfor %}
         </tbody>
       </table>
+</div>
+
+<div id="products-purchase-value" style="margin-top: 20px; margin-bottom: 20px;">
+  <table class="table table-bordered table-striped table-dark w-auto" style="margin: auto;">
+    <caption>Thống kê giá trị nhập kho ban đầu, giá trị tồn kho hiện tại của từng sản phẩm trong lô hàng nhập kho {{ import_shipment_obj.import_shipment_code }}</caption>
+      <thead>
+        <tr>
+          <th scope="col">Sản phẩm</th>
+          <th scope="col">Giá trị nhập kho ban đầu</th>
+          <th scope="col">Giá trị nhập kho hiện tại</th>
+          <th scope="col">Số lượng tồn kho hiện tại</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for product, value in products_purchase_value.items %}
+        <tr>
+          <td>{{ product }}</td>
+          <td>{{ value.purchase_value|intcomma }}</td>
+          <td>{{ value.remain_value|intcomma }}</td>
+          <td>{{ value.current_quantity_remain }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
 </div>
 {% endblock %}

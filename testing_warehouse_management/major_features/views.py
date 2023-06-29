@@ -138,14 +138,39 @@ def import_shipments(request):
 
 def import_shipment_details(request, import_shipment_code):
     import_shipment_obj = ImportShipment.objects.get(import_shipment_code=import_shipment_code)
-    import_shipment_purchases = ImportPurchase.objects.select_related('product_id').filter(import_shipment_id=import_shipment_obj)
+    import_shipment_purchases = ImportPurchase.objects.select_related('product_id').filter(import_shipment_id=import_shipment_obj).order_by('product_id__name')
+
+    products_purchase_value = {}
+
+    for purchase in import_shipment_purchases:
+        if purchase.product_id.name not in products_purchase_value:
+            products_purchase_value[purchase.product_id.name] = {'purchase_value': purchase.quantity_import * purchase.import_cost,
+                                                                 'remain_value': purchase.quantity_remain * purchase.import_cost,
+                                                                 'current_quantity_remain': purchase.quantity_remain}
+        else:
+            products_purchase_value[purchase.product_id.name]['purchase_value'] += purchase.quantity_import * purchase.import_cost
+            products_purchase_value[purchase.product_id.name]['remain_value'] += purchase.quantity_remain * purchase.import_cost
+            products_purchase_value[purchase.product_id.name]['current_quantity_remain'] += purchase.quantity_remain
 
     context = {
         'import_shipment_obj': import_shipment_obj,
-        'import_purchases': import_shipment_purchases
+        'import_purchases': import_shipment_purchases,
+        'products_purchase_value': products_purchase_value
     }
 
     return render(request, "major_features/import/import_shipment_details.html", context)
+
+def delete_unfinish_import_shipment(request, import_shipment_code):
+
+    try:
+        unfinish_import_shipment_obj = ImportShipment.objects.get(import_shipment_code=import_shipment_code)
+    except ImportShipment.DoesNotExist:
+        raise Exception("Invalid Import Shipment")
+    
+    unfinish_import_shipment_obj.delete()
+
+    return HttpResponseRedirect(reverse('import_shipments'))
+
 
 @is_activating_accounting_period
 def import_action(request):

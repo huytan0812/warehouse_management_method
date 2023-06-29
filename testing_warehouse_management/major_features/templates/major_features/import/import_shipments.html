@@ -81,11 +81,20 @@
             <td style="text-align: left;">{{ import_shipment.supplier_id.name }}</td>
             <td style="text-align: left;">{{ import_shipment.date }}</td>
             <td style="text-align: right;">{{ import_shipment.total_shipment_value|intcomma }}</td>
-            <td><a href="{% url 'import_shipment_details' import_shipment.import_shipment_code %}">Lô hàng</a></td>
 
             {% if import_shipment.total_shipment_value > 0 %}
+            <td><a href="{% url 'import_shipment_details' import_shipment.import_shipment_code %}">Lô hàng</a></td>
             <td style="color: #c3e6cb">Đã hoàn tất</td>
             {% else %}
+            <td>
+              <a href="{% url 'delete_unfinish_import_shipment' import_shipment.import_shipment_code %}">
+                Xóa  
+              </a>
+              <span> / </span>
+              <a href="{% url 'save_and_continue' import_shipment.import_shipment_code %}">
+                Tiếp tục
+              </a>
+            </td>
             <td style="color: #f5c6cb;">Chưa hoàn tất</td>
             {% endif %}
 
@@ -97,7 +106,7 @@
             <td  style="color: #0d6efd; background-color: white !important;"><strong>Kết quả: </strong>
               {{ results_count }} dòng
             </td>
-            <td colspan="4" style="text-align: right; background-color: white !important;">
+            <td colspan="5" style="text-align: right; background-color: white !important;">
 
               <nav aria-label="Page navigation example" style="display: inline-block;">
               <ul class="pagination" style="margin-top: 15px;">

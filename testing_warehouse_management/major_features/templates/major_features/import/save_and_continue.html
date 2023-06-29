@@ -49,7 +49,7 @@
 {% endblock %}
 
 {% block body %}
-<h2>Save & continue page</h2>
+<h2>Tiếp tục nhập thêm đơn hàng cho lô hàng {{ import_shipment_code }}</h2>
 
 <div id="import-shipment-container">
     <p>Mã lô hàng: <strong>{{ import_shipment_code }}</strong></p>
@@ -58,7 +58,7 @@
 </div>
 
 <div id="import-shipment-purchases">
-    <table class="table">
+    <table class="table table-bordered table-striped table-dark w-auto" style="margin: auto;">
         <thead>
           <tr>
             <th scope="col">Sản phẩm</th>

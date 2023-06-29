@@ -15,3 +15,9 @@ according to import purchases & export orders
 - At the end of a month, we need to summarize the total revenue of all product, revenue of each product, product's import purchases value,
 product's export orders value
 - In a period of time, there is only one accounting period
+- In my project, product's current quantity_on_hand will not increase unless an import shipment is submitted successfully
+- If not, the unfinished import shipment will not affect to the product's quantity_on_hand also the product's current_total_value
+- Leveraging this method will reduce the complexity of manually reducing the product's quantity_on_hand & product's current_total_value
+when an unfinished import shipment is deleted
+- In my project, there is no permission to delete a finished import shipment
+for the purpose of inventory managing & reducing the complexity of handling product's quantity_on_hand & product's current_total_value

@@ -19,6 +19,7 @@ urlpatterns = [
     path("import_action/save_and_complete/<str:import_shipment_code>", views.save_and_complete, name="save_and_complete"),
     path("import_action/import_purchase_update/<int:import_purchase_id>", views.import_purchase_update, name="import_purchase_update"),
     path("import_action/import_purchase_delete/<int:import_purchase_id>", views.import_purchase_delete, name="import_purchase_delete"),
+    path("delete_unfinish_import_shipment/<str:import_shipment_code>", views.delete_unfinish_import_shipment, name="delete_unfinish_import_shipment"),
 
     # Export section
     path("export_shipments", views.export_shipments, name="export_shipments"),

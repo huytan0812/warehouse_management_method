@@ -49,7 +49,7 @@
 {% endblock %}
 
 {% block body %}
-<h2>Save & complete page</h2>
+<h2>Hoàn tất lô hàng nhập kho {{ import_shipment_code }}</h2>
 <div id="import-shipment-container">
     <p>Mã lô hàng: <strong>{{ import_shipment_code }}</strong></p>
     <p>Nhà cung cấp lô hàng: <strong>{{ import_shipment_supplier }}</strong></p>
@@ -57,7 +57,7 @@
 </div>
 
 <div id="import-shipment-purchases">
-    <table class="table">
+    <table class="table table-bordered table-striped table-dark w-auto" style="margin: auto;">
         <thead>
           <tr>
             <th scope="col">Sản phẩm</th>
