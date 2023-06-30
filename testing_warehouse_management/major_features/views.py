@@ -50,13 +50,13 @@ def reports(request):
 
     context = {}
 
+    current_accounting_period_id = AccoutingPeriod.objects.aggregate(Max('id')).get("id__max", 0)
+
     # Handling inventory at the starting of an accounting period
-    accounting_periods = AccoutingPeriod.objects.all().order_by('-date_applied')[:2]
-    if len(accounting_periods) > 1:
-        previous_accounting_period_obj = accounting_periods[1]
-        import_purchases = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').filter(import_shipment_id__date__range=[
-            previous_accounting_period_obj.date_applied, previous_accounting_period_obj.date_end
-        ])
+    accounting_periods_id = AccoutingPeriod.objects.exclude(pk=current_accounting_period_id).values_list('id', flat=True)
+    if len(accounting_periods_id) >= 1:
+        import_shipments_id = ImportShipment.objects.filter(current_accounting_period__in=accounting_periods_id).values_list('id', flat=True)
+        import_purchases = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').filter(import_shipment_id__in=import_shipments_id)
         products_inventory = {}
         for purchase in import_purchases:
             if purchase.product_id.name not in products_inventory:
@@ -65,7 +65,6 @@ def reports(request):
             else:
                 products_inventory[purchase.product_id.name]['quantity_remain'] += purchase.quantity_remain
                 products_inventory[purchase.product_id.name]['inventory_value'] += purchase.quantity_remain * purchase.import_cost
-        context['previous_accounting_period_obj'] = previous_accounting_period_obj
         context['products_inventory'] = products_inventory
     
     return render(request, "major_features/reports.html", context)

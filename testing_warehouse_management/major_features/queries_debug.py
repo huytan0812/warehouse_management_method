@@ -339,3 +339,15 @@ def latest_accounting_period():
     connection_queries = connection.queries
     for connection_query in connection_queries:
         print(connection_query)
+
+@query_debugger
+def assigning_accounting_period():
+    accounting_periods = AccoutingPeriod.objects.all()
+    for obj in accounting_periods:
+        import_shipments = ImportShipment.objects.filter(date__range=[
+            obj.date_applied, obj.date_end
+        ])
+        import_shipments.update(current_accounting_period=obj)
+    connection_queries = connection.queries
+    for connection_query in connection_queries:
+        print(connection_query)
