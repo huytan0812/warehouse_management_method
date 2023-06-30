@@ -24,9 +24,9 @@ class ImportShipmentForm(ModelForm):
         model = ImportShipment
         fields = ["import_shipment_code", "supplier_id", "date"]
         widgets = {
-            'import_shipment_code': forms.TextInput(attrs={}),
-            'supplier_id': forms.Select(attrs={}),
-            'date': forms.DateInput(attrs={'type': "date"}),
+            'import_shipment_code': forms.TextInput(attrs={'required': True}),
+            'supplier_id': forms.Select(attrs={'required': True}),
+            'date': forms.DateInput(attrs={'type': "date",'required': True}),
         }
         labels = {
             'import_shipment_code': "Mã lô hàng nhập kho",
@@ -41,9 +41,9 @@ class ImportPurchaseForm(ModelForm):
         model = ImportPurchase
         fields = ["product_id", "quantity_import", "import_cost"]
         widgets = {
-            'product_id': forms.Select(attrs={}),
-            'quantity_import': forms.NumberInput(attrs={}),
-            'import_cost': forms.NumberInput(attrs={})
+            'product_id': forms.Select(attrs={'required': True}),
+            'quantity_import': forms.NumberInput(attrs={'required': True}),
+            'import_cost': forms.NumberInput(attrs={'required': True})
         }
         labels = {
             'product_id': "Sản phẩm",
