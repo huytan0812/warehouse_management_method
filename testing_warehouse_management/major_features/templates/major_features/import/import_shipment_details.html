@@ -48,8 +48,12 @@
 </nav>
 {% endblock %}
 
+{% block title %}
+<h2>Trang nhập kho</h2>
+{% endblock %}
+
 {% block body %}
-<h2>Chi tiết lô hàng nhập kho {{ import_shipment_obj.import_shipment_code }}</h2>
+<h3>Chi tiết lô hàng nhập kho {{ import_shipment_obj.import_shipment_code }}</h3>
 <div id="import-shipment-details" style="margin-top: 20px; margin-bottom: 20px;">
     <table class="table table-bordered table-striped table-dark w-auto" style="margin: auto;">
       <caption>Chi tiết các đơn hàng trong lô hàng nhập kho {{ import_shipment_obj.import_shipment_code }}</caption>

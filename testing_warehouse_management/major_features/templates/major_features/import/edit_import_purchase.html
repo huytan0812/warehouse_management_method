@@ -45,8 +45,12 @@
 </nav>
 {% endblock %}
 
+{% block title %}
+<h2>Trang nhập kho</h2>
+{% endblock %}
+
 {% block body %}
-<h2>Chỉnh sửa đơn hàng nhập kho thuộc lô hàng {{ import_purchase_obj.import_shipment_id.import_shipment_code }}</h2>
+<h3>Chỉnh sửa đơn hàng nhập kho thuộc lô hàng {{ import_purchase_obj.import_shipment_id.import_shipment_code }}</h3>
 
 <form action="{% url 'import_purchase_update' import_purchase_obj.id %}" method="post">
     {% csrf_token %}

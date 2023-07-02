@@ -47,6 +47,10 @@
 </nav>
 {% endblock %}
 
+{% block title %}
+<h2>Trang nhập kho</h2>
+{% endblock %}
+
 {% block body %}
 <style>
   .valid-import-shipment {
@@ -60,7 +64,7 @@
     border-color: #f5c6cb;
   }
 </style>
-<h2 style="text-align: center;">Theo dõi các lô hàng nhập kho</h2>
+<h3 style="text-align: center;">Theo dõi các lô hàng nhập kho</h3>
 
 <div id="import-shipment-container" style="margin-top: 15px;">
     <table class="table table-bordered table-striped table-dark w-auto" style="margin: auto;">
@@ -108,7 +112,7 @@
             </td>
             <td colspan="5" style="text-align: right; background-color: white !important;">
 
-              <nav aria-label="Page navigation example" style="display: inline-block;">
+              <nav aria-label="Page navigation example" style="display: inline-block; position: static;">
               <ul class="pagination" style="margin-top: 15px;">
 
                 {% if page_obj.has_previous %}

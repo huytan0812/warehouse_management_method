@@ -18,7 +18,12 @@
     {% block nav %}
     {% endblock %}
 
-    <div class="container-fluid" style="margin-top: 10px;">
+    {% block title %}
+    {% endblock %}
+    
+    <hr style="height: 2px; color: #01257D; opacity: 0.8; margin: auto; margin-top: 20px; margin-bottom: 20px;">
+
+    <div class="container-fluid" style="margin-top: 20px; margin-bottom: 20px;">
         {% block body %}
         {% endblock %}
     <div>

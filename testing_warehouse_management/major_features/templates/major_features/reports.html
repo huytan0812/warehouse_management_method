@@ -47,17 +47,45 @@
 </nav>
 {% endblock %}
 
+{% block title %}
+<h2>Trang thống kê</h2>
+{% endblock %}
+
 {% block body %}
 
-<h2>Trang thống kê</h2>
-<div id="inventory">
-    <p><strong>Tồn kho đầu kỳ</strong></p>
-    {% for key, value in products_inventory.items %}
-        <p><strong>Sản phẩm {{ key }}: </strong>
-            Số lượng sản phẩm tồn kho {{ value.quantity_remain|intcomma }} | 
-            Tổng giá trị {{ value.inventory_value|intcomma }}
-        </p>
-    {% endfor %}
-</div>
+<table style="width: 100%;">
+  <thead>
+    <tr>
+      <th style="color: #01257D; text-align: center; border-right: 2px solid #01257D !important; border-bottom: 2px solid #01257D !important;">Thống kê về</th>
+      <th style="color: #01257D; text-align: center; border-bottom: 2px solid #01257D !important;">Nội dung thống kê</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="color: #01257D; border-right: 2px solid #01257D !important;">Doanh thu</td>
+      <td rowspan="4" style="color: #01257D; border-left: 2px solid #01257D !important;">
+      <div id="inventory">
+        <p><strong>Tồn kho đầu kỳ</strong></p>
+        {% for key, value in products_inventory.items %}
+            <p><strong>Sản phẩm {{ key }}: </strong>
+                Số lượng sản phẩm tồn kho {{ value.quantity_remain|intcomma }} | 
+                Tổng giá trị {{ value.inventory_value|intcomma }}
+            </p>
+        {% endfor %}
+      </div>
+      </td>
+    </tr>
+    <tr>
+      <td style="color: #01257D; border-right: 1px solid #01257D !important;">Nhập kho</td>
+    </tr>
+    <tr>
+      <td style="color: #01257D; border-right: 1px solid #01257D !important;">Xuất kho</td>
+    </tr>
+    <tr>
+      <td style="color: #01257D; border-right: 1px solid #01257D !important;">Tồn kho đầu kỳ</td>
+    </tr>
+  </tbody>
+
+</table>
 
 {% endblock %}

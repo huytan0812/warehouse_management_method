@@ -47,9 +47,14 @@
 </nav>
 {% endblock %}
 
+{% block title %}
+<h2>Trang chủ</h2>
+{% endblock %}
+
 {% block body %}
 <div id="products-container">
     <table class="table table-bordered table-striped table-dark">
+      <caption>Bảng thống kê giá trị tồn kho hiện tại của từng sản phẩm</caption>
         <thead>
           <tr>
             <th scope="col" style="text-align: left;">Mã sản phẩm</th>
@@ -94,7 +99,5 @@
   <a href="{% url 'activating_accounting_period' %}">Nhấn vào link này để tiến hành cập nhật phương pháp</a>
 </div>
 {% endif %}
-
-<p><strong><a href="{% url 'reports' %}">Thống kê</a></strong></p>
 
 {% endblock %}

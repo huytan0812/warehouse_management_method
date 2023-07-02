@@ -9,6 +9,12 @@ body {
 h2 {
     color: #01257D;
     margin-top: 20px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+nav {
+    position: fixed;
 }
 
 td, th {
@@ -49,4 +55,5 @@ footer {
 
 .dropdown-trigger:hover .dropdown-ul{
     display: block;
+    z-index: 1;
 }

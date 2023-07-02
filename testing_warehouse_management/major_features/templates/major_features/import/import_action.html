@@ -47,8 +47,12 @@
 </nav>
 {% endblock %}
 
+{% block title %}
+<h2>Trang nhập kho</h2>
+{% endblock %}
+
 {% block body %}
-<h2>Đơn nhập kho lô hàng</h2>
+<h3>Đơn nhập kho lô hàng</h3>
 <form action="{% url 'import_action' %}" method="post">
     {% csrf_token %}
     <fieldset>

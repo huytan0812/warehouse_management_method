@@ -47,8 +47,12 @@
 </nav>
 {% endblock %}
 
+{% block title %}
+<h2>Trang xuất kho</h2>
+{% endblock %}
+
 {% block body %}
 <p>Phương pháp xác định giá trị hàng tồn kho đang được chọn: <strong>{{ current_method.name }}</strong></p>
-<h2>Trang theo dõi các lô hàng xuất kho theo ngày: {{ datepicker|date:"d/m/Y" }}</h2>
+<h3>Trang theo dõi các lô hàng xuất kho theo ngày: {{ datepicker|date:"d/m/Y" }}</h3>
 <a href="{% url 'export_action' %}">Thực hiện xuất kho lô hàng</a>
 {% endblock %}

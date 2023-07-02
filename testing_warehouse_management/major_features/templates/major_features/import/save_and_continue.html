@@ -48,8 +48,12 @@
 </nav>
 {% endblock %}
 
+{% block title %}
+<h2>Trang nhập kho</h2>
+{% endblock %}
+
 {% block body %}
-<h2>Tiếp tục nhập thêm đơn hàng cho lô hàng {{ import_shipment_code }}</h2>
+<h3>Tiếp tục nhập thêm đơn hàng cho lô hàng {{ import_shipment_code }}</h3>
 
 <div id="import-shipment-container">
     <p>Mã lô hàng: <strong>{{ import_shipment_code }}</strong></p>
