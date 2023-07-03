@@ -53,26 +53,34 @@
 
 {% block body %}
 <h3>Đơn nhập kho lô hàng</h3>
-<form action="{% url 'import_action' %}" method="post">
-    {% csrf_token %}
-    <fieldset>
-        <legend>
-            Thông tin tổng quan lô hàng
-        </legend>
-        {{ import_shipment_form.as_p }}
-    </fieldset>
 
-    <fieldset>
-        <legend>
-            Nhập kho sản phẩm:
-        </legend>
-        {{ import_purchase_form.as_p }}
-    </fieldset>
+<div class="container d-flex justify-content-center">
+  <form action="{% url 'import_action' %}" method="post" class="shipment-form">
 
-    <button type="submit" name="save_and_continue">Lưu và tiếp tục nhập kho sản phẩm theo lô hàng trên</button>
-    <button type="submit" name="save_and_complete">Hoàn tất</button>
+      {% csrf_token %}
+      <div class="form-group">
+        <fieldset>
+            <legend>
+                Thông tin lô hàng nhập kho
+            </legend>
+            {{ import_shipment_form.as_p }}
+        </fieldset>
+      </div>
 
-</form>
+      <div class="form-group">
+        <fieldset>
+            <legend>
+                Nhập kho sản phẩm:
+            </legend>
+            {{ import_purchase_form.as_p }}
+        </fieldset>
+      </div>
+
+      <button type="submit" name="save_and_continue">Lưu và tiếp tục nhập kho sản phẩm theo lô hàng trên</button>
+      <button type="submit" name="save_and_complete">Hoàn tất</button>
+
+  </form>
+</div>
 {% endblock %}
 
 {% block script %}
