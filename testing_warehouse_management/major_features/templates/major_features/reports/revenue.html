@@ -62,7 +62,7 @@
   </thead>
   <tbody>
     <tr>
-      <td style="color: #01257D; border-right: 2px solid #01257D !important;">Doanh thu</td>
+      <td class="report-td-active"><a href="{% url 'reports_revenue' %}" style="text-decoration: none;">Doanh thu</a></td>
       <td rowspan="4" style="color: #01257D; border-left: 2px solid #01257D !important;">
       <div id="inventory">
         <p><strong>Tồn kho đầu kỳ</strong></p>
@@ -76,13 +76,13 @@
       </td>
     </tr>
     <tr>
-      <td style="color: #01257D; border-right: 1px solid #01257D !important;">Nhập kho</td>
+      <td  class="report-td"><a href="{% url 'reports_import_section' %}" style="text-decoration: none;">Nhập kho</a></td>
     </tr>
     <tr>
-      <td style="color: #01257D; border-right: 1px solid #01257D !important;">Xuất kho</td>
+      <td  class="report-td"><a href="{% url 'reports_export_section' %}" style="text-decoration: none;">Xuất kho</a></td>
     </tr>
     <tr>
-      <td style="color: #01257D; border-right: 1px solid #01257D !important;">Tồn kho đầu kỳ</td>
+      <td  class="report-td"><a href="{% url 'reports' %}" style="text-decoration: none;">Tồn kho đầu kỳ</a></td>
     </tr>
   </tbody>
 

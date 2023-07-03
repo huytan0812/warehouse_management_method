@@ -6,7 +6,6 @@ register_converter(DateConverter, "date")
 
 urlpatterns = [
     path("", views.index, name="index"),
-    path("reports", views.reports, name="reports"),
     path("date_handling", views.date_handling, name="date_handling"),
     path("apply_warehouse_management", views.apply_warehouse_management, name="apply_warehouse_management"),
     path("keep_current_method", views.keep_current_method, name="keep_current_method"),
@@ -24,6 +23,12 @@ urlpatterns = [
     # Export section
     path("export_shipments", views.export_shipments, name="export_shipments"),
     path("export_action", views.export_action, name="export_action"),
+
+    # Reports section
+    path("reports", views.reports, name="reports"),
+    path("reports/revenue", views.reports_revenue, name="reports_revenue"),
+    path("reports/import_section", views.reports_import_section, name="reports_import_section"),
+    path("reports/export_section", views.reports_export_section, name="reports_export_section"),
 
     # decorators view
     path("activating_accounting_period", views.activating_accounting_period, name="activating_accounting_period"),

@@ -67,7 +67,19 @@ def reports(request):
                 products_inventory[purchase.product_id.name]['inventory_value'] += purchase.quantity_remain * purchase.import_cost
         context['products_inventory'] = products_inventory
     
-    return render(request, "major_features/reports.html", context)
+    return render(request, "major_features/reports/reports.html", context)
+
+def reports_revenue(request):
+    context = {}
+    return render(request, "major_features/reports/revenue.html", context)
+
+def reports_import_section(request):
+    context = {}
+    return render(request, "major_features/reports/import_section.html", context)
+
+def reports_export_section(request):
+    context = {}
+    return render(request, "major_features/reports/export_section.html", context)
 
 def get_lastday_of_month(date_obj):
 

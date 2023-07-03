@@ -57,3 +57,36 @@ footer {
     display: block;
     z-index: 1;
 }
+
+.report-td {
+    color: #01257D; 
+    border-right: 1px solid #01257D !important;
+    cursor: pointer;
+    width: 1%;
+    white-space: nowrap
+}
+
+.report-td a {
+    color: #01257D; 
+}
+
+.report-td-active {
+    color: #01257D; 
+    border-right: 1px solid #01257D !important;
+    cursor: pointer;
+    font-size: 22px;
+    font-weight: bold;
+    border-bottom: 2px solid #01257D !important;
+    width: 1%;
+    white-space: nowrap
+}
+
+.report-td-active a {
+    color: #01257D;
+}
+
+.report-td:hover{
+    font-size: 22px;
+    font-weight: bold;
+    border-bottom: 2px solid #01257D !important;
+}
