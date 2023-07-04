@@ -58,6 +58,27 @@ footer {
     z-index: 1;
 }
 
+input {
+    border: 2px solid #01257D !important;
+    border-radius: 4px;
+}
+
+.select {
+    border: 2px solid #01257D !important;
+}
+
+.submit-button {
+    border: 2px solid #01257D !important;
+    border-radius: 4px;
+    color: #01257D;
+    padding: 5px 5px 5px 5px;
+}
+
+.submit-button:hover {
+    background-color: #01257D;
+    color: #00FFFF;
+}
+
 .report-td {
     color: #01257D; 
     border-right: 1px solid #01257D !important;

@@ -15,7 +15,7 @@ class WarehouseManagementMethodForm(ModelForm):
         model = WarehouseManagementMethod
         fields = ["name"]
         widgets = {
-            'name': forms.Select(attrs={}),
+            'name': forms.Select(attrs={'class': 'form-control select'}),
         }
 
 class ImportShipmentForm(ModelForm):
@@ -24,9 +24,9 @@ class ImportShipmentForm(ModelForm):
         model = ImportShipment
         fields = ["import_shipment_code", "supplier_id", "date"]
         widgets = {
-            'import_shipment_code': forms.TextInput(attrs={ 'class': 'form-control','required': True}),
-            'supplier_id': forms.Select(attrs={'class': 'form-control', 'required': True}),
-            'date': forms.DateInput(attrs={'class': 'form-control', 'type': "date",'required': True}),
+            'import_shipment_code': forms.TextInput(attrs={ 'class': 'form-control', 'required': True, 'placeholder': "Mã lô hàng nhập kho"}),
+            'supplier_id': forms.Select(attrs={'class': 'form-control select', 'required': True}),
+            'date': forms.DateInput(attrs={'class': 'form-control', 'type': "date",'required': True, 'placeholder': "Ngày nhập kho lô hàng"}),
         }
         labels = {
             'import_shipment_code': "Mã lô hàng nhập kho",
@@ -41,9 +41,9 @@ class ImportPurchaseForm(ModelForm):
         model = ImportPurchase
         fields = ["product_id", "quantity_import", "import_cost"]
         widgets = {
-            'product_id': forms.Select(attrs={'class': 'form-control', 'required': True}),
-            'quantity_import': forms.NumberInput(attrs={'class': 'form-control', 'required': True}),
-            'import_cost': forms.NumberInput(attrs={'class': 'form-control', 'required': True})
+            'product_id': forms.Select(attrs={'class': 'form-control select', 'required': True}),
+            'quantity_import': forms.NumberInput(attrs={'class': 'form-control', 'required': True, 'placeholder': "Số lượng nhập kho"}),
+            'import_cost': forms.NumberInput(attrs={'class': 'form-control', 'required': True, 'placeholder': "Đơn giá nhập kho"})
         }
         labels = {
             'product_id': "Sản phẩm",
@@ -56,9 +56,9 @@ class ExportShipmentForm(ModelForm):
         model = ExportShipment
         fields = ['export_shipment_code', 'agency_id', 'date']
         widgets = {
-            'export_shipment_code': forms.TextInput(attrs={'class': 'form-control',}),
-            'agency_id': forms.Select(attrs={'class': 'form-control',}),
-            'date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'export_shipment_code': forms.TextInput(attrs={'class': 'form-control', 'placeholder': "Mã lô hàng xuất kho"}),
+            'agency_id': forms.Select(attrs={'class': 'form-control select',}),
+            'date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date', 'placeholder': "Ngày xuất kho lô hàng"}),
         }
         labels = {
             'export_shipment_code': "Mã lô hàng xuất kho",
@@ -71,9 +71,9 @@ class ExportOrderForm(ModelForm):
         model = ExportOrder
         fields = ["product_id", "quantity_export", "unit_price"]
         widgets = {
-            'product_id': forms.Select(attrs={'class': 'form-control',}),
-            'quantity_export': forms.NumberInput(attrs={'class': 'form-control',}),
-            'unit_price': forms.NumberInput(attrs={'class': 'form-control',}),
+            'product_id': forms.Select(attrs={'class': 'form-control select',}),
+            'quantity_export': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': "Số lượng xuất kho"}),
+            'unit_price': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': "Đơn giá bán"}),
         }
         labels = {
             'product_id': "Sản phẩm",
