@@ -55,31 +55,33 @@
 <h3>Đơn nhập kho lô hàng</h3>
 
 <div class="container d-flex justify-content-center">
-  <form action="{% url 'import_action' %}" method="post" class="shipment-form">
+  <div class="form-container">
+    <form action="{% url 'import_action' %}" method="post" class="shipment-form">
 
-      {% csrf_token %}
-      <div class="form-group">
-        <fieldset>
-            <legend>
-                Thông tin lô hàng nhập kho
-            </legend>
-            {{ import_shipment_form.as_p }}
-        </fieldset>
-      </div>
+        {% csrf_token %}
+        <div class="form-group">
+          <fieldset>
+              <legend>
+                  <strong>Thông tin lô hàng nhập kho:</strong>
+              </legend>
+              {{ import_shipment_form.as_p }}
+          </fieldset>
+        </div>
 
-      <div class="form-group">
-        <fieldset>
-            <legend>
-                Nhập kho sản phẩm:
-            </legend>
-            {{ import_purchase_form.as_p }}
-        </fieldset>
-      </div>
+        <div class="form-group">
+          <fieldset>
+              <legend>
+                  <strong>Nhập kho sản phẩm:</strong>
+              </legend>
+              {{ import_purchase_form.as_p }}
+          </fieldset>
+        </div>
 
-      <button type="submit" name="save_and_continue" class="submit-button">Lưu và tiếp tục nhập kho sản phẩm theo lô hàng trên</button>
-      <button type="submit" name="save_and_complete" class="submit-button">Hoàn tất</button>
+        <button type="submit" name="save_and_continue" class="submit-button">Lưu và tiếp tục nhập kho sản phẩm theo lô hàng trên</button>
+        <button type="submit" name="save_and_complete" class="submit-button">Hoàn tất</button>
 
-  </form>
+    </form>
+  </div>
 </div>
 {% endblock %}
 

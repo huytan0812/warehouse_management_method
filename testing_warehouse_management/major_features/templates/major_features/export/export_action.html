@@ -54,25 +54,27 @@
 <p>Phương pháp tính giá xuất kho đang được áp dụng: <strong>{{ current_method_obj.name }}</strong></p>
 
 <div class="container d-flex justify-content-center">
-  <form action="{% url 'export_action' %}" method="post" class="shipment-form">
-      {% csrf_token %}
-        <div class="form-group">
-          <fieldset>
-              <legend>
-                  Thông tin lô hàng xuất kho:
-              </legend>
-              {{ export_shipment_form.as_p }}
-          </fieldset>
-        </div>
+  <div class="form-container">
+    <form action="{% url 'export_action' %}" method="post" class="shipment-form">
+        {% csrf_token %}
+          <div class="form-group">
+            <fieldset>
+                <legend>
+                    <strong>Thông tin lô hàng xuất kho:</strong>
+                </legend>
+                {{ export_shipment_form.as_p }}
+            </fieldset>
+          </div>
 
-        <div class="form-group">
-          <fieldset>
-              <legend>
-                  Xuất kho sản phẩm:
-              </legend>
-              {{ export_order_form.as_p }}
-          </fieldset>
-        </div>
-  </form>
+          <div class="form-group">
+            <fieldset>
+                <legend>
+                    <strong>Xuất kho sản phẩm:</strong>
+                </legend>
+                {{ export_order_form.as_p }}
+            </fieldset>
+          </div>
+    </form>
+  </div>
 </div>
 {% endblock %}
