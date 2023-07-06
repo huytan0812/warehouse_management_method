@@ -383,17 +383,24 @@ def export_action(request):
                 # Implement to FIFO accounting
                 pass
             
-            if latest_accounting_period_obj.warehouse_management_method.name == "LIFO":
-                # Implement to FIFO accounting
+            elif latest_accounting_period_obj.warehouse_management_method.name == "LIFO":
+                # Implement to LIFO accounting
                 pass
 
-            if latest_accounting_period_obj.warehouse_management_method.name == "Bình quân gia quyền tức thời":
-                # Implement to FIFO accounting
+            elif latest_accounting_period_obj.warehouse_management_method.name == "Bình quân gia quyền tức thời":
+                # Implement to average_method_instantly accounting
                 pass
 
-            if latest_accounting_period_obj.warehouse_management_method.name == "Bình quân gia quyền cuối kỳ":
-                # Implement to FIFO accounting
+            elif latest_accounting_period_obj.warehouse_management_method.name == "Bình quân gia quyền cuối kỳ":
+                # Implement to average_method_at_the_end accounting
                 pass
+
+            elif latest_accounting_period_obj.warehouse_management_method.name == "Thực tế đích danh":
+                # Implement to actual_method_by_name
+                pass
+
+            else:
+                return HttpResponse('Invalid Warehouse Management Method', content_type="text/plain")
            
 
         else:
