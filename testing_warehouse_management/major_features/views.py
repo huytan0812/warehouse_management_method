@@ -274,7 +274,8 @@ def save_and_complete(request, import_shipment_code):
     try:
         with transaction.atomic():
             for import_purchase in import_shipment_purchases:
-                # Import Shipment Calculating total_shipmen_value handling
+                
+                # Import Shipment Calculating total_shipment_value handling
                 import_purchase_value = import_purchase.quantity_import * import_purchase.import_cost
                 total_import_shipment_value += import_purchase_value
 
