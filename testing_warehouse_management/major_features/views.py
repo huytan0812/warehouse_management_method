@@ -131,6 +131,8 @@ def date_handling(request):
             return render(request, "major_features/actions_on_date.html", context)
 
 # Import Section
+
+# Import Shipment Section
 def import_shipments(request):
 
     import_shipments = ImportShipment.objects.select_related('supplier_id').order_by('-date')
@@ -183,6 +185,8 @@ def delete_unfinish_import_shipment(request, import_shipment_code):
     return HttpResponseRedirect(reverse('import_shipments'))
 
 
+# Import Action section
+
 @is_activating_accounting_period
 def import_action(request):
     latest_accounting_period_obj = AccoutingPeriod.objects.select_related('warehouse_management_method').latest('id')
@@ -206,6 +210,9 @@ def import_action(request):
 
             if "save_and_continue" in request.POST:
                 return HttpResponseRedirect(reverse('save_and_continue', kwargs={'import_shipment_code': import_shipment_obj.import_shipment_code}))
+            
+            if "save_and_complete" in request.POST:
+                return HttpResponseRedirect(reverse('save_and_complete', kwargs={'import_shipment_code': import_shipment_obj.import_shipment_code}))
 
         else:
             return HttpResponse("Invalid Form", content_type="text/plain")
@@ -232,6 +239,9 @@ def save_and_continue(request, import_shipment_code):
 
             if "save_and_continue" in request.POST:
                 return HttpResponseRedirect(reverse("save_and_continue", kwargs={'import_shipment_code': import_shipment_obj.import_shipment_code}))
+            
+            if "save_and_complete" in request.POST:
+                return HttpResponseRedirect(reverse('save_and_complete', kwargs={'import_shipment_code': import_shipment_obj.import_shipment_code}))
 
         else:
             return HttpResponse("Invalid form", content_type="text/plain")
@@ -346,6 +356,9 @@ def import_purchase_delete(request, import_purchase_id):
     return HttpResponseRedirect(reverse('save_and_continue', kwargs={'import_shipment_code': import_shipment_code}))
 
 # Export Section
+
+# Export Shipment Section
+
 def export_shipments(request):
 
     export_shipments = ExportShipment.objects.select_related('agency_id')
@@ -358,6 +371,8 @@ def export_shipments(request):
         'current_method': current_method,
     }
     return render(request, "major_features/export/export_shipments.html", context)
+
+# Export Action Section
 
 @is_activating_accounting_period
 def export_action(request):
