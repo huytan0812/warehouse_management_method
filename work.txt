@@ -21,3 +21,4 @@ product's export orders value
 when an unfinished import shipment is deleted
 - In my project, there is no permission to delete a finished import shipment
 for the purpose of inventory managing & reducing the complexity of handling product's quantity_on_hand & product's current_total_value
+- Current progress in my project, I haven't finish the task of summarizing the accounting period. Should finish it after export section

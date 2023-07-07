@@ -90,12 +90,18 @@
 </div>
 
 <div id="purchase-additional-information">
-  {% for purchase, value_container in purchase_additional_fields.items %}
-  <p><strong>{{ purchase }}: </strong>
-    Số lượng nhập kho trong lô hàng trên <strong>{{ value_container.purchase_quantity_import|intcomma }}</strong>
-    Giá trị nhập kho trong lô hàng trên <strong>{{ value_container.purchase_value|intcomma }}</strong>
-  </p>
-  {% endfor %}
+  <ul class="list-group">
+
+    {% for purchase, value_container in purchase_additional_fields.items %}
+      <li class="list-group-item">
+        <p><strong>{{ purchase }}: </strong>
+          Số lượng nhập kho trong lô hàng trên <strong>{{ value_container.purchase_quantity_import|intcomma }}</strong>
+          Giá trị nhập kho trong lô hàng trên <strong>{{ value_container.purchase_value|intcomma }}</strong>
+        </p>
+      </li>
+    {% endfor %}
+    
+  </ul>
 </div>
 
 <div class="container d-flex justify-content-center">

@@ -223,8 +223,14 @@ def import_action(request):
     }
     return render(request, "major_features/import/import_action.html", context)
 
+@cache_control(no_cache=True, must_revalidate=True)
 def save_and_continue(request, import_shipment_code):
     import_shipment_obj = ImportShipment.objects.select_related('supplier_id').get(import_shipment_code=import_shipment_code)
+
+    # Check if user try to backward
+    # after accomplishing the import shipment object
+    if import_shipment_obj.total_shipment_value > 0:
+        return HttpResponse("Save_and_continue error: You cannot backward after finishing import shipment object", content_type="text/plain")
 
     if request.method == "POST":
         import_purchase_form = ImportPurchaseForm(request.POST)
@@ -273,7 +279,7 @@ def save_and_complete(request, import_shipment_code):
 
     import_shipment_obj = ImportShipment.objects.select_related('supplier_id').select_for_update().filter(import_shipment_code=import_shipment_code)
     if import_shipment_obj[0].total_shipment_value > 0:
-        return HttpResponse('You cannot backward', content_type="text/plain") 
+        return HttpResponse("Save_and_complete_error: You cannot backward after finishing the import shipment object", content_type="text/plain") 
 
     import_shipment_purchases = ImportPurchase.objects.select_related('product_id').select_for_update().filter(import_shipment_id=import_shipment_obj[0])
 
