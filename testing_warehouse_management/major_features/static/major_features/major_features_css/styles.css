@@ -80,6 +80,10 @@ input {
     color: #00FFFF;
 }
 
+.float-right{
+    float: right;
+}
+
 .report-td {
     color: #01257D; 
     border-right: 1px solid #01257D !important;

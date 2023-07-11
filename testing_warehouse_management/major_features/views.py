@@ -384,57 +384,43 @@ def export_shipments(request):
 def export_action(request):
     latest_accounting_period_obj = AccoutingPeriod.objects.select_related('warehouse_management_method').latest('id')
     export_shipment_form = ExportShipmentForm()
-    export_order_form = ExportOrderForm()
 
     if request.method == "POST":
         export_shipment_form = ExportShipmentForm(request.POST)
-        export_order_form = ExportOrderForm(request.POST)
 
-        if export_shipment_form.is_valid() and export_order_form.is_valid():
+        if export_shipment_form.is_valid():
            
             # Export Shipment    
             export_shipment_form_obj = export_shipment_form.save(commit=False)
+            export_shipment_code = export_shipment_form_obj.export_shipment_code
             export_shipment_form_obj.warehouse_management_method=latest_accounting_period_obj
             export_shipment_form_obj.save()
 
-            # Export order
-            export_order_form_obj = export_order_form.save(commit=False)
-            export_order_form_obj.export_shipment_id = export_shipment_form_obj
-
-            if latest_accounting_period_obj.warehouse_management_method.name == "FIFO":
-                # Implement to FIFO accounting
-                pass
-            
-            elif latest_accounting_period_obj.warehouse_management_method.name == "LIFO":
-                # Implement to LIFO accounting
-                pass
-
-            elif latest_accounting_period_obj.warehouse_management_method.name == "Bình quân gia quyền tức thời":
-                # Implement to average_method_instantly accounting
-                pass
-
-            elif latest_accounting_period_obj.warehouse_management_method.name == "Bình quân gia quyền cuối kỳ":
-                # Implement to average_method_at_the_end accounting
-                pass
-
-            elif latest_accounting_period_obj.warehouse_management_method.name == "Thực tế đích danh":
-                # Implement to actual_method_by_name
-                pass
-
-            else:
-                return HttpResponse('Invalid Warehouse Management Method', content_type="text/plain")
-           
+            return HttpResponseRedirect(reverse('export_order_action', kwargs={'export_shipment_code': export_shipment_code}))
 
         else:
             return HttpResponse('Invalid Form', content_type="text/plain")
 
     context = {
         'export_shipment_form': export_shipment_form,
-        'export_order_form': export_order_form,
         'latest_accounting_period_obj': latest_accounting_period_obj
     }
 
     return render(request, "major_features/export/export_action.html", context)
+
+def export_order_action(request, export_shipment_code):
+    export_shipment_obj = ExportShipment.objects.select_related('current_accounting_period').get(export_shipment_code=export_shipment_code)
+    current_warehouse_management_method = export_shipment_obj.current_accounting_period.warehouse_management_method
+    
+    export_order_form = ExportOrderForm()
+
+    context = {
+        'current_method': current_warehouse_management_method,
+        'export_order_form': export_order_form,
+    }
+
+    return render(request, "major_features/export/export_order_action.html", context)
+
 
 def get_date_utc_now():
     datetime_now = datetime.now()
