@@ -1,5 +1,6 @@
 from django import forms
 from django.forms import ModelForm
+from django.db.models import Sum, Max
 from . models import *
 
 class KeepMethodForm(forms.Form):
@@ -80,3 +81,20 @@ class ExportOrderForm(ModelForm):
             'quantity_export': "Số lượng sản phẩm xuất kho",
             'unit_price': "Đơn giá bán",
         }
+
+class ActualMethodStartingInventory(forms.Form):
+    chosen_purchases = forms.ModelChoiceField(widget=forms.Select(attrs={'class': 'form-control select', 'required': True}),
+                                              label="Danh sách đơn hàng tồn kho đầu kỳ")
+    quantity_take = forms.IntegerField(widget=forms.NumberInput(attrs={'class': 'form-control', 
+                                                                       'placeholder': "Số lượng lấy ra từ đơn hàng được chọn",
+                                                                       'required': True}),
+                                                                label="Số lượng lấy ra từ đơn hàng được chọn")
+    
+    def __init__(self, *args, **kwargs):
+
+        super().__init__(*args, **kwargs)
+        current_accounting_period_id = AccoutingPeriod.objects.aggregate(Max('id')).get("id__max", 0)
+        accounting_periods_id = AccoutingPeriod.objects.exclude(pk=current_accounting_period_id).values_list('id', flat=True)
+        import_shipments_id = ImportShipment.objects.filter(current_accounting_period__in=accounting_periods_id).values_list('id', flat=True)
+        self.fields["chosen_purchases"].queryset = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').filter(import_shipment_id__in=import_shipments_id)
+

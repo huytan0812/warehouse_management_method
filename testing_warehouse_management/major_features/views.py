@@ -414,6 +414,14 @@ def export_order_action(request, export_shipment_code):
     
     export_order_form = ExportOrderForm()
 
+    if request.method == "POST":
+        export_order_form = ExportOrderForm(request.POST)
+
+        if export_order_form.is_valid():
+            pass
+        else:
+            return HttpResponse("Invalid Form", content_type="text/plain")
+
     context = {
         'current_method': current_warehouse_management_method,
         'export_order_form': export_order_form,
