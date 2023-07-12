@@ -418,7 +418,17 @@ def export_order_action(request, export_shipment_code):
         export_order_form = ExportOrderForm(request.POST)
 
         if export_order_form.is_valid():
-            pass
+
+            export_order_form_obj = export_order_form.save()
+            if current_warehouse_management_method.name == "Thực tế đích danh":
+                return HttpResponseRedirect(reverse('actual_method_by_name_export_action', kwargs={'export_order_id': export_order_form.id}))
+            else:
+                if "save_and_continue" in request.POST:
+                    return HttpResponseRedirect(reverse("export_order_action", kwargs={'export_shipment_code': export_shipment_code}))
+                if "save_and_complete" in request.POST:
+                    # Implement export_action_save_and_complete view
+                    pass
+
         else:
             return HttpResponse("Invalid Form", content_type="text/plain")
 
@@ -429,6 +439,8 @@ def export_order_action(request, export_shipment_code):
 
     return render(request, "major_features/export/export_order_action.html", context)
 
+def actual_method_by_name_export_action(request, export_order_id):
+    pass
 
 def get_date_utc_now():
     datetime_now = datetime.now()

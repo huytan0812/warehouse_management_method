@@ -63,6 +63,16 @@
                   {{ export_order_form.as_p }}
               </fieldset>
             </div>
+            {% if current_method.name == "Thực tế đích danh" %}
+            <button type="submit" value="Chọn đơn hàng tiến hành xuất kho" class="submit-button float-right"></button>
+            {% else %}
+            <button type="submit" value="save_and_continue" class="submit-button float-right">
+              Tiếp tục xuất kho sản phẩm khác
+            </button>
+            <button type="submit" value="save_and_complete" class="submit-button float-right">
+              Lưu và hoàn tất xuất kho
+            </button>
+            {% endif %}
       </form>
     </div>
 </div>
