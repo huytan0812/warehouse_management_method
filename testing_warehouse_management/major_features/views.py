@@ -56,7 +56,8 @@ def reports(request):
     accounting_periods_id = AccoutingPeriod.objects.exclude(pk=current_accounting_period_id).values_list('id', flat=True)
     if len(accounting_periods_id) >= 1:
         import_shipments_id = ImportShipment.objects.filter(current_accounting_period__in=accounting_periods_id).values_list('id', flat=True)
-        import_purchases = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').filter(import_shipment_id__in=import_shipments_id)
+        import_purchases = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').filter(import_shipment_id__in=import_shipments_id,
+                                                                                                            quantity_remain__gt=0)
         products_inventory = {}
         for purchase in import_purchases:
             if purchase.product_id.name not in products_inventory:
@@ -421,7 +422,7 @@ def export_order_action(request, export_shipment_code):
 
             export_order_form_obj = export_order_form.save()
             if current_warehouse_management_method.name == "Thực tế đích danh":
-                return HttpResponseRedirect(reverse('actual_method_by_name_export_action', kwargs={'export_order_id': export_order_form.id}))
+                return HttpResponseRedirect(reverse('choose_type_of_inventory', kwargs={'export_order_id': export_order_form.id}))
             else:
                 if "save_and_continue" in request.POST:
                     return HttpResponseRedirect(reverse("export_order_action", kwargs={'export_shipment_code': export_shipment_code}))
@@ -438,6 +439,24 @@ def export_order_action(request, export_shipment_code):
     }
 
     return render(request, "major_features/export/export_order_action.html", context)
+
+def choose_type_of_inventory(request, export_order_id):
+
+    latest_accounting_period_id = AccoutingPeriod.objects.aggregate(Max('id')).get('id__max', 0)
+    not_latest_accounting_periods_id = AccoutingPeriod.objects.exclude(pk=latest_accounting_period_id).values_list('id', flat=True)
+
+    context = {
+        'export_order_id': export_order_id
+    }
+
+    if request.method == "POST":
+        if "starting_inventory" in request.POST:
+            pass
+        if "current_accounting_period_inventory" in request.POST:
+            pass
+
+    return render(request, "major_features/export/choose_type_of_inventory.html", context)
+
 
 def actual_method_by_name_export_action(request, export_order_id):
     pass

@@ -1,0 +1,65 @@
+{% extends "major_features/layout.html" %}
+
+{% block nav %}
+<nav class="navbar navbar-expand-lg navbar-light" style="background-color: #01257D;">
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav">
+        <li class="nav-item" style="padding: 2.5px 5px 2.5px 5px;">
+          <a class="nav-link" style="color: white;" href="{% url 'index' %}">Trang chủ</a>
+        </li>
+        <li class="nav-item dropdown-trigger" style="padding: 2.5px 5px 2.5px 5px;">
+          <a class="nav-link" style="color: white;" href="{% url 'import_shipments' %}">Nhập kho</a>
+          <ul class="dropdown-ul">
+            <li class="nav-item dropdown-li">
+              <a class="nav-link" href="{% url 'import_shipments' %}" style="color: white; text-decoration: none;">
+                Theo dõi lô hàng nhập kho
+              </a>
+            </li>
+            <li class="nav-item dropdown-li">
+              <a class="nav-link" href="{% url 'import_action' %}" style="color: white; text-decoration: none;">
+                Thực hiện nhập kho
+              </a>
+            </li>
+          </ul>
+        </li>
+        <li class="nav-item dropdown-trigger" style="padding: 2.5px 5px 2.5px 5px;">
+          <a class="nav-link" style="color: #00FFFF; border-bottom: 2px solid #00FFFF;" href="{% url 'export_shipments' %}">Xuất kho</a>
+          <ul class="dropdown-ul">
+            <li class="nav-item dropdown-li">
+              <a class="nav-link" href="{% url 'export_shipments' %}" style="color: white; text-decoration: none;">
+                Theo dõi lô hàng xuất kho
+              </a>
+            </li>
+            <li class="nav-item dropdown-li">
+              <a class="nav-link" href="{% url 'export_action' %}" style="color: white; text-decoration: none;">
+                Thực hiện xuất kho
+              </a>
+            </li>
+          </ul>
+        </li>
+        <li class="nav-item" style="padding: 2.5px 5px 2.5px 5px;">
+          <a class="nav-link" style="color: white;" href="{% url 'reports' %}">Thống kê</a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+{% endblock %}
+
+{% block title %}
+<h2>Chọn đơn hàng nhập kho để tiến hành xuất kho cho đơn hàng xuất kho <u>{{ export_order_id }}</u> theo phương pháp <strong>Thực tế đích danh</strong></h2>
+{% endblock %}
+
+{% block body %}
+<div class="container d-flex justify-content-center">
+    <div class="form-container">
+        <form action="{% url 'choose_type_of_inventory' export_order_id %}" method="post" class="shipment-form">
+            {% csrf_token %}
+            <fieldset>
+                <legend>Chọn đơn hàng nhập kho từ một trong hai nhóm sau: </legend>
+                <button type="submit" class="submit-button" value="starting_inventory">Tồn kho đầu kỳ</button>
+                <button type="submit" class="submit-button" value="current_accounting_period_inventory">Phát sinh trong kỳ kế toán hiện tại</button>
+            </fieldset>
+        </form>
+    </div>
+</div>
+{% endblock %}

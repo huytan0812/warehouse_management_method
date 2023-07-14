@@ -351,3 +351,42 @@ def assigning_accounting_period():
     connection_queries = connection.queries
     for connection_query in connection_queries:
         print(connection_query)
+
+@query_debugger
+def starting_inventory(product_name):
+    product = Product.objects.get(name=product_name)
+
+    latest_accounting_period_id = AccoutingPeriod.objects.aggregate(Max('id')).get('id__max', 0)
+    product_purchases = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').filter(product_id=product,
+                                                      quantity_remain__gt=0,
+                                                      import_shipment_id__current_accounting_period__id__lt=latest_accounting_period_id
+                                                      )
+    
+    for product_purchase in product_purchases:
+        print(product_purchase)
+
+    print(len(product_purchases))
+
+    connection_queries = connection.queries
+    for connection_query in connection_queries:
+        print(connection_query)
+
+@query_debugger
+def starting_inventory_ver_2(product_name):
+    product = Product.objects.get(name=product_name)
+
+    current_accounting_period_id = AccoutingPeriod.objects.aggregate(Max('id')).get("id__max", 0)
+    accounting_periods_id = AccoutingPeriod.objects.exclude(pk=current_accounting_period_id).values_list('id', flat=True)
+    import_shipments_id = ImportShipment.objects.filter(current_accounting_period__in=accounting_periods_id).values_list('id', flat=True)
+    product_purchases = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').filter(import_shipment_id__in=import_shipments_id,
+                                                                                                        product_id=product,
+                                                                                                        quantity_remain__gt=0)
+    
+    for product_purchase in product_purchases:
+        print(product_purchase)
+
+    print(len(product_purchases))
+
+    connection_queries = connection.queries
+    for connection_query in connection_queries:
+        print(connection_query)
