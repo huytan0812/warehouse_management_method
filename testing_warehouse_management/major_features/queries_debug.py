@@ -365,8 +365,6 @@ def starting_inventory(product_name):
     for product_purchase in product_purchases:
         print(product_purchase)
 
-    print(len(product_purchases))
-
     connection_queries = connection.queries
     for connection_query in connection_queries:
         print(connection_query)
