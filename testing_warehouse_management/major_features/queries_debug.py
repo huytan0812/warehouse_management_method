@@ -362,8 +362,8 @@ def starting_inventory(product_name):
                                                       import_shipment_id__current_accounting_period__id__lt=latest_accounting_period_id
                                                       )
     
-    for product_purchase in product_purchases:
-        print(product_purchase)
+    product_purchases_count = product_purchases.count()
+    print(product_purchases_count)
 
     connection_queries = connection.queries
     for connection_query in connection_queries:
@@ -380,8 +380,25 @@ def starting_inventory_ver_2(product_name):
                                                                                                         product_id=product,
                                                                                                         quantity_remain__gt=0)
     
-    for product_purchase in product_purchases:
-        print(product_purchase)
+    product_purchases_count = product_purchases.count()
+    print(product_purchases_count)
+
+    connection_queries = connection.queries
+    for connection_query in connection_queries:
+        print(connection_query)
+
+@query_debugger
+def starting_inventory_ver_3(product_name):
+    product = Product.objects.get(name=product_name)
+    current_accounting_period_obj = AccoutingPeriod.objects.select_related('warehouse_management_method').latest('id')
+    starting_purchases = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').filter(
+        product_id=product,
+        quantity_remain__gt=0,
+        import_shipment_id__date__lt=current_accounting_period_obj.date_applied
+    )
+
+    starting_purchases_count = starting_purchases.count()
+    print(starting_purchases_count)
 
     connection_queries = connection.queries
     for connection_query in connection_queries:
