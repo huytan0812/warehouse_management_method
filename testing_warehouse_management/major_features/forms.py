@@ -83,7 +83,8 @@ class ExportOrderForm(ModelForm):
         }
 
 class ActualMethodStartingInventory(forms.Form):
-    chosen_purchases = forms.ModelChoiceField(widget=forms.Select(attrs={'class': 'form-control select', 'required': True}),
+    chosen_purchases = forms.ModelChoiceField(queryset=None,
+                                              widget=forms.Select(attrs={'class': 'form-control select', 'required': True}),
                                               label="Danh sách đơn hàng tồn kho đầu kỳ")
     quantity_take = forms.IntegerField(widget=forms.NumberInput(attrs={'class': 'form-control', 
                                                                        'placeholder': "Số lượng lấy ra từ đơn hàng được chọn",
@@ -92,9 +93,35 @@ class ActualMethodStartingInventory(forms.Form):
     
     def __init__(self, *args, **kwargs):
 
+        self._product = kwargs.pop("product")
+        self._type = kwargs.pop("type")
         super().__init__(*args, **kwargs)
-        current_accounting_period_id = AccoutingPeriod.objects.aggregate(Max('id')).get("id__max", 0)
-        accounting_periods_id = AccoutingPeriod.objects.exclude(pk=current_accounting_period_id).values_list('id', flat=True)
-        import_shipments_id = ImportShipment.objects.filter(current_accounting_period__in=accounting_periods_id).values_list('id', flat=True)
-        self.fields["chosen_purchases"].queryset = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').filter(import_shipment_id__in=import_shipments_id)
+
+    @property
+    def product(self):
+        return self._product
+    
+    @property
+    def type(self):
+        return self._type
+    
+    def assigning_queryset(self):
+
+        product_obj = Product.objects.get(name=self.product)
+        current_accounting_period_obj = AccoutingPeriod.objects.latest('id')
+
+        if self.type == "starting_inventory":
+            import_purchases = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').filter(
+                import_shipment_id__date__lt=current_accounting_period_obj.date_applied,
+                product_id=product_obj,
+                quantity_remain__gt=0
+            )
+            self.fields["chosen_purchases"].queryset = import_purchases
+
+        if self.type == "current_accounting_period":
+            import_purchases = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').filter(
+                import_shipment_id__current_accounting_period=current_accounting_period_obj,
+                product_id=product_obj,
+                quantity_remain__gt=0
+            )
 
