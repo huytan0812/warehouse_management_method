@@ -442,18 +442,27 @@ def export_order_action(request, export_shipment_code):
 
 def choose_type_of_inventory(request, export_order_id):
 
-    latest_accounting_period_id = AccoutingPeriod.objects.aggregate(Max('id')).get('id__max', 0)
-    not_latest_accounting_periods_id = AccoutingPeriod.objects.exclude(pk=latest_accounting_period_id).values_list('id', flat=True)
+    export_order_obj = ExportOrder.objects.select_related('export_shipment_id', 'product_id').get(pk=export_order_id)
+    product = Product.objects.get(name=export_order_obj.product_id.name)
+    current_accounting_period = AccoutingPeriod.objects.latest('id')
+    starting_purchases = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').filter(
+        import_shipment_id__date__lt = current_accounting_period.date_applied,
+        product_id = product,
+        quantity_remain__gt=0
+    )
+    starting_purchases_count = starting_purchases.count()
 
     context = {
-        'export_order_id': export_order_id
+        'export_order_id': export_order_id,
+        'product': product,
+        'starting_purchases_count': starting_purchases_count,
     }
 
     if request.method == "POST":
         if "starting_inventory" in request.POST:
-            pass
+            return HttpResponseRedirect(reverse('export_by_starting_inventory', kwargs={'export_order_id': export_order_id}))
         if "current_accounting_period_inventory" in request.POST:
-            pass
+            return HttpResponseRedirect(reverse('export_by_current_accounting_period_inventory', kwargs={'export_order_id': export_order_id}))
 
     return render(request, "major_features/export/choose_type_of_inventory.html", context)
 

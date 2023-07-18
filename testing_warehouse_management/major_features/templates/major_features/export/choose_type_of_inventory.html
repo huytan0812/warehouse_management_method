@@ -56,7 +56,13 @@
             {% csrf_token %}
             <fieldset>
                 <legend>Chọn đơn hàng nhập kho từ một trong hai nhóm sau: </legend>
+                {% if starting_purchases_count > 0 %}
                 <button type="submit" class="submit-button" value="starting_inventory">Tồn kho đầu kỳ</button>
+                {% else %}
+                <div class="alert alert-info" role="alert">
+                  Số lượng hàng tồn kho đầu kỳ của sản phẩm {{ product.name }} đã hết
+                </div>
+                {% endif %}
                 <button type="submit" class="submit-button" value="current_accounting_period_inventory">Phát sinh trong kỳ kế toán hiện tại</button>
             </fieldset>
         </form>
