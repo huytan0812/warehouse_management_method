@@ -82,7 +82,7 @@ class ExportOrderForm(ModelForm):
             'unit_price': "Đơn giá bán",
         }
 
-class ActualMethodStartingInventory(forms.Form):
+class ActualMethodInventory(forms.Form):
     chosen_purchases = forms.ModelChoiceField(queryset=None,
                                               widget=forms.Select(attrs={'class': 'form-control select', 'required': True}),
                                               label="Danh sách đơn hàng tồn kho đầu kỳ")

@@ -25,6 +25,14 @@ urlpatterns = [
     path("export_action", views.export_action, name="export_action"),
     path("export_action/export_order_action/<str:export_shipment_code>", views.export_order_action, name="export_order_action"),
     path("export_action/type_of_inventory/<int:export_order_id>", views.choose_type_of_inventory, name="choose_type_of_inventory"),
+
+    path("export_action/export_by_starting_inventory/<int:export_order_id>/product=<str:product>", 
+         views.export_by_starting_inventory, 
+         name="export_by_starting_inventory"),
+    path("export_action/export_by_current_accounting_period_inventory/<int:export_order_id>/product=<str:product>", 
+         views.export_by_current_accounting_period_inventory, 
+         name="export_by_current_accounting_period_inventory"),
+
     path("export_action/actual_method_by_name/<int:export_order_id>", views.actual_method_by_name_export_action, name="actual_method_by_name_export_action"),
 
     # Reports section

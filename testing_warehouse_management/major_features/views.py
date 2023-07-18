@@ -460,12 +460,33 @@ def choose_type_of_inventory(request, export_order_id):
 
     if request.method == "POST":
         if "starting_inventory" in request.POST:
-            return HttpResponseRedirect(reverse('export_by_starting_inventory', kwargs={'export_order_id': export_order_id}))
+            return HttpResponseRedirect(reverse('export_by_starting_inventory', kwargs={'export_order_id': export_order_id, 'product': product.name}))
         if "current_accounting_period_inventory" in request.POST:
-            return HttpResponseRedirect(reverse('export_by_current_accounting_period_inventory', kwargs={'export_order_id': export_order_id}))
+            return HttpResponseRedirect(reverse('export_by_current_accounting_period_inventory', kwargs={'export_order_id': export_order_id, 'product': product.name}))
 
     return render(request, "major_features/export/choose_type_of_inventory.html", context)
 
+def export_by_starting_inventory(request, export_order_id, product):
+    TYPE_OF_INVENTORY = "starting_inventory"
+    starting_inventory_form = ActualMethodInventory(product=product, type=TYPE_OF_INVENTORY)
+
+    context = {
+        'export_order_id': export_order_id,
+        'starting_inventory_form': starting_inventory_form
+    }
+
+    return render(request, "major_features/export/export_by_inventory.html", context)
+
+def export_by_current_accounting_period_inventory(request, export_order_id, product):
+    TYPE_OF_INVENTORY = "current_accounting_period"
+    current_accounting_period_inventory_form = ActualMethodInventory(product=product, type=TYPE_OF_INVENTORY)
+
+    context = {
+        'export_order_id': export_order_id,
+        'current_accounting_period_inventory_form': current_accounting_period_inventory_form
+    }
+
+    return render(request, "major_features/export/export_by_inventory.html", context)
 
 def actual_method_by_name_export_action(request, export_order_id):
     pass
