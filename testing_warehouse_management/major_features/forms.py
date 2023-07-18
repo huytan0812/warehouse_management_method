@@ -95,6 +95,7 @@ class ActualMethodStartingInventory(forms.Form):
 
         self._product = kwargs.pop("product")
         self._type = kwargs.pop("type")
+        self._len_queryset = 0
         super().__init__(*args, **kwargs)
 
     @property
@@ -105,23 +106,42 @@ class ActualMethodStartingInventory(forms.Form):
     def type(self):
         return self._type
     
+    @property
+    def len_queryset(self):
+        return self._len_queryset
+    
+    @len_queryset.setter
+    def len_queryset(self, new_length):
+        self._len_queryset = new_length
+        print("New length of queryset is: ", self.len_queryset)
+
+
     def assigning_queryset(self):
 
         product_obj = Product.objects.get(name=self.product)
         current_accounting_period_obj = AccoutingPeriod.objects.latest('id')
 
         if self.type == "starting_inventory":
+
             import_purchases = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').filter(
                 import_shipment_id__date__lt=current_accounting_period_obj.date_applied,
                 product_id=product_obj,
                 quantity_remain__gt=0
             )
             self.fields["chosen_purchases"].queryset = import_purchases
+            import_purchases_count = import_purchases.count()
+
+            self.len_queryset = import_purchases_count
 
         if self.type == "current_accounting_period":
+
             import_purchases = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').filter(
                 import_shipment_id__current_accounting_period=current_accounting_period_obj,
                 product_id=product_obj,
                 quantity_remain__gt=0
             )
+            self.fields["chosen_purchases"].queryset = import_purchases
+            import_purchases_count = import_purchases.count()
+
+            self.len_queryset = import_purchases_count
 
