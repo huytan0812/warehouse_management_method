@@ -472,6 +472,8 @@ def export_by_starting_inventory(request, export_order_id, product):
 
     context = {
         'export_order_id': export_order_id,
+        'product': product,
+        'type': TYPE_OF_INVENTORY,
         'starting_inventory_form': starting_inventory_form
     }
 
@@ -483,13 +485,24 @@ def export_by_current_accounting_period_inventory(request, export_order_id, prod
 
     context = {
         'export_order_id': export_order_id,
+        'product': product,
+        'type': TYPE_OF_INVENTORY,
         'current_accounting_period_inventory_form': current_accounting_period_inventory_form
     }
 
     return render(request, "major_features/export/export_by_inventory.html", context)
 
-def actual_method_by_name_export_action(request, export_order_id):
-    pass
+def actual_method_by_name_export_action(request, export_order_id, product, type):
+    if request.method == "POST":
+        actual_method_form = ActualMethodInventory(request.POST, 
+                                                   export_order_id=export_order_id,
+                                                   product=product,
+                                                   type=type)
+        if actual_method_form.is_valid():
+            pass
+        else:
+            return HttpResponse("Invalid Form", content_type="text/plain")
+
 
 def get_date_utc_now():
     datetime_now = datetime.now()
