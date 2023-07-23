@@ -145,3 +145,15 @@ class ActualMethodInventory(forms.Form):
 
             self.len_queryset = import_purchases_count
 
+    def clean_chosen_purchases(self):
+        # Validating the chosen purchase
+        # must be in the chosen_purchases queryset
+        pass
+
+    def clean_quantity_take(self):
+        # Validating the quantity take field's value
+        # must less or equal than
+        # the chosen purchase's quantity_remain value
+        pass
+
+

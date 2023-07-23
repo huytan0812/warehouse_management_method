@@ -199,7 +199,7 @@ def import_action(request):
         if import_shipment_form.is_valid() and import_purchase_form.is_valid():
 
             import_shipment_obj = import_shipment_form.save(commit=False)
-            import_shipment_obj.warehouse_management_method = latest_accounting_period_obj
+            import_shipment_obj.current_accounting_period = latest_accounting_period_obj
             import_shipment_obj.save()
 
             import_purchase_obj = import_purchase_form.save(commit=False)
@@ -394,7 +394,7 @@ def export_action(request):
             # Export Shipment    
             export_shipment_form_obj = export_shipment_form.save(commit=False)
             export_shipment_code = export_shipment_form_obj.export_shipment_code
-            export_shipment_form_obj.warehouse_management_method=latest_accounting_period_obj
+            export_shipment_form_obj.current_accounting_period=latest_accounting_period_obj
             export_shipment_form_obj.save()
 
             return HttpResponseRedirect(reverse('export_order_action', kwargs={'export_shipment_code': export_shipment_code}))
