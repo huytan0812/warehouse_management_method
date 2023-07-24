@@ -85,7 +85,7 @@ class ExportOrderForm(ModelForm):
         }
 
 class ActualMethodInventory(forms.Form):
-    chosen_purchases = forms.ModelChoiceField(queryset=None,
+    chosen_purchases = forms.ModelChoiceField(queryset=ImportPurchase.objects.all(),
                                               widget=forms.Select(attrs={'class': 'form-control select', 'required': True}),
                                               label="Danh sách đơn hàng tồn kho đầu kỳ")
     quantity_take = forms.IntegerField(widget=forms.NumberInput(attrs={'class': 'form-control', 
@@ -98,7 +98,10 @@ class ActualMethodInventory(forms.Form):
         self._product = kwargs.pop("product")
         self._type = kwargs.pop("type")
         self._len_queryset = 0
+
         super().__init__(*args, **kwargs)
+
+        self.assigning_queryset()
 
     @property
     def product(self):
@@ -147,22 +150,16 @@ class ActualMethodInventory(forms.Form):
 
             self.len_queryset = import_purchases_count
 
-    def clean_chosen_purchases(self):
-        # Validating the chosen purchase
-        # must be in the chosen_purchases queryset
-        chosen_purchase = self.cleaned_data["chosen_purchases"]
-        chosen_purchases_queryset = self.fields["chosen_purchases"].queryset
+    # def clean_chosen_purchases(self):
+    #     # Validating the chosen purchase
+    #     # must be in the chosen_purchases queryset
+    #     pass
 
-        if chosen_purchase not in chosen_purchases_queryset:
-            raise ValidationError(gettext_lazy(f"This purchase is not in the {self.type}"))
-        
-        return chosen_purchase
-
-    def clean_quantity_take(self):
-        # Validating the quantity take field's value
-        # must less or equal than
-        # the chosen purchase's quantity_remain value
-        pass
+    # def clean_quantity_take(self):
+    #     # Validating the quantity take field's value
+    #     # must less or equal than
+    #     # the chosen purchase's quantity_remain value
+    #     pass
 
 
 
