@@ -1,6 +1,8 @@
 from django import forms
 from django.forms import ModelForm
 from django.db.models import Sum, Max
+from django.core.exceptions import ValidationError
+from django.utils.translation import gettext_lazy
 from . models import *
 
 class KeepMethodForm(forms.Form):
@@ -148,12 +150,19 @@ class ActualMethodInventory(forms.Form):
     def clean_chosen_purchases(self):
         # Validating the chosen purchase
         # must be in the chosen_purchases queryset
-        pass
+        chosen_purchase = self.cleaned_data["chosen_purchases"]
+        chosen_purchases_queryset = self.fields["chosen_purchases"].queryset
+
+        if chosen_purchase not in chosen_purchases_queryset:
+            raise ValidationError(gettext_lazy(f"This purchase is not in the {self.type}"))
+        
+        return chosen_purchase
 
     def clean_quantity_take(self):
         # Validating the quantity take field's value
         # must less or equal than
         # the chosen purchase's quantity_remain value
         pass
+
 
 
