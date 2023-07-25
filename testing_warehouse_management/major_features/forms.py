@@ -6,7 +6,7 @@ from django.utils.translation import gettext_lazy
 from . models import *
 
 class KeepMethodForm(forms.Form):
-    is_keep = forms.BooleanField(widget=forms.CheckboxInput(attrs={}), required=False, label="Có")
+    is_keep = forms.BooleanField(widget=forms.CheckboxInput(attrs={}), required=False, label="Có") 
 
 
 class DatePickerForm(forms.Form):
@@ -85,7 +85,7 @@ class ExportOrderForm(ModelForm):
         }
 
 class ActualMethodInventory(forms.Form):
-    chosen_purchases = forms.ModelChoiceField(queryset=ImportPurchase.objects.all(),
+    chosen_purchases = forms.ModelChoiceField(queryset=ImportPurchase.objects.select_related('import_shipment_id', 'product_id').all(),
                                               widget=forms.Select(attrs={'class': 'form-control select', 'required': True}),
                                               label="Danh sách đơn hàng tồn kho đầu kỳ")
     quantity_take = forms.IntegerField(widget=forms.NumberInput(attrs={'class': 'form-control', 
@@ -128,38 +128,20 @@ class ActualMethodInventory(forms.Form):
 
         if self.type == "starting_inventory":
 
-            import_purchases = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').filter(
+            self.fields["chosen_purchases"].queryset = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').filter(
                 import_shipment_id__date__lt=current_accounting_period_obj.date_applied,
                 product_id=product_obj,
                 quantity_remain__gt=0
-            )
-            self.fields["chosen_purchases"].queryset = import_purchases
-            import_purchases_count = import_purchases.count()
-
-            self.len_queryset = import_purchases_count
+            ).order_by('-import_shipment_id__date')
 
         if self.type == "current_accounting_period":
 
-            import_purchases = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').filter(
+            self.fields["chosen_purchases"].queryset = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').filter(
                 import_shipment_id__current_accounting_period=current_accounting_period_obj,
                 product_id=product_obj,
                 quantity_remain__gt=0
-            )
-            self.fields["chosen_purchases"].queryset = import_purchases
-            import_purchases_count = import_purchases.count()
+            ).order_by('import_shipment_id__date')
 
-            self.len_queryset = import_purchases_count
-
-    # def clean_chosen_purchases(self):
-    #     # Validating the chosen purchase
-    #     # must be in the chosen_purchases queryset
-    #     pass
-
-    # def clean_quantity_take(self):
-    #     # Validating the quantity take field's value
-    #     # must less or equal than
-    #     # the chosen purchase's quantity_remain value
-    #     pass
 
 
 
