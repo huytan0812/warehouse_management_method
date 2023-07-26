@@ -128,21 +128,48 @@ class ActualMethodInventory(forms.Form):
 
         if self.type == "starting_inventory":
 
-            self.fields["chosen_purchases"].queryset = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').filter(
+            import_purchases = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').filter(
                 import_shipment_id__date__lt=current_accounting_period_obj.date_applied,
                 product_id=product_obj,
                 quantity_remain__gt=0
             ).order_by('-import_shipment_id__date')
 
+            self.fields["chosen_purchases"].queryset = import_purchases
+
+            import_purchases_count = import_purchases.count()
+            self.len_queryset = import_purchases_count
+
         if self.type == "current_accounting_period":
 
-            self.fields["chosen_purchases"].queryset = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').filter(
+            import_purchases = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').filter(
                 import_shipment_id__current_accounting_period=current_accounting_period_obj,
                 product_id=product_obj,
                 quantity_remain__gt=0
             ).order_by('import_shipment_id__date')
 
+            self.fields["chosen_purchases"].queryset = import_purchases
 
+            import_purchases_count = import_purchases.count()
+            self.len_queryset = import_purchases_count
+
+    def clean_quantity_take(self):
+        quantity_take = self.cleaned_data['quantity_take']
+
+        if 'chosen_purchases' in self.cleaned_data:
+            chosen_purchase = self.cleaned_data['chosen_purchases']
+            purchase_obj = chosen_purchase
+
+            if quantity_take > purchase_obj.quantity_remain:
+                raise ValidationError(
+                    gettext_lazy("""Quantity take is greater than import purchase's quantity remain:
+                                 %(quantity_take)s > %(quantity_remain)s 
+                                 """),
+                    params = {'quantity_take': quantity_take,
+                              'quantity_remain': purchase_obj.quantity_remain}
+                )
+
+        return quantity_take
+        
 
 
 
