@@ -500,13 +500,34 @@ def actual_method_by_name_export_action(request, export_order_id, product, type)
                                                    export_order_id=export_order_id,
                                                    product=product,
                                                    type=type)
-        actual_method_form = actual_method_form.assigning_queryset()
         
         if actual_method_form.is_valid():
-            pass
+            chosen_purchase = actual_method_form.get_purchase()
+            quantity_take = actual_method_form.get_quantity_take()
+
+            export_order_detail_obj = ExportOrderDetail.objects.create(
+                export_order_id=export_order_id,
+                import_purchase_id=chosen_purchase,
+                quantity_take=quantity_take
+            )
+
+            if "save_and_continue" in request.POST:
+                return HttpResponseRedirect(reverse('actual_method_by_name_export_action', kwargs={
+                    'export_order_id': export_order_id,
+                    'product': product,
+                    'type': type
+                }))
+
+            if "save_and_complete" in request.POST:
+                return HttpResponseRedirect(reverse('complete_export_by_inventory', kwargs={
+                    'export_order_id': export_order_id
+                }))
+
         else:
             return HttpResponse("Invalid Form", content_type="text/plain")
-
+        
+def complete_export_by_inventory(request, export_order_id):
+    pass
 
 def get_date_utc_now():
     datetime_now = datetime.now()

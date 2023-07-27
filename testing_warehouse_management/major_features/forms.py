@@ -120,6 +120,13 @@ class ActualMethodInventory(forms.Form):
         self._len_queryset = new_length
         print("New length of queryset is: ", self.len_queryset)
 
+    def get_purchase(self):
+        purchase = self.cleaned_data['chosen_purchases']
+        return purchase
+    
+    def get_quantity_take(self):
+        quantity_take = self.cleaned_data['quantity_take']
+        return quantity_take
 
     def assigning_queryset(self):
 

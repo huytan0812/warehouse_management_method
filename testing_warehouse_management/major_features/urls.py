@@ -37,6 +37,10 @@ urlpatterns = [
     path("export_action/actual_method_by_name/<int:export_order_id>/product=<str:product>/type=<str:type>", 
          views.actual_method_by_name_export_action, 
          name="actual_method_by_name_export_action"),
+     
+     path("export_action/actual_method_by_name/complete_export_by_inventory/<int:export_order_id>",
+          views.complete_export_by_inventory,
+          name="complete_export_by_inventory"),
 
     # Reports section
     path("reports", views.reports, name="reports"),
