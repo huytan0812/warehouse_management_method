@@ -525,9 +525,38 @@ def actual_method_by_name_export_action(request, export_order_id, product, type)
 
         else:
             return HttpResponse("Invalid Form", content_type="text/plain")
-        
+
+@transaction.atomic      
 def complete_export_by_inventory(request, export_order_id):
-    pass
+    export_order_obj = ExportOrder.objects.select_related('export_shipment_id').select_for_update().filter(export_order_id=export_order_id)
+    export_order_details_obj = ExportOrderDetail.objects.select_related('export_order_id', 'import_purchase_id').filter(export_order_id=export_order_obj[0])
+
+    export_order_additional_fields = {
+        'quantity_export': 0,
+        'total_order_value': 0
+    }
+
+    try:
+        with transaction.atomic():
+            for obj in export_order_details_obj:
+                export_order_details_obj['quantity_export'] += obj.quantity_take
+                export_order_details_obj['total_order_value'] += obj.quantity_take * obj.import_purchase_id.import_cost
+
+            export_order_obj.update(
+                quantity_export=export_order_additional_fields['quantity_export'],
+                total_order_value=export_order_additional_fields['total_order_value'],
+            )
+
+    except IntegrityError:
+        raise Exception("Integrity Bug")
+    
+    context = {
+        'export_order': export_order_obj[0],
+        'export_order_details': export_order_details_obj
+    }
+
+    return render(request, "major_features/export/complete_export_by_inventory.html", context)
+    
 
 def get_date_utc_now():
     datetime_now = datetime.now()
