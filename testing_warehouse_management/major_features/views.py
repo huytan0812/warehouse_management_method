@@ -420,9 +420,12 @@ def export_order_action(request, export_shipment_code):
 
         if export_order_form.is_valid():
 
-            export_order_form_obj = export_order_form.save()
+            export_order_form_obj = export_order_form.save(commit=False)
+            export_order_form_obj.export_shipment_id = export_shipment_obj
+            export_order_form_obj.save()
+
             if current_warehouse_management_method.name == "Thực tế đích danh":
-                return HttpResponseRedirect(reverse('choose_type_of_inventory', kwargs={'export_order_id': export_order_form.id}))
+                return HttpResponseRedirect(reverse('choose_type_of_inventory', kwargs={'export_order_id': export_order_form_obj.id}))
             else:
                 if "save_and_continue" in request.POST:
                     return HttpResponseRedirect(reverse("export_order_action", kwargs={'export_shipment_code': export_shipment_code}))
@@ -434,6 +437,7 @@ def export_order_action(request, export_shipment_code):
             return HttpResponse("Invalid Form", content_type="text/plain")
 
     context = {
+        'export_shipment_code': export_shipment_code,
         'current_method': current_warehouse_management_method,
         'export_order_form': export_order_form,
     }
@@ -469,7 +473,6 @@ def choose_type_of_inventory(request, export_order_id):
 def export_by_starting_inventory(request, export_order_id, product):
     TYPE_OF_INVENTORY = "starting_inventory"
     starting_inventory_form = ActualMethodInventory(product=product, type=TYPE_OF_INVENTORY)
-    starting_inventory_form = starting_inventory_form.assigning_queryset()
 
     context = {
         'export_order_id': export_order_id,
@@ -483,7 +486,6 @@ def export_by_starting_inventory(request, export_order_id, product):
 def export_by_current_accounting_period_inventory(request, export_order_id, product):
     TYPE_OF_INVENTORY = "current_accounting_period"
     current_accounting_period_inventory_form = ActualMethodInventory(product=product, type=TYPE_OF_INVENTORY)
-    current_accounting_period_inventory_form = current_accounting_period_inventory_form.assigning_queryset()
 
     context = {
         'export_order_id': export_order_id,
