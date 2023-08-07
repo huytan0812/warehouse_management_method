@@ -64,13 +64,18 @@
     <form action="{% url 'actual_method_by_name_export_action' export_order_id product type %}" method="post" class="shipment-form">
       {% csrf_token %}
       <fieldset>
-        <legend>
+
           {% if starting_inventory_form %}
-            Lọc đơn hàng nhập kho thuộc nhóm hàng tồn kho đầu kỳ theo: 
+          <legend>Lọc đơn hàng nhập kho thuộc nhóm hàng tồn kho đầu kỳ theo: </legend>
+          {{ filtering_starting_inventory_form.as_p }}
+
           {% else %}
-            Lọc đơn hàng nhập kho thuộc nhóm hàng tồn kho phát sinh trong kỳ theo: 
+          <legend>Lọc đơn hàng nhập kho thuộc nhóm hàng tồn kho phát sinh trong kỳ theo: </legend>
+          {{ filtering_current_accounting_period_form.as_p }} 
+
           {% endif %}
-        </legend>
+        <button type="submit" class="submit-button">Xác nhận</button>
+        
       </fieldset>
     </form>
   </div>

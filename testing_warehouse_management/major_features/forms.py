@@ -84,6 +84,23 @@ class ExportOrderForm(ModelForm):
             'unit_price': "Đơn giá bán",
         }
 
+class FilteringInventory(forms.Form):
+    import_shipments = forms.ModelChoiceField(queryset=ImportShipment.objects.select_related('supplier_id').all(),
+                                              widget=forms.Select(attrs={'class': 'form-control', 'required': True}),
+                                              label="Lô hàng tồn kho")
+    quantity_remain_greater_than = forms.IntegerField(widget=forms.NumberInput(attrs={'class': 'form-control',
+                                                                                   'placeholder': "SLCL đơn hàng lớn hơn"}),
+                                                                            label="Chọn SLCL lớn hơn: ")
+    quantity_remain_less_than = forms.IntegerField(widget=forms.NumberInput(attrs={'class': 'form-control',
+                                                                                   'placeholder': "SLCL đơn hàng nhỏ hơn"}),
+                                                                            label="Chọn SLCL nhỏ hơn: ")
+    import_cost_greater_than = forms.IntegerField(widget=forms.NumberInput(attrs={'class': 'form-control',
+                                                                                  'placeholder': "Đơn giá nhập kho lớn hơn"}),
+                                                                            label="Chọn đơn giá nhập kho lớn hơn")
+    import_cost_less_than = forms.IntegerField(widget=forms.NumberInput(attrs={'class': 'form-control',
+                                                                                  'placeholder': "Đơn giá nhập kho nhỏ hơn"}),
+                                                                            label="Chọn đơn giá nhập kho nhỏ hơn: ")
+
 class ActualMethodInventory(forms.Form):
     chosen_purchases = forms.ModelChoiceField(queryset=ImportPurchase.objects.select_related('import_shipment_id', 'product_id').all(),
                                               widget=forms.Select(attrs={'class': 'form-control select', 'required': True}),
