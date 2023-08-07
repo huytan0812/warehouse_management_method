@@ -50,14 +50,31 @@
 {% block title %}
 
     {% if starting_inventory_form %}
-    <h2>Chọn đơn hàng nhập kho để tiến hành xuất kho từ <strong>Hàng tồn kho đầu kỳ</strong></h2>
+    <h4>Chọn đơn hàng nhập kho để tiến hành xuất kho từ <strong>Hàng tồn kho đầu kỳ</strong></h4>
     {% else %}
-    <h2>Chọn đơn hàng nhập kho để tiến hành xuất kho từ <strong>Hàng tồn kho phát sinh trong kỳ</strong></h2>
+    <h4>Chọn đơn hàng nhập kho để tiến hành xuất kho từ <strong>Hàng tồn kho phát sinh trong kỳ</strong></h4>
     {% endif %}
 
 {% endblock %}
 
 {% block body %}
+
+<div class="container d-flex justify-content-center" style="margin-bottom: 20px;">
+  <div class="form-container">
+    <form action="{% url 'actual_method_by_name_export_action' export_order_id product type %}" method="post" class="shipment-form">
+      {% csrf_token %}
+      <fieldset>
+        <legend>
+          {% if starting_inventory_form %}
+            Lọc đơn hàng nhập kho thuộc nhóm hàng tồn kho đầu kỳ theo: 
+          {% else %}
+            Lọc đơn hàng nhập kho thuộc nhóm hàng tồn kho phát sinh trong kỳ theo: 
+          {% endif %}
+        </legend>
+      </fieldset>
+    </form>
+  </div>
+</div>
 
 <div class="container d-flex justify-content-center">
     <div class="form-container">
