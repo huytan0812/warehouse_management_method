@@ -89,17 +89,45 @@ class FilteringInventory(forms.Form):
                                               widget=forms.Select(attrs={'class': 'form-control', 'required': True}),
                                               label="Lô hàng tồn kho")
     quantity_remain_greater_than = forms.IntegerField(widget=forms.NumberInput(attrs={'class': 'form-control',
-                                                                                   'placeholder': "SLCL đơn hàng lớn hơn"}),
+                                                                                   'placeholder': "SLCL đơn hàng lớn hơn",
+                                                                                   'min': 0}),
                                                                             label="Chọn SLCL lớn hơn: ")
     quantity_remain_less_than = forms.IntegerField(widget=forms.NumberInput(attrs={'class': 'form-control',
-                                                                                   'placeholder': "SLCL đơn hàng nhỏ hơn"}),
+                                                                                   'placeholder': "SLCL đơn hàng nhỏ hơn",
+                                                                                   'min': 0}),
                                                                             label="Chọn SLCL nhỏ hơn: ")
     import_cost_greater_than = forms.IntegerField(widget=forms.NumberInput(attrs={'class': 'form-control',
-                                                                                  'placeholder': "Đơn giá nhập kho lớn hơn"}),
+                                                                                  'placeholder': "Đơn giá nhập kho lớn hơn",
+                                                                                  'min': 0}),
                                                                             label="Chọn đơn giá nhập kho lớn hơn")
     import_cost_less_than = forms.IntegerField(widget=forms.NumberInput(attrs={'class': 'form-control',
-                                                                                  'placeholder': "Đơn giá nhập kho nhỏ hơn"}),
+                                                                                  'placeholder': "Đơn giá nhập kho nhỏ hơn",
+                                                                                  'min': 0}),
                                                                             label="Chọn đơn giá nhập kho nhỏ hơn: ")
+    
+    def clean_quantity_remain_greater_than(self):
+        quantity_remain = self.cleaned_data['quantity_remain_greater_than']
+        if quantity_remain < 0:
+            raise ValidationError(gettext_lazy("Số lượng còn lại phải lớn hơn 0"))
+        return quantity_remain
+
+    def clean_quantity_remain_less_than(self):
+        quantity_remain = self.cleaned_data['quantity_remain_less_than']
+        if quantity_remain < 0:
+            raise ValidationError(gettext_lazy("Số lượng còn lại phải lớn hơn 0"))
+        return quantity_remain
+
+    def clean_import_cost_greater_than(self):
+        import_cost = self.cleaned_data['import_cost_greater_than']
+        if import_cost < 0:
+            raise ValidationError(gettext_lazy("Đơn giá nhập kho phải lớn hơn 0"))
+        return import_cost
+
+    def clean_import_cost_less_than(self):
+        import_cost = self.cleaned_data['import_cost_less_than']
+        if import_cost < 0:
+            raise ValidationError(gettext_lazy("Đơn giá nhập kho phải lớn hơn 0"))
+        return import_cost  
 
 class ActualMethodInventory(forms.Form):
     chosen_purchases = forms.ModelChoiceField(queryset=ImportPurchase.objects.select_related('import_shipment_id', 'product_id').all(),
