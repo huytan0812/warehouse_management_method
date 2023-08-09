@@ -85,7 +85,7 @@ class ExportOrderForm(ModelForm):
         }
 
 class FilteringInventory(forms.Form):
-    import_shipments = forms.ModelChoiceField(queryset=ImportShipment.objects.select_related('supplier_id').all(),
+    import_shipments = forms.ModelChoiceField(queryset=ImportShipment.objects.select_related('supplier_id', 'current_accounting_period').all(),
                                               widget=forms.Select(attrs={'class': 'form-control', 'required': True}),
                                               label="Lô hàng tồn kho")
     quantity_remain_greater_than = forms.IntegerField(widget=forms.NumberInput(attrs={'class': 'form-control',
@@ -105,6 +105,30 @@ class FilteringInventory(forms.Form):
                                                                                   'min': 0}),
                                                                             label="Chọn đơn giá nhập kho nhỏ hơn: ")
     
+    def __init__(self, *args, **kwargs):
+        self._type = kwargs.pop('type')
+        super().__init__(*args, **kwargs)
+
+        self.assigning_queryset()
+
+    @property
+    def type(self):
+        return self._type
+    
+    def assigning_queryset(self):
+        current_accounting_period_obj = AccoutingPeriod.objects.latest('id')
+        if self.type == "starting_inventory":
+            import_shipments = ImportShipment.objects.select_related('supplier_id', 'current_accounting_period').filter(
+                date__lt = current_accounting_period_obj.date_applied
+            )
+            self.fields['import_shipments'].queryset = import_shipments
+
+        if self.type == "current_accounting_period":
+            import_shipments = ImportShipment.objects.select_related('supplier_id', 'current_accounting_period').filter(
+                current_accounting_period = current_accounting_period_obj
+            )
+            self.fields['import_shipments'].queryset = import_shipments
+
     def clean_quantity_remain_greater_than(self):
         quantity_remain = self.cleaned_data['quantity_remain_greater_than']
         if quantity_remain < 0:
