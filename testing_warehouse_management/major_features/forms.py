@@ -106,11 +106,16 @@ class FilteringInventory(forms.Form):
                                                                             label="Chọn đơn giá nhập kho nhỏ hơn: ")
     
     def __init__(self, *args, **kwargs):
+        self._product = kwargs.pop('product')
         self._type = kwargs.pop('type')
         super().__init__(*args, **kwargs)
 
         self.assigning_queryset()
 
+    @property
+    def product(self):
+        return self._product
+     
     @property
     def type(self):
         return self._type
