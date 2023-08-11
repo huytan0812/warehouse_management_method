@@ -57,7 +57,7 @@ class ImportShipment(models.Model):
                                                   related_name="%(class)s_following_import_shipments")
 
     def __str__(self):
-        return f"Import Shipment Id: {self.id}"
+        return f"{self.import_shipment_code}"
     
 class ImportPurchase(models.Model):
     import_shipment_id = models.ForeignKey(ImportShipment, on_delete=models.CASCADE, null=False, blank=False, related_name="%(class)s_import_purchases_package")

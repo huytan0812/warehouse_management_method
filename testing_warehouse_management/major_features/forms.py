@@ -94,23 +94,27 @@ class FilteringInventory(forms.Form):
     # ImportPurchase model
     quantity_remain_greater_than = forms.IntegerField(widget=forms.NumberInput(attrs={'class': 'form-control',
                                                                                    'placeholder': "SLCL đơn hàng lớn hơn",
-                                                                                   'min': 0}),
+                                                                                   'min': 0,
+                                                                                   'required': False}),
                                                                             label="Chọn SLCL lớn hơn: ")
     quantity_remain_less_than = forms.IntegerField(widget=forms.NumberInput(attrs={'class': 'form-control',
                                                                                    'placeholder': "SLCL đơn hàng nhỏ hơn",
-                                                                                   'min': 0}),
+                                                                                   'min': 0,
+                                                                                   'required': False}),
                                                                             label="Chọn SLCL nhỏ hơn: ")
     import_cost_greater_than = forms.IntegerField(widget=forms.NumberInput(attrs={'class': 'form-control',
                                                                                   'placeholder': "Đơn giá nhập kho lớn hơn",
-                                                                                  'min': 0}),
+                                                                                  'min': 0,
+                                                                                  'required': False}),
                                                                             label="Chọn đơn giá nhập kho lớn hơn")
     import_cost_less_than = forms.IntegerField(widget=forms.NumberInput(attrs={'class': 'form-control',
                                                                                   'placeholder': "Đơn giá nhập kho nhỏ hơn",
-                                                                                  'min': 0}),
+                                                                                  'min': 0,
+                                                                                  'required': False}),
                                                                             label="Chọn đơn giá nhập kho nhỏ hơn: ")
     
     def __init__(self, *args, **kwargs):
-        self._product = kwargs.pop('product')
+        self._product = kwargs.pop('product') if 'product' in kwargs else None
         self._type = kwargs.pop('type')
         super().__init__(*args, **kwargs)
 

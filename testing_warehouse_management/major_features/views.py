@@ -472,7 +472,7 @@ def choose_type_of_inventory(request, export_order_id):
 
 def export_by_starting_inventory(request, export_order_id, product):
     TYPE_OF_INVENTORY = "starting_inventory"
-    filtering_starting_inventory_form = FilteringInventory()
+    filtering_starting_inventory_form = FilteringInventory(type=TYPE_OF_INVENTORY)
     starting_inventory_form = ActualMethodInventory(product=product, type=TYPE_OF_INVENTORY)
 
     context = {
@@ -487,7 +487,7 @@ def export_by_starting_inventory(request, export_order_id, product):
 
 def export_by_current_accounting_period_inventory(request, export_order_id, product):
     TYPE_OF_INVENTORY = "current_accounting_period"
-    filtering_current_accounting_period_inventory_form = FilteringInventory()
+    filtering_current_accounting_period_inventory_form = FilteringInventory(type=TYPE_OF_INVENTORY)
     current_accounting_period_inventory_form = ActualMethodInventory(product=product, type=TYPE_OF_INVENTORY)
 
     context = {
@@ -501,6 +501,42 @@ def export_by_current_accounting_period_inventory(request, export_order_id, prod
     return render(request, "major_features/export/export_by_inventory.html", context)
 
 def actual_method_by_name_export_action(request, export_order_id, product, type):
+
+    if request.method == "GET":
+        import_shipment = int(request.GET.get("import_shipments", ""))
+        quantity_remain_greater_than = int(request.GET.get("quantity_remain_greater_than", 0))
+        quantity_remain_less_than = int(request.GET.get("quantity_remain_less_than", 0))
+        import_cost_greater_than = int(request.GET.get("import_cost_greater_than", 0))
+        import_cost_less_than = int(request.GET.get("import_cost_less_than", 0))
+
+        try:
+            import_shipment_obj = ImportShipment.objects.get(pk=import_shipment)
+        except ImportShipment.DoesNotExist:
+            raise Exception("Mã lô hàng nhập kho không tồn tại")
+        
+        filter_context = {
+            'import_shipment': import_shipment,
+            'quantity_remain_greater_than': quantity_remain_greater_than,
+            'quantity_remain_less_than': quantity_remain_less_than,
+            'import_cost_greater_than': import_cost_greater_than,
+            'import_cost_less_than': import_cost_less_than
+        }
+
+        TYPE_OF_INVENTORY = "starting_inventory"
+        filtering_starting_inventory_form = FilteringInventory(type=TYPE_OF_INVENTORY)
+        starting_inventory_form = ActualMethodInventory(product=product, type=TYPE_OF_INVENTORY)
+
+        context = {
+            'filter_context': filter_context,
+            'export_order_id': export_order_id,
+            'product': product,
+            'type': TYPE_OF_INVENTORY,
+            'filtering_starting_inventory_form': filtering_starting_inventory_form,
+            'starting_inventory_form': starting_inventory_form
+        }
+
+        return render(request, "major_features/export/export_by_inventory.html", context)
+
     if request.method == "POST":
         actual_method_form = ActualMethodInventory(request.POST, 
                                                    export_order_id=export_order_id,

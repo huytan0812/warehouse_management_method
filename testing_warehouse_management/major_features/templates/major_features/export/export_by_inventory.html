@@ -59,6 +59,30 @@
 
 {% block body %}
 
+{% if filter_context %}
+<ul>
+  <strong>Lọc theo: </strong>
+  <li>Mã lô hàng nhập kho: {{ filter_context.import_shipment }}</li>
+
+  {% if filter_context.quantity_remain_greater_than > 0 %}
+  <li>SLCL lớn hơn: {{ filter_context.quantity_remain_greater_than }}</li>
+  {% endif %}
+
+  {% if filter_context.quantity_remain_less_than > 0 %}
+  <li>SLCL nhỏ hơn: {{ filter_context.quantity_remain_less_than }}</li>
+  {% endif %}
+
+  {% if filter_context.import_cost_greater_than > 0 %}
+  <li>Đơn giá nhập kho lớn hơn: {{ filter_context.import_cost_greater_than }}</li>
+  {% endif %}
+
+  {% if filter_context.import_cost_less_than > 0 %}
+  <li>Đơn giá nhập kho nhỏ hơn: {{ filter_context.import_cost_less_than }}</li>
+  {% endif %}
+
+</ul>
+{% endif %}
+
 <div class="container d-flex justify-content-center" style="margin-bottom: 20px;">
   <div class="form-container">
     <form action="{% url 'actual_method_by_name_export_action' export_order_id product type %}" method="get" class="shipment-form">
