@@ -85,9 +85,13 @@ class ExportOrderForm(ModelForm):
         }
 
 class FilteringInventory(forms.Form):
+
+    # ImportShipment model
     import_shipments = forms.ModelChoiceField(queryset=ImportShipment.objects.select_related('supplier_id', 'current_accounting_period').all(),
                                               widget=forms.Select(attrs={'class': 'form-control', 'required': True}),
                                               label="Lô hàng tồn kho")
+    
+    # ImportPurchase model
     quantity_remain_greater_than = forms.IntegerField(widget=forms.NumberInput(attrs={'class': 'form-control',
                                                                                    'placeholder': "SLCL đơn hàng lớn hơn",
                                                                                    'min': 0}),

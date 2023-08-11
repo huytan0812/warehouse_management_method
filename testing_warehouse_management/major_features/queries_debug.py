@@ -403,3 +403,25 @@ def starting_inventory_ver_3(product_name):
     connection_queries = connection.queries
     for connection_query in connection_queries:
         print(connection_query)
+
+@query_debugger
+def testing_queryset():
+    import_shipment_obj = ImportShipment.objects.get(import_shipment_code='NEW0022')
+    queryset1 = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').filter(
+        import_shipment_id=import_shipment_obj,
+        quantity_remain__gt=0
+    )
+
+    pre_queryset2 = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').filter(
+        quantity_remain__gt=0
+    )
+    queryset2 = pre_queryset2.filter(import_shipment_id=import_shipment_obj)
+
+    print(f"Queryset1 - {len(queryset1)}: ", queryset1)
+    print("~~~~~~~~~~~~~~~~~~")
+    print(f"Queryset2 - {len(queryset2)}: ", queryset2)
+
+    connection_queries = connection.queries
+
+    for connection_query in connection_queries:
+        print(connection_query)
