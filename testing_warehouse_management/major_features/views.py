@@ -515,7 +515,7 @@ def actual_method_by_name_export_action(request, export_order_id, product, type)
             raise Exception("Mã lô hàng nhập kho không tồn tại")
         
         filter_context = {
-            'import_shipment': import_shipment,
+            'import_shipment': import_shipment_obj,
             'quantity_remain_greater_than': quantity_remain_greater_than,
             'quantity_remain_less_than': quantity_remain_less_than,
             'import_cost_greater_than': import_cost_greater_than,

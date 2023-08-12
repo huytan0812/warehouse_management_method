@@ -425,3 +425,11 @@ def testing_queryset():
 
     for connection_query in connection_queries:
         print(connection_query)
+
+@query_debugger
+def testing_queryset2():
+    product = Product.objects.get(name='Cebraton')
+    queryset1 = ImportShipment.objects.all()
+    # Try to find the way to connect
+    # the import shipments containing at least
+    # one chosen's product purchase in the efficient way
