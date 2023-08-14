@@ -130,17 +130,27 @@ class FilteringInventory(forms.Form):
     
     def assigning_queryset(self):
         current_accounting_period_obj = AccoutingPeriod.objects.latest('id')
+
         if self.type == "starting_inventory":
             import_shipments = ImportShipment.objects.select_related('supplier_id', 'current_accounting_period').filter(
                 date__lt = current_accounting_period_obj.date_applied
             )
-            self.fields['import_shipments'].queryset = import_shipments
 
-        if self.type == "current_accounting_period":
+        elif self.type == "current_accounting_period":
             import_shipments = ImportShipment.objects.select_related('supplier_id', 'current_accounting_period').filter(
                 current_accounting_period = current_accounting_period_obj
             )
-            self.fields['import_shipments'].queryset = import_shipments
+        
+        else:
+            import_shipments = ImportShipment.objects.select_related('supplier_id', 'current_accounting_period').all()
+
+        if self.product != None:
+            product_obj = Product.objects.get(name=self.product)
+            import_shipments = import_shipments.filter(
+                importpurchase_import_purchases_package__product_id = product_obj
+            ).order_by('import_shipment_code').distinct('import_shipment_code')
+
+        self.fields['import_shipments'].queryset = import_shipments
 
     def clean_quantity_remain_greater_than(self):
         quantity_remain = self.cleaned_data['quantity_remain_greater_than']

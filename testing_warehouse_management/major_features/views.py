@@ -472,7 +472,7 @@ def choose_type_of_inventory(request, export_order_id):
 
 def export_by_starting_inventory(request, export_order_id, product):
     TYPE_OF_INVENTORY = "starting_inventory"
-    filtering_starting_inventory_form = FilteringInventory(type=TYPE_OF_INVENTORY)
+    filtering_starting_inventory_form = FilteringInventory(product=product, type=TYPE_OF_INVENTORY)
     starting_inventory_form = ActualMethodInventory(product=product, type=TYPE_OF_INVENTORY)
 
     context = {
@@ -487,7 +487,7 @@ def export_by_starting_inventory(request, export_order_id, product):
 
 def export_by_current_accounting_period_inventory(request, export_order_id, product):
     TYPE_OF_INVENTORY = "current_accounting_period"
-    filtering_current_accounting_period_inventory_form = FilteringInventory(type=TYPE_OF_INVENTORY)
+    filtering_current_accounting_period_inventory_form = FilteringInventory(product=product, type=TYPE_OF_INVENTORY)
     current_accounting_period_inventory_form = ActualMethodInventory(product=product, type=TYPE_OF_INVENTORY)
 
     context = {
