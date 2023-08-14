@@ -191,6 +191,13 @@ class ActualMethodInventory(forms.Form):
         self._type = kwargs.pop("type")
         self._len_queryset = 0
 
+        # Filter section
+        self._import_shipment_code = kwargs.pop("import_shipment_code") if "import_shipment_code" in kwargs else None
+        self._quantity_remain_greater_than = kwargs.pop("quantity_remain_greater_than") if "quantity_remain_greater_than" in kwargs else None
+        self._quantity_remain_less_than = kwargs.pop("quantity_remain_less_than") if "quantity_remain_less_than" in kwargs else None
+        self._import_cost_greater_than = kwargs.pop("import_cost_greater_than") if "import_cost_greater_than" in kwargs else None
+        self._import_cost_less_than = kwargs.pop("import_cost_less_than") if "import_cost_less_than" in kwargs else None
+
         super().__init__(*args, **kwargs)
 
         self.assigning_queryset()
@@ -207,6 +214,27 @@ class ActualMethodInventory(forms.Form):
     def len_queryset(self):
         return self._len_queryset
     
+    # Filter section
+    @property
+    def import_shipment_code(self):
+        return self._import_shipment_code
+    
+    @property
+    def quantity_remain_greater_than(self):
+        return self._quantity_remain_greater_than
+    
+    @property
+    def quantity_remain_less_than(self):
+        return self._quantity_remain_less_than
+    
+    @property
+    def import_cost_greater_than(self):
+        return self._import_cost_greater_than
+    
+    @property
+    def import_cost_less_than(self):
+        return self._import_cost_less_than
+
     @len_queryset.setter
     def len_queryset(self, new_length):
         self._len_queryset = new_length
