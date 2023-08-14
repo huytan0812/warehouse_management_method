@@ -429,7 +429,37 @@ def testing_queryset():
 @query_debugger
 def testing_queryset2():
     product = Product.objects.get(name='Cebraton')
-    queryset1 = ImportShipment.objects.all()
+    queryset1 = ImportShipment.objects.select_related('supplier_id').all()
     # Try to find the way to connect
     # the import shipments containing at least
     # one chosen's product purchase in the efficient way
+    queryset2 = queryset1.filter(
+        importpurchase_import_purchases_package__product_id=product
+    ).values('import_shipment_code').distinct().order_by('id')
+
+    for queryset in queryset2:
+        print(queryset)
+
+    print(len(queryset2))
+
+    connection_queries = connection.queries
+    for connection_query in connection_queries:
+        print(connection_query)
+
+@query_debugger
+def testing_queryset3():
+    product = Product.objects.get(name='Cebraton')
+    queryset1 = ImportShipment.objects.select_related('supplier_id').all().values('import_shipment_code')
+    queryset2 = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').filter(
+        product_id=product,
+        import_shipment_id__import_shipment_code__in=queryset1
+    ).values('import_shipment_id__import_shipment_code').distinct().order_by('import_shipment_id_id')
+
+    for queryset in queryset2:
+        print(queryset)
+
+    print(len(queryset2))
+
+    connection_queries = connection.queries
+    for connection_query in connection_queries:
+        print(connection_query)
