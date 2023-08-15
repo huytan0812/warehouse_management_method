@@ -265,7 +265,7 @@ class ActualMethodInventory(forms.Form):
             queryset = queryset.filter(import_cost__gte=self.import_cost_greater_than)
 
         if self.import_cost_less_than:
-            queryset = queryset.filter(import_cost__gte=self.import_cost_less_than)
+            queryset = queryset.filter(import_cost__lte=self.import_cost_less_than)
 
         return queryset
 
