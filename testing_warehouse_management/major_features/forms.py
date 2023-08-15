@@ -248,6 +248,27 @@ class ActualMethodInventory(forms.Form):
         quantity_take = self.cleaned_data['quantity_take']
         return quantity_take
 
+    def filter_queryset_by_factors(self, import_purchases):
+        queryset = import_purchases
+
+        if self.import_shipment_code:
+            import_shipment_obj = ImportShipment.objects.get(import_shipment_code=self.import_shipment_code)
+            queryset = queryset.filter(import_shipment_id=import_shipment_obj)
+
+        if self.quantity_remain_greater_than:
+            queryset = queryset.filter(quantity_remain__gte=self.quantity_remain_greater_than)
+
+        if self.quantity_remain_less_than:
+            queryset = queryset.filter(quantity_remain__lte=self.quantity_remain_less_than)
+
+        if self.import_cost_greater_than:
+            queryset = queryset.filter(import_cost__gte=self.import_cost_greater_than)
+
+        if self.import_cost_less_than:
+            queryset = queryset.filter(import_cost__gte=self.import_cost_less_than)
+
+        return queryset
+
     def assigning_queryset(self):
 
         product_obj = Product.objects.get(name=self.product)
@@ -261,12 +282,7 @@ class ActualMethodInventory(forms.Form):
                 quantity_remain__gt=0
             ).order_by('-import_shipment_id__date')
 
-            self.fields["chosen_purchases"].queryset = import_purchases
-
-            import_purchases_count = import_purchases.count()
-            self.len_queryset = import_purchases_count
-
-        if self.type == "current_accounting_period":
+        elif self.type == "current_accounting_period":
 
             import_purchases = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').filter(
                 import_shipment_id__current_accounting_period=current_accounting_period_obj,
@@ -274,10 +290,15 @@ class ActualMethodInventory(forms.Form):
                 quantity_remain__gt=0
             ).order_by('import_shipment_id__date')
 
-            self.fields["chosen_purchases"].queryset = import_purchases
+        else:
+            import_purchases = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').all()
 
-            import_purchases_count = import_purchases.count()
-            self.len_queryset = import_purchases_count
+        import_purchases = self.filter_queryset_by_factors(import_purchases)
+
+        self.fields["chosen_purchases"].queryset = import_purchases
+
+        import_purchases_count = import_purchases.count()
+        self.len_queryset = import_purchases_count
 
     def clean_quantity_take(self):
         quantity_take = self.cleaned_data['quantity_take']

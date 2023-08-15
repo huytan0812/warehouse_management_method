@@ -463,3 +463,18 @@ def testing_queryset3():
     connection_queries = connection.queries
     for connection_query in connection_queries:
         print(connection_query)
+
+@query_debugger
+def testing_chaining_queryset():
+
+    product = Product.objects.get(name='Cebraton')
+
+    queryset = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').all()
+    queryset = queryset.filter(product_id=product)
+    queryset = queryset.filter(quantity_remain__gt=50)
+
+    print(queryset)
+
+    connection_queries = connection.queries
+    for connection_query in connection_queries:
+        print(connection_query)
