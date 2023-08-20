@@ -522,9 +522,15 @@ def actual_method_by_name_export_action(request, export_order_id, product, type)
             'import_cost_less_than': import_cost_less_than
         }
 
-        TYPE_OF_INVENTORY = "starting_inventory"
-        filtering_starting_inventory_form = FilteringInventory(type=TYPE_OF_INVENTORY)
-        starting_inventory_form = ActualMethodInventory(product=product, type=TYPE_OF_INVENTORY)
+        TYPE_OF_INVENTORY = type
+        filtering_starting_inventory_form = FilteringInventory(product = product, type = TYPE_OF_INVENTORY)
+        actual_method_inventory_form = ActualMethodInventory(product = product, 
+                                                             type = TYPE_OF_INVENTORY,
+                                                             import_shipment_code = import_shipment,
+                                                             quantity_remain_greater_than = quantity_remain_greater_than,
+                                                             quantity_remain_less_than = quantity_remain_less_than,
+                                                             import_cost_greater_than = import_cost_greater_than,
+                                                             import_cost_less_than = import_cost_less_than)
 
         context = {
             'filter_context': filter_context,
@@ -532,7 +538,7 @@ def actual_method_by_name_export_action(request, export_order_id, product, type)
             'product': product,
             'type': TYPE_OF_INVENTORY,
             'filtering_starting_inventory_form': filtering_starting_inventory_form,
-            'starting_inventory_form': starting_inventory_form
+            'starting_inventory_form': actual_method_inventory_form
         }
 
         return render(request, "major_features/export/export_by_inventory.html", context)
