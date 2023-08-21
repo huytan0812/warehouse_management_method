@@ -38,9 +38,9 @@ urlpatterns = [
           views.actual_method_by_name_export_action, 
           name="actual_method_by_name_export_action"),
      
-     path("export_action/actual_method_by_name/complete_export_by_inventory/<int:export_order_id>",
-          views.complete_export_by_inventory,
-          name="complete_export_by_inventory"),
+     path("export_action/actual_method_by_name/complete_export_order_by_inventory/<int:export_order_id>",
+          views.complete__export_order_by_inventory,
+          name="complete_export_order_by_inventory"),
 
      # Reports section
      path("reports", views.reports, name="reports"),

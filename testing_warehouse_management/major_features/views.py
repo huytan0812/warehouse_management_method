@@ -13,6 +13,7 @@ from . models import *
 from . forms import *
 from . warehouse_management_methods import *
 from . decorators import is_activating_accounting_period
+from . queries_debug import query_debugger
 
 # Create your views here.
 def index(request):
@@ -567,15 +568,16 @@ def actual_method_by_name_export_action(request, export_order_id, product, type)
                 }))
 
             if "save_and_complete" in request.POST:
-                return HttpResponseRedirect(reverse('complete_export_by_inventory', kwargs={
+                return HttpResponseRedirect(reverse('complete_export_order_by_inventory', kwargs={
                     'export_order_id': export_order_id
                 }))
 
         else:
             return HttpResponse("Invalid Form", content_type="text/plain")
 
+@query_debugger
 @transaction.atomic      
-def complete_export_by_inventory(request, export_order_id):
+def complete_export_order_by_inventory(request, export_order_id):
     export_order_obj = ExportOrder.objects.select_related('export_shipment_id').select_for_update().filter(export_order_id=export_order_id)
     export_order_details_obj = ExportOrderDetail.objects.select_related('export_order_id', 'import_purchase_id').filter(export_order_id=export_order_obj[0])
 
@@ -587,8 +589,10 @@ def complete_export_by_inventory(request, export_order_id):
     try:
         with transaction.atomic():
             for obj in export_order_details_obj:
-                export_order_details_obj['quantity_export'] += obj.quantity_take
-                export_order_details_obj['total_order_value'] += obj.quantity_take * obj.import_purchase_id.import_cost
+                export_order_additional_fields['quantity_export'] += obj.quantity_take
+                export_order_additional_fields['total_order_value'] += obj.quantity_take * obj.import_purchase_id.import_cost
+                obj.import_purchase_id.quantity_remain -= obj.quantity_take
+                obj.import_purchase_id.save(update_fields=['quantity_remain'])
 
             export_order_obj.update(
                 quantity_export=export_order_additional_fields['quantity_export'],
