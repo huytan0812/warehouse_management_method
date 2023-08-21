@@ -217,23 +217,23 @@ class ActualMethodInventory(forms.Form):
     # Filter section
     @property
     def import_shipment_code(self):
-        return self._import_shipment_code if self._import_shipment_code != "" else None
+        return self._import_shipment_code
     
     @property
     def quantity_remain_greater_than(self):
-        return self._quantity_remain_greater_than if self._quantity_remain_greater_than > 0 else None
+        return self._quantity_remain_greater_than
     
     @property
     def quantity_remain_less_than(self):
-        return self._quantity_remain_less_than if self._quantity_remain_less_than > 0 else None
+        return self._quantity_remain_less_than
     
     @property
     def import_cost_greater_than(self):
-        return self._import_cost_greater_than if self._import_cost_greater_than > 0 else None
+        return self._import_cost_greater_than
     
     @property
     def import_cost_less_than(self):
-        return self._import_cost_less_than if self._import_cost_less_than > 0 else None
+        return self._import_cost_less_than
 
     @len_queryset.setter
     def len_queryset(self, new_length):
@@ -252,7 +252,10 @@ class ActualMethodInventory(forms.Form):
         queryset = import_purchases
 
         if self.import_shipment_code:
-            import_shipment_obj = ImportShipment.objects.get(import_shipment_code=self.import_shipment_code)
+            try:
+                import_shipment_obj = ImportShipment.objects.get(pk=self.import_shipment_code)
+            except ImportShipment.DoesNotExist:
+                raise Exception("Invalid Import Shipment")
             queryset = queryset.filter(import_shipment_id=import_shipment_obj)
 
         if self.quantity_remain_greater_than:

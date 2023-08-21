@@ -39,7 +39,7 @@ urlpatterns = [
           name="actual_method_by_name_export_action"),
      
      path("export_action/actual_method_by_name/complete_export_order_by_inventory/<int:export_order_id>",
-          views.complete__export_order_by_inventory,
+          views.complete_export_order_by_inventory,
           name="complete_export_order_by_inventory"),
 
      # Reports section
