@@ -248,6 +248,26 @@ class ActualMethodInventory(forms.Form):
         quantity_take = self.cleaned_data['quantity_take']
         return quantity_take
 
+    def combine_quantity_remain_queryset(self, queryset, filter_greater_than, filter_less_than):
+        combine_queryset = queryset
+
+        if filter_less_than >= filter_greater_than:
+            combine_queryset = combine_queryset.filter(Q(quantity_remain__gte=filter_greater_than), Q(quantity_remain__lte=filter_less_than))
+        else:
+            combine_queryset = combine_queryset.filter(Q(quantity_remain__gte=filter_greater_than) | Q(quantity_remain__lte=filter_less_than))
+
+        return combine_queryset
+
+    def combine_import_cost_queryset(self, queryset, filter_greater_than, filter_less_than):
+        combine_queryset = queryset
+
+        if filter_less_than > filter_greater_than:
+            combine_queryset = combine_queryset.filter(Q(import_cost__gte=filter_greater_than), Q(import_cost__lte=filter_less_than))
+        else:
+            combine_queryset = combine_queryset.filter(Q(import_cost__gte=filter_greater_than) | Q(import_cost__lte=filter_less_than))
+
+        return combine_queryset
+
     def filter_queryset_by_factors(self, import_purchases):
         queryset = import_purchases
 
@@ -258,16 +278,22 @@ class ActualMethodInventory(forms.Form):
                 raise Exception("Invalid Import Shipment")
             queryset = queryset.filter(import_shipment_id=import_shipment_obj)
 
-        if self.quantity_remain_greater_than:
+        if self.quantity_remain_greater_than and self.quantity_remain_less_than:
+            queryset = self.combine_quantity_remain_queryset(queryset, self.quantity_remain_greater_than, self.quantity_remain_less_than)
+
+        elif self.quantity_remain_greater_than:
             queryset = queryset.filter(quantity_remain__gte=self.quantity_remain_greater_than)
 
-        if self.quantity_remain_less_than:
+        else:
             queryset = queryset.filter(quantity_remain__lte=self.quantity_remain_less_than)
 
-        if self.import_cost_greater_than:
+        if self.import_cost_greater_than and self.import_cost_less_than:
+            queryset = self.combine_import_cost_queryset(queryset, self.import_cost_greater_than, self.import_cost_less_than)
+
+        elif self.import_cost_greater_than:
             queryset = queryset.filter(import_cost__gte=self.import_cost_greater_than)
 
-        if self.import_cost_less_than:
+        else:
             queryset = queryset.filter(import_cost__lte=self.import_cost_less_than)
 
         return queryset
