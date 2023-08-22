@@ -524,22 +524,34 @@ def actual_method_by_name_export_action(request, export_order_id, product, type)
         }
 
         TYPE_OF_INVENTORY = type
-        filtering_starting_inventory_form = FilteringInventory(product = product, type = TYPE_OF_INVENTORY)
-        actual_method_inventory_form = ActualMethodInventory(product = product, type = TYPE_OF_INVENTORY,
-                                                             import_shipment_code = import_shipment if import_shipment != "" else None,
-                                                             quantity_remain_greater_than = quantity_remain_greater_than if quantity_remain_greater_than > 0 else None,
-                                                             quantity_remain_less_than = quantity_remain_less_than if quantity_remain_less_than > 0 else None,
-                                                             import_cost_greater_than = import_cost_greater_than if import_cost_greater_than > 0 else None,
-                                                             import_cost_less_than = import_cost_less_than if import_cost_less_than > 0 else None)
 
         context = {
             'filter_context': filter_context,
             'export_order_id': export_order_id,
             'product': product,
             'type': TYPE_OF_INVENTORY,
-            'filtering_starting_inventory_form': filtering_starting_inventory_form,
-            'starting_inventory_form': actual_method_inventory_form
         }
+
+        filtering_inventory_form = FilteringInventory(product = product, type = TYPE_OF_INVENTORY)
+        actual_method_inventory_form = ActualMethodInventory(product = product, type = TYPE_OF_INVENTORY,
+                                        import_shipment_code = import_shipment if import_shipment != "" else None,
+                                        quantity_remain_greater_than = quantity_remain_greater_than if quantity_remain_greater_than > 0 else None,
+                                        quantity_remain_less_than = quantity_remain_less_than if quantity_remain_less_than > 0 else None,
+                                        import_cost_greater_than = import_cost_greater_than if import_cost_greater_than > 0 else None,
+                                        import_cost_less_than = import_cost_less_than if import_cost_less_than > 0 else None)
+
+        if TYPE_OF_INVENTORY == "starting_inventory":
+            filtering_starting_inventory_form = filtering_inventory_form
+            starting_inventory_form = actual_method_inventory_form
+
+            context['filtering_starting_inventory_form'] = filtering_starting_inventory_form
+            context['starting_inventory_form'] = starting_inventory_form
+        else:
+            filtering_current_accounting_period_inventory_form = filtering_inventory_form
+            current_accounting_period_inventory_form = actual_method_inventory_form
+
+            context['filtering_current_accounting_period_inventory_form'] = filtering_current_accounting_period_inventory_form
+            context['current_accounting_period_inventory_form'] = current_accounting_period_inventory_form
 
         return render(request, "major_features/export/export_by_inventory.html", context)
 
