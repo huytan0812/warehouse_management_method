@@ -280,21 +280,21 @@ class ActualMethodInventory(forms.Form):
 
         if self.quantity_remain_greater_than and self.quantity_remain_less_than:
             queryset = self.combine_quantity_remain_queryset(queryset, self.quantity_remain_greater_than, self.quantity_remain_less_than)
-
         elif self.quantity_remain_greater_than:
             queryset = queryset.filter(quantity_remain__gte=self.quantity_remain_greater_than)
-
-        else:
+        elif self.quantity_remain_less_than:
             queryset = queryset.filter(quantity_remain__lte=self.quantity_remain_less_than)
+        else:
+            pass
 
         if self.import_cost_greater_than and self.import_cost_less_than:
             queryset = self.combine_import_cost_queryset(queryset, self.import_cost_greater_than, self.import_cost_less_than)
-
         elif self.import_cost_greater_than:
             queryset = queryset.filter(import_cost__gte=self.import_cost_greater_than)
-
-        else:
+        elif self.import_cost_less_than:
             queryset = queryset.filter(import_cost__lte=self.import_cost_less_than)
+        else:
+            pass
 
         return queryset
 
