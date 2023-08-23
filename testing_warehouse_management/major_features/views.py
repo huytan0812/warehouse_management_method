@@ -504,16 +504,18 @@ def export_by_current_accounting_period_inventory(request, export_order_id, prod
 def actual_method_by_name_export_action(request, export_order_id, product, type):
 
     if request.method == "GET":
-        import_shipment = int(request.GET.get("import_shipments", ""))
-        quantity_remain_greater_than = int(request.GET.get("quantity_remain_greater_than", 0))
-        quantity_remain_less_than = int(request.GET.get("quantity_remain_less_than", 0))
-        import_cost_greater_than = int(request.GET.get("import_cost_greater_than", 0))
-        import_cost_less_than = int(request.GET.get("import_cost_less_than", 0))
+        import_shipment = request.GET.get("import_shipments", "")
+        quantity_remain_greater_than = request.GET.get("quantity_remain_greater_than") if "quantity_remain_greater_than" in request.GET else 0
+        quantity_remain_less_than = request.GET.get("quantity_remain_less_than") if "quantity_remain_less_than" in request.GET else 0
+        import_cost_greater_than = request.GET.get("import_cost_greater_than") if "import_cost_greater_than" in request.GET else 0
+        import_cost_less_than = request.GET.get("import_cost_less_than") if "import_cost_less_than" in request.GET else 0
 
-        try:
-            import_shipment_obj = ImportShipment.objects.get(pk=import_shipment)
-        except ImportShipment.DoesNotExist:
-            raise Exception("Mã lô hàng nhập kho không tồn tại")
+        import_shipment_obj = None
+        if import_shipment != "":
+            try:
+                import_shipment_obj = ImportShipment.objects.get(pk=import_shipment)
+            except ImportShipment.DoesNotExist:
+                raise Exception("Mã lô hàng nhập kho không tồn tại")
         
         filter_context = {
             'import_shipment': import_shipment_obj,
@@ -535,10 +537,10 @@ def actual_method_by_name_export_action(request, export_order_id, product, type)
         filtering_inventory_form = FilteringInventory(product = product, type = TYPE_OF_INVENTORY)
         actual_method_inventory_form = ActualMethodInventory(product = product, type = TYPE_OF_INVENTORY,
                                         import_shipment_code = import_shipment if import_shipment != "" else None,
-                                        quantity_remain_greater_than = quantity_remain_greater_than if quantity_remain_greater_than > 0 else None,
-                                        quantity_remain_less_than = quantity_remain_less_than if quantity_remain_less_than > 0 else None,
-                                        import_cost_greater_than = import_cost_greater_than if import_cost_greater_than > 0 else None,
-                                        import_cost_less_than = import_cost_less_than if import_cost_less_than > 0 else None)
+                                        quantity_remain_greater_than = quantity_remain_greater_than if int(quantity_remain_greater_than) > 0 else None,
+                                        quantity_remain_less_than = quantity_remain_less_than if int(quantity_remain_less_than) > 0 else None,
+                                        import_cost_greater_than = import_cost_greater_than if int(import_cost_greater_than) > 0 else None,
+                                        import_cost_less_than = import_cost_less_than if int(import_cost_less_than) > 0 else None)
 
         if TYPE_OF_INVENTORY == "starting_inventory":
             filtering_starting_inventory_form = filtering_inventory_form

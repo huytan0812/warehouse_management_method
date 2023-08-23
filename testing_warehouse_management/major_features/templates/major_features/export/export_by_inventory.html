@@ -62,7 +62,10 @@
 {% if filter_context %}
 <ul>
   <strong>Lọc theo: </strong>
+  
+  {% if filter_context.import_shipment %}
   <li>Mã lô hàng nhập kho: {{ filter_context.import_shipment }}</li>
+  {% endif %}
 
   {% if filter_context.quantity_remain_greater_than > 0 %}
   <li>SLCL lớn hơn: {{ filter_context.quantity_remain_greater_than }}</li>
