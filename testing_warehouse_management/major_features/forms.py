@@ -156,29 +156,6 @@ class FilteringInventory(forms.Form):
 
         self.fields['import_shipments'].queryset = import_shipments
 
-    def clean_quantity_remain_greater_than(self):
-        quantity_remain = self.cleaned_data['quantity_remain_greater_than']
-        if quantity_remain < 0:
-            raise ValidationError(gettext_lazy("Số lượng còn lại phải lớn hơn 0"))
-        return quantity_remain
-
-    def clean_quantity_remain_less_than(self):
-        quantity_remain = self.cleaned_data['quantity_remain_less_than']
-        if quantity_remain < 0:
-            raise ValidationError(gettext_lazy("Số lượng còn lại phải lớn hơn 0"))
-        return quantity_remain
-
-    def clean_import_cost_greater_than(self):
-        import_cost = self.cleaned_data['import_cost_greater_than']
-        if import_cost < 0:
-            raise ValidationError(gettext_lazy("Đơn giá nhập kho phải lớn hơn 0"))
-        return import_cost
-
-    def clean_import_cost_less_than(self):
-        import_cost = self.cleaned_data['import_cost_less_than']
-        if import_cost < 0:
-            raise ValidationError(gettext_lazy("Đơn giá nhập kho phải lớn hơn 0"))
-        return import_cost  
 
 class ActualMethodInventory(forms.Form):
     chosen_purchases = forms.ModelChoiceField(queryset=ImportPurchase.objects.select_related('import_shipment_id', 'product_id').all(),
