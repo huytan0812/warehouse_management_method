@@ -95,28 +95,24 @@ class FilteringInventory(forms.Form):
     # ImportPurchase model
     quantity_remain_greater_than = forms.IntegerField(widget=forms.NumberInput(attrs={'class': 'form-control',
                                                                                    'placeholder': "SLCL đơn hàng lớn hơn",}),
-                                                                                    initial=0,
                                                                                     required=False,
                                                                                     min_value=0,
                                                                                     label="Chọn SLCL lớn hơn: ")
     
     quantity_remain_less_than = forms.IntegerField(widget=forms.NumberInput(attrs={'class': 'form-control',
                                                                                    'placeholder': "SLCL đơn hàng nhỏ hơn",}),
-                                                                                    initial=0,
                                                                                     required=False,
                                                                                     min_value=0,       
                                                                                     label="Chọn SLCL nhỏ hơn: ")
     
     import_cost_greater_than = forms.IntegerField(widget=forms.NumberInput(attrs={'class': 'form-control',
                                                                                   'placeholder': "Đơn giá nhập kho lớn hơn",}),
-                                                                                    initial=0,
                                                                                     required=False,
                                                                                     min_value=0,     
                                                                                     label="Chọn đơn giá nhập kho lớn hơn")
     
     import_cost_less_than = forms.IntegerField(widget=forms.NumberInput(attrs={'class': 'form-control',
                                                                                   'placeholder': "Đơn giá nhập kho nhỏ hơn",}),
-                                                                                    initial=0,
                                                                                     required=False,
                                                                                     min_value=0,
                                                                                     label="Chọn đơn giá nhập kho nhỏ hơn: ")
