@@ -98,7 +98,19 @@
 
           {% else %}
           <legend>Lọc đơn hàng nhập kho thuộc nhóm hàng tồn kho phát sinh trong kỳ theo: </legend>
-          {{ filtering_current_accounting_period_inventory_form.as_p }} 
+
+          {% for field in filtering_current_accounting_period_inventory_form %}
+          <div class="form-group">
+            {{ field.label_tag }} {{ field }}
+            {% if field.errors %}
+              <ul>
+                {% for error in field.errors %}
+                  <li style="color: red;">Giá trị này phải lớn hơn 0</li>
+                {% endfor %}
+              </ul>
+            {% endif %}
+          </div>
+          {% endfor %}
 
           {% endif %}
         <button type="submit" class="submit-button">Xác nhận</button>

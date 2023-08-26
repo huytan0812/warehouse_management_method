@@ -505,10 +505,10 @@ def actual_method_by_name_export_action(request, export_order_id, product, type)
 
     if request.method == "GET":
         import_shipment = request.GET["import_shipments"] if request.GET["import_shipments"] != "" else None
-        quantity_remain_greater_than = request.GET["quantity_remain_greater_than"] if request.GET["quantity_remain_greater_than"] != "" else 0
-        quantity_remain_less_than = request.GET["quantity_remain_less_than"] if request.GET["quantity_remain_less_than"] != "" else 0
-        import_cost_greater_than = request.GET["import_cost_greater_than"] if request.GET["import_cost_greater_than"] != "" else 0
-        import_cost_less_than = request.GET["import_cost_less_than"] if request.GET["import_cost_less_than"] != "" else 0
+        quantity_remain_greater_than = int(request.GET["quantity_remain_greater_than"]) if request.GET["quantity_remain_greater_than"] != "" else 0
+        quantity_remain_less_than = int(request.GET["quantity_remain_less_than"]) if request.GET["quantity_remain_less_than"] != "" else 0
+        import_cost_greater_than = int(request.GET["import_cost_greater_than"]) if request.GET["import_cost_greater_than"] != "" else 0
+        import_cost_less_than = int(request.GET["import_cost_less_than"]) if request.GET["import_cost_less_than"] != "" else 0
 
         import_shipment_obj = None
         if import_shipment != None:
@@ -516,7 +516,7 @@ def actual_method_by_name_export_action(request, export_order_id, product, type)
                 import_shipment_obj = ImportShipment.objects.get(pk=import_shipment)
             except ImportShipment.DoesNotExist:
                 raise Exception("Mã lô hàng nhập kho không tồn tại")
-        
+
         filter_context = {
             'import_shipment': import_shipment_obj,
             'quantity_remain_greater_than': quantity_remain_greater_than,
@@ -540,7 +540,7 @@ def actual_method_by_name_export_action(request, export_order_id, product, type)
             'type': TYPE_OF_INVENTORY,
         }
 
-        filtering_inventory_form = FilteringInventory(product = product, type = TYPE_OF_INVENTORY)
+        filtering_inventory_form = FilteringInventory(request.GET, product = product, type = TYPE_OF_INVENTORY)
         actual_method_inventory_form = ActualMethodInventory(product = product, type = TYPE_OF_INVENTORY,
                                         import_shipment_code = import_shipment if import_shipment != "" else None,
                                         quantity_remain_greater_than = quantity_remain_greater_than if quantity_remain_greater_than > 0 else None,

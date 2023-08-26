@@ -90,7 +90,8 @@ class FilteringInventory(forms.Form):
     import_shipments = forms.ModelChoiceField(queryset=ImportShipment.objects.select_related('supplier_id', 'current_accounting_period').all(),
                                               widget=forms.Select(attrs={'class': 'form-control'}),
                                               required=False,
-                                              label="Lô hàng tồn kho")
+                                              label="Lô hàng tồn kho",
+                                              )
     
     # ImportPurchase model
     quantity_remain_greater_than = forms.IntegerField(widget=forms.NumberInput(attrs={'class': 'form-control',
@@ -155,6 +156,35 @@ class FilteringInventory(forms.Form):
             ).order_by('import_shipment_code').distinct('import_shipment_code')
 
         self.fields['import_shipments'].queryset = import_shipments
+
+    def clean(self):
+        cleaned_data = self.cleaned_data
+        quantity_remain_greater_than = cleaned_data.get("quantity_remain_greater_than")
+        quantity_remain_less_than = cleaned_data.get("quantity_remain_less_than")
+        import_cost_greater_than = cleaned_data.get("import_cost_greater_than")
+        import_cost_less_than = cleaned_data.get("import_cost_less_than")
+
+        
+
+        if quantity_remain_greater_than:
+            if quantity_remain_greater_than < 0:
+                msg = "Giá trị này phải lớn hơn 0"
+                self.add_error("quantity_remain_greater_than", msg)
+
+        if quantity_remain_less_than:
+            if quantity_remain_less_than < 0:
+                msg = "Giá trị này phải lớn hơn 0"
+                self.add_error("quantity_remain_less_than", msg)
+
+        if import_cost_greater_than:
+            if import_cost_greater_than < 0:
+                msg = "Giá trị này phải lớn hơn 0"
+                self.add_error("import_cost_greater_than", msg)
+
+        if import_cost_less_than:
+            if import_cost_less_than < 0:
+                msg = "Giá trị này phải lớn hơn 0"
+                self.add_error("import_cost_less_than", msg)
 
 
 class ActualMethodInventory(forms.Form):
