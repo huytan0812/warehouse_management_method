@@ -87,37 +87,99 @@
 {% endif %}
 
 <div class="container d-flex justify-content-center" style="margin-bottom: 20px;">
-  <div class="form-container">
-    <form action="{% url 'actual_method_by_name_export_action' export_order_id product type %}" method="get" class="shipment-form">
-      {% csrf_token %}
-      <fieldset>
+  <form action="{% url 'actual_method_by_name_export_action' export_order_id product type %}" method="get">
+    {% csrf_token %}
+    <fieldset>
 
-          {% if starting_inventory_form %}
-          <legend>Lọc đơn hàng nhập kho thuộc nhóm hàng tồn kho đầu kỳ theo: </legend>
-          {{ filtering_starting_inventory_form.as_p }}
+        {% if starting_inventory_form %}
+        <legend>Lọc đơn hàng nhập kho thuộc nhóm hàng tồn kho đầu kỳ theo: </legend>
+        {% for field in filtering_starting_inventory_form %}
+        <div class="form-group">
+          {{ field.label_tag }} {{ field }}
+          {% if field.errors %}
+            <ul>
+              {% for error in field.errors %}
+                <li style="color: red;">{{ error }}</li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        </div>
+        {% endfor %}
 
-          {% else %}
-          <legend>Lọc đơn hàng nhập kho thuộc nhóm hàng tồn kho phát sinh trong kỳ theo: </legend>
-
-          {% for field in filtering_current_accounting_period_inventory_form %}
-          <div class="form-group">
-            {{ field.label_tag }} {{ field }}
-            {% if field.errors %}
+        {% else %}
+        <legend>Lọc đơn hàng nhập kho thuộc nhóm hàng tồn kho phát sinh trong kỳ theo: </legend>
+        <div style="display: flex; justify-content: center;">
+          <div style="margin-left: 10px; margin-right: 10px;">
+            {{ filtering_current_accounting_period_inventory_form.import_shipments.label_tag }}
+            {{ filtering_current_accounting_period_inventory_form.import_shipments }}
+            {% if filtering_current_accounting_period_inventory_form.import_shipments.errors %}
+            <ul>
+              {% for error in filtering_current_accounting_period_inventory_form.import_shipments.errors %}
+                <li style="color: red;">{{ error }}</li>
+              {% endfor %}
+            </ul>
+            {% endif %}
+          </div>
+        
+          <div style="display: flex; justify-content: center;">
+            <div style="margin-left: 10px; margin-right: 10px;">
+              {{ filtering_current_accounting_period_inventory_form.quantity_remain_greater_than.label_tag }}
+              {{ filtering_current_accounting_period_inventory_form.quantity_remain_greater_than }}
+              {% if filtering_current_accounting_period_inventory_form.quantity_remain_greater_than.errors %}
               <ul>
-                {% for error in field.errors %}
-                  <li style="color: red;">Giá trị này phải lớn hơn 0</li>
+                {% for error in filtering_current_accounting_period_inventory_form.quantity_remain_greater_than.errors %}
+                  <li style="color: red;">{{ error }}</li>
+                {% endfor %}
+              </ul>
+              {% endif %}
+            </div>
+          
+            <div style="margin-left: 10px; margin-right: 10px;">
+              {{ filtering_current_accounting_period_inventory_form.quantity_remain_less_than.label_tag }}
+              {{ filtering_current_accounting_period_inventory_form.quantity_remain_less_than }}
+              {% if filtering_current_accounting_period_inventory_form.quantity_remain_less_than.errors %}
+              <ul>
+                {% for error in filtering_current_accounting_period_inventory_form.quantity_remain_less_than.errors %}
+                  <li style="color: red;">{{ error }}</li>
+                {% endfor %}
+              </ul>
+              {% endif %}
+            </div>
+          </div>
+        
+        <div style="display: flex; justify-content: center;">
+          <div style="margin-left: 10px; margin-right: 10px;">
+            {{ filtering_current_accounting_period_inventory_form.import_cost_greater_than.label_tag }}
+            {{ filtering_current_accounting_period_inventory_form.import_cost_greater_than }}
+            {% if filtering_current_accounting_period_inventory_form.import_cost_greater_than.errors %}
+              <ul>
+                {% for error in filtering_current_accounting_period_inventory_form.import_cost_greater_than.errors %}
+                  <li style="color: red;">{{ error }}</li>
                 {% endfor %}
               </ul>
             {% endif %}
           </div>
-          {% endfor %}
-
-          {% endif %}
-        <button type="submit" class="submit-button">Xác nhận</button>
         
-      </fieldset>
-    </form>
-  </div>
+          <div style="margin-left: 10px; margin-right: 10px;">
+            {{ filtering_current_accounting_period_inventory_form.import_cost_less_than.label_tag }}
+            {{ filtering_current_accounting_period_inventory_form.import_cost_less_than }}
+            {% if filtering_current_accounting_period_inventory_form.import_cost_less_than.errors %}
+              <ul>
+                {% for error in filtering_current_accounting_period_inventory_form.import_cost_less_than.errors %}
+                  <li style="color: red;">{{ error }}</li>
+                {% endfor %}
+              </ul>
+            {% endif %}
+          </div>
+        </div>
+  
+        </div>
+
+        {% endif %}
+      <button type="submit" class="submit-button">Xác nhận</button>
+      
+    </fieldset>
+  </form>
 </div>
 
 <div class="container d-flex justify-content-center">
