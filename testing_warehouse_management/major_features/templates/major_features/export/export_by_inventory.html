@@ -59,54 +59,124 @@
 
 {% block body %}
 
-{% if filter_context %}
-<ul>
-  <strong>Lọc theo: </strong>
-  
-  {% if filter_context.import_shipment %}
-  <li>Mã lô hàng nhập kho: {{ filter_context.import_shipment }}</li>
-  {% endif %}
+<table>
+  <tr>
+    {% if filter_context %}
+    <td>
+      <ul>
+        <strong>Lọc theo: </strong>
+        
+        {% if filter_context.import_shipment %}
+        <li>Mã lô hàng nhập kho: {{ filter_context.import_shipment }}</li>
+        {% endif %}
 
-  {% if filter_context.quantity_remain_greater_than > 0 %}
-  <li>SLCL lớn hơn: {{ filter_context.quantity_remain_greater_than }}</li>
-  {% endif %}
+        {% if filter_context.quantity_remain_greater_than > 0 %}
+        <li>SLCL lớn hơn: {{ filter_context.quantity_remain_greater_than }}</li>
+        {% endif %}
 
-  {% if filter_context.quantity_remain_less_than > 0 %}
-  <li>SLCL nhỏ hơn: {{ filter_context.quantity_remain_less_than }}</li>
-  {% endif %}
+        {% if filter_context.quantity_remain_less_than > 0 %}
+        <li>SLCL nhỏ hơn: {{ filter_context.quantity_remain_less_than }}</li>
+        {% endif %}
 
-  {% if filter_context.import_cost_greater_than > 0 %}
-  <li>Đơn giá nhập kho lớn hơn: {{ filter_context.import_cost_greater_than }}</li>
-  {% endif %}
+        {% if filter_context.import_cost_greater_than > 0 %}
+        <li>Đơn giá nhập kho lớn hơn: {{ filter_context.import_cost_greater_than }}</li>
+        {% endif %}
 
-  {% if filter_context.import_cost_less_than > 0 %}
-  <li>Đơn giá nhập kho nhỏ hơn: {{ filter_context.import_cost_less_than }}</li>
-  {% endif %}
+        {% if filter_context.import_cost_less_than > 0 %}
+        <li>Đơn giá nhập kho nhỏ hơn: {{ filter_context.import_cost_less_than }}</li>
+        {% endif %}
+      </ul>
+    </td>
+    {% endif %}
 
-</ul>
-{% endif %}
+    {% if quantity_take_context %}
+    <td>
+      <p><strong>Tổng sản phẩm xuất kho theo đơn hàng {{ export_order_id }}</strong>: {{ quantity_take_context.quantity_export }}</p>
+      <p><strong>Tổng sản phẩm đã xuất kho theo đơn hàng {{ export_order_id }}</strong>: {{ quantity_take_context.total_quantity_take }}</p>
+      <p><strong>Tổng sản phẩm còn lại theo đơn hàng {{ export_order_id }}</strong>: {{ quantity_take_context.quantity_remain }}</p>
+    </td>
+    {% endif %}
+  </tr>
+</table>
 
-<div class="container d-flex justify-content-center" style="margin-bottom: 20px;">
-  <form action="{% url 'actual_method_by_name_export_action' export_order_id product type %}" method="get">
-    {% csrf_token %}
-    <fieldset>
+<div class="container d-flex justify-content-center">
+  <div class="form-container">
+    <form action="{% url 'actual_method_by_name_export_action' export_order_id product type %}" method="get">
+      {% csrf_token %}
 
-        {% if starting_inventory_form %}
+      {% if starting_inventory_form %}
+      <fieldset>
         <legend>Lọc đơn hàng nhập kho thuộc nhóm hàng tồn kho đầu kỳ theo: </legend>
-        {% for field in filtering_starting_inventory_form %}
-        <div class="form-group">
-          {{ field.label_tag }} {{ field }}
-          {% if field.errors %}
+        <div style="display: flex; justify-content: center;">
+          <div style="margin-left: 10px; margin-right: 10px;">
+            {{ filtering_starting_inventory_form.import_shipments.label_tag }}
+            {{ filtering_starting_inventory_form.import_shipments }}
+            {% if filtering_starting_inventory_form.import_shipments.errors %}
             <ul>
-              {% for error in field.errors %}
+              {% for error in filtering_starting_inventory_form.import_shipments.errors %}
                 <li style="color: red;">{{ error }}</li>
               {% endfor %}
             </ul>
-          {% endif %}
-        </div>
-        {% endfor %}
+            {% endif %}
+          </div>
+        
+          <div style="display: flex; justify-content: center;">
+            <div style="margin-left: 10px; margin-right: 10px;">
+              {{ filtering_starting_inventory_form.quantity_remain_greater_than.label_tag }}
+              {{ filtering_starting_inventory_form.quantity_remain_greater_than }}
+              {% if filtering_starting_inventory_form.quantity_remain_greater_than.errors %}
+              <ul>
+                {% for error in filtering_starting_inventory_form.quantity_remain_greater_than.errors %}
+                  <li style="color: red;">{{ error }}</li>
+                {% endfor %}
+              </ul>
+              {% endif %}
+            </div>
+          
+            <div style="margin-left: 10px; margin-right: 10px;">
+              {{ filtering_starting_inventory_form.quantity_remain_less_than.label_tag }}
+              {{ filtering_starting_inventory_form.quantity_remain_less_than }}
+              {% if filtering_starting_inventory_form.quantity_remain_less_than.errors %}
+              <ul>
+                {% for error in filtering_starting_inventory_form.quantity_remain_less_than.errors %}
+                  <li style="color: red;">{{ error }}</li>
+                {% endfor %}
+              </ul>
+              {% endif %}
+            </div>
+          </div>
+        
+          <div style="display: flex; justify-content: center;">
+            <div style="margin-left: 10px; margin-right: 10px;">
+              {{ filtering_starting_inventory_form.import_cost_greater_than.label_tag }}
+              {{ filtering_starting_inventory_form.import_cost_greater_than }}
+              {% if filtering_starting_inventory_form.import_cost_greater_than.errors %}
+                <ul>
+                  {% for error in filtering_starting_inventory_form.import_cost_greater_than.errors %}
+                    <li style="color: red;">{{ error }}</li>
+                  {% endfor %}
+                </ul>
+              {% endif %}
+            </div>
+          
+            <div style="margin-left: 10px; margin-right: 10px;">
+              {{ filtering_starting_inventory_form.import_cost_less_than.label_tag }}
+              {{ filtering_starting_inventory_form.import_cost_less_than }}
+              {% if filtering_starting_inventory_form.import_cost_less_than.errors %}
+                <ul>
+                  {% for error in filtering_starting_inventory_form.import_cost_less_than.errors %}
+                    <li style="color: red;">{{ error }}</li>
+                  {% endfor %}
+                </ul>
+              {% endif %}
+            </div>
+          </div>
 
-        {% else %}
+        </div>
+      </fieldset>
+
+      {% else %}
+      <fieldset>
         <legend>Lọc đơn hàng nhập kho thuộc nhóm hàng tồn kho phát sinh trong kỳ theo: </legend>
         <div style="display: flex; justify-content: center;">
           <div style="margin-left: 10px; margin-right: 10px;">
@@ -147,42 +217,41 @@
             </div>
           </div>
         
-        <div style="display: flex; justify-content: center;">
-          <div style="margin-left: 10px; margin-right: 10px;">
-            {{ filtering_current_accounting_period_inventory_form.import_cost_greater_than.label_tag }}
-            {{ filtering_current_accounting_period_inventory_form.import_cost_greater_than }}
-            {% if filtering_current_accounting_period_inventory_form.import_cost_greater_than.errors %}
-              <ul>
-                {% for error in filtering_current_accounting_period_inventory_form.import_cost_greater_than.errors %}
-                  <li style="color: red;">{{ error }}</li>
-                {% endfor %}
-              </ul>
-            {% endif %}
+          <div style="display: flex; justify-content: center;">
+            <div style="margin-left: 10px; margin-right: 10px;">
+              {{ filtering_current_accounting_period_inventory_form.import_cost_greater_than.label_tag }}
+              {{ filtering_current_accounting_period_inventory_form.import_cost_greater_than }}
+              {% if filtering_current_accounting_period_inventory_form.import_cost_greater_than.errors %}
+                <ul>
+                  {% for error in filtering_current_accounting_period_inventory_form.import_cost_greater_than.errors %}
+                    <li style="color: red;">{{ error }}</li>
+                  {% endfor %}
+                </ul>
+              {% endif %}
+            </div>
+          
+            <div style="margin-left: 10px; margin-right: 10px;">
+              {{ filtering_current_accounting_period_inventory_form.import_cost_less_than.label_tag }}
+              {{ filtering_current_accounting_period_inventory_form.import_cost_less_than }}
+              {% if filtering_current_accounting_period_inventory_form.import_cost_less_than.errors %}
+                <ul>
+                  {% for error in filtering_current_accounting_period_inventory_form.import_cost_less_than.errors %}
+                    <li style="color: red;">{{ error }}</li>
+                  {% endfor %}
+                </ul>
+              {% endif %}
+            </div>
           </div>
-        
-          <div style="margin-left: 10px; margin-right: 10px;">
-            {{ filtering_current_accounting_period_inventory_form.import_cost_less_than.label_tag }}
-            {{ filtering_current_accounting_period_inventory_form.import_cost_less_than }}
-            {% if filtering_current_accounting_period_inventory_form.import_cost_less_than.errors %}
-              <ul>
-                {% for error in filtering_current_accounting_period_inventory_form.import_cost_less_than.errors %}
-                  <li style="color: red;">{{ error }}</li>
-                {% endfor %}
-              </ul>
-            {% endif %}
-          </div>
-        </div>
-  
-        </div>
 
-        {% endif %}
-      <button type="submit" class="submit-button">Xác nhận</button>
-      
-    </fieldset>
-  </form>
+        </div>
+      </fieldset>
+      {% endif %}
+    <button type="submit" class="submit-button">Tiến hành lọc</button>
+    </form>
+  </div>
 </div>
 
-<div class="container d-flex justify-content-center">
+<div class="container d-flex justify-content-center" style="margin-top: 20px;">
     <div class="form-container">
         <form action="{% url 'actual_method_by_name_export_action' export_order_id product type %}" method="post" class="shipment-form">
             {% csrf_token %}
