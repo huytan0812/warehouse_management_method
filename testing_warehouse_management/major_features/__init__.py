@@ -1,0 +1,1 @@
+default_app_config = 'testing_warehouse_management.major_features.apps.MajorFeaturesConfig'
