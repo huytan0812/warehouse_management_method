@@ -191,6 +191,9 @@ class ActualMethodInventory(forms.Form):
         self._import_cost_greater_than = kwargs.pop("import_cost_greater_than") if "import_cost_greater_than" in kwargs else None
         self._import_cost_less_than = kwargs.pop("import_cost_less_than") if "import_cost_less_than" in kwargs else None
 
+        # Export handling logic
+        self._quantity_export_remain = kwargs.pop("quantity_export_remain") if "quantity_export_remain" in kwargs else None
+
         super().__init__(*args, **kwargs)
 
         self.assigning_queryset()
@@ -227,6 +230,10 @@ class ActualMethodInventory(forms.Form):
     @property
     def import_cost_less_than(self):
         return self._import_cost_less_than
+
+    @property
+    def quantity_export_remain(self):
+        return self._quantity_export_remain
 
     @len_queryset.setter
     def len_queryset(self, new_length):
@@ -331,12 +338,19 @@ class ActualMethodInventory(forms.Form):
 
             if quantity_take > purchase_obj.quantity_remain:
                 raise ValidationError(
-                    gettext_lazy("""Quantity take is greater than import purchase's quantity remain:
+                    gettext_lazy("""Số lượng lấy ra lớn hơn SLCL của đơn hàng nhập kho:
                                  %(quantity_take)s > %(quantity_remain)s 
                                  """),
                     params = {'quantity_take': quantity_take,
                               'quantity_remain': purchase_obj.quantity_remain}
                 )
+            elif self.quantity_export_remain:
+                if quantity_take > self.quantity_export_remain:
+                    raise ValidationError(
+                        gettext_lazy("Số lượng lấy ra lớn hơn số lượng xuất kho còn lại đơn hàng xuất kho")
+                    )
+            else:
+                pass
 
         return quantity_take
         

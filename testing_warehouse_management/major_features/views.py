@@ -368,15 +368,22 @@ def import_purchase_delete(request, import_purchase_id):
 # Export Shipment Section
 
 def export_shipments(request):
+    """
+    Rendering all export shipments paginately
+    """
 
     export_shipments = ExportShipment.objects.select_related('agency_id')
     export_shipments_paginator = Paginator(export_shipments, 10)
     page_number = request.GET.get("page")
     page_obj = export_shipments_paginator.get_page(page_number)
 
+    results_count = page_obj.end_index() - page_obj.start_index() + 1
+
     current_method = WarehouseManagementMethod.objects.filter(is_currently_applied=True)
     context = {
         'current_method': current_method,
+        'page_obj': page_obj,
+        'results_count': results_count
     }
     return render(request, "major_features/export/export_shipments.html", context)
 
@@ -384,6 +391,10 @@ def export_shipments(request):
 
 @is_activating_accounting_period
 def export_action(request):
+    """
+    Creating & saving new export shipment object to the database
+    """
+
     latest_accounting_period_obj = AccoutingPeriod.objects.select_related('warehouse_management_method').latest('id')
     export_shipment_form = ExportShipmentForm()
 
@@ -411,6 +422,11 @@ def export_action(request):
     return render(request, "major_features/export/export_action.html", context)
 
 def export_order_action(request, export_shipment_code):
+    """
+    Creating & saving new export order object to the database.
+    Checking if new saving export order object is 'actual_method_by_name' or the others method
+    """
+    
     export_shipment_obj = ExportShipment.objects.select_related('current_accounting_period').get(export_shipment_code=export_shipment_code)
     current_warehouse_management_method = export_shipment_obj.current_accounting_period.warehouse_management_method
     
@@ -446,6 +462,10 @@ def export_order_action(request, export_shipment_code):
     return render(request, "major_features/export/export_order_action.html", context)
 
 def choose_type_of_inventory(request, export_order_id):
+    """
+    Only for 'actual_method_by_name'.
+    Prompt type of inventory for user to choose
+    """
 
     export_order_obj = ExportOrder.objects.select_related('export_shipment_id', 'product_id').get(pk=export_order_id)
     product = Product.objects.get(name=export_order_obj.product_id.name)
@@ -472,36 +492,64 @@ def choose_type_of_inventory(request, export_order_id):
     return render(request, "major_features/export/choose_type_of_inventory.html", context)
 
 def export_by_starting_inventory(request, export_order_id, product):
+    """
+    Only for 'actual_method_by_name'.
+    Starting inventory type
+    """
+
     TYPE_OF_INVENTORY = "starting_inventory"
+    export_order_obj = ExportOrder.objects.select_related('export_shipment_id', 'product_id').get(pk=export_order_id)
     filtering_starting_inventory_form = FilteringInventory(product=product, type=TYPE_OF_INVENTORY)
-    starting_inventory_form = ActualMethodInventory(product=product, type=TYPE_OF_INVENTORY)
+    starting_inventory_form = ActualMethodInventory(product=product, type=TYPE_OF_INVENTORY, quantity_export_remain=export_order_obj.quantity_export)
+
+    quantity_take_context = {
+            'quantity_export': export_order_obj.quantity_export
+        }
 
     context = {
         'export_order_id': export_order_id,
         'product': product,
         'type': TYPE_OF_INVENTORY,
         'filtering_starting_inventory_form': filtering_starting_inventory_form,
-        'starting_inventory_form': starting_inventory_form
+        'starting_inventory_form': starting_inventory_form,
+        'quantity_take_context': quantity_take_context
     }
 
     return render(request, "major_features/export/export_by_inventory.html", context)
 
 def export_by_current_accounting_period_inventory(request, export_order_id, product):
+    """
+    Only for 'actual_method_by_name'.
+    Current accounting period object type
+    """
+
     TYPE_OF_INVENTORY = "current_accounting_period"
+    export_order_obj = ExportOrder.objects.select_related('export_shipment_id', 'product_id').get(pk=export_order_id)
     filtering_current_accounting_period_inventory_form = FilteringInventory(product=product, type=TYPE_OF_INVENTORY)
-    current_accounting_period_inventory_form = ActualMethodInventory(product=product, type=TYPE_OF_INVENTORY)
+    current_accounting_period_inventory_form = ActualMethodInventory(product=product, type=TYPE_OF_INVENTORY, quantity_export_remain=export_order_obj.quantity_export)
+
+    quantity_take_context = {
+            'quantity_export': export_order_obj.quantity_export
+        }
 
     context = {
         'export_order_id': export_order_id,
         'product': product,
         'type': TYPE_OF_INVENTORY,
         'filtering_current_accounting_period_inventory_form': filtering_current_accounting_period_inventory_form,
-        'current_accounting_period_inventory_form': current_accounting_period_inventory_form
+        'current_accounting_period_inventory_form': current_accounting_period_inventory_form,
+        'quantity_take_context': quantity_take_context
     }
 
     return render(request, "major_features/export/export_by_inventory.html", context)
 
 def actual_method_by_name_export_action(request, export_order_id, product, type):
+    """
+    Only for 'actual_method_by_name'.
+    Prompting Filtering inventory for user to choose according to type of inventory.
+    Handling logic for each export order object detail creation by actual method by name.
+    """
+
 
     if request.method == "GET":
         import_shipment = request.GET["import_shipments"] if request.GET["import_shipments"] != "" else None
@@ -611,24 +659,24 @@ def actual_method_by_name_export_action(request, export_order_id, product, type)
 @query_debugger
 @transaction.atomic      
 def complete_export_order_by_inventory(request, export_order_id):
+    """
+    Only for 'actual_method_by_name'.
+    Handling logic for updating 'total_order_value' field for export order object
+    """
+
     export_order_obj = ExportOrder.objects.select_related('export_shipment_id').select_for_update().filter(export_order_id=export_order_id)
     export_order_details_obj = ExportOrderDetail.objects.select_related('export_order_id', 'import_purchase_id').filter(export_order_id=export_order_obj[0])
 
     export_order_additional_fields = {
-        'quantity_export': 0,
         'total_order_value': 0
     }
 
     try:
         with transaction.atomic():
             for obj in export_order_details_obj:
-                export_order_additional_fields['quantity_export'] += obj.quantity_take
                 export_order_additional_fields['total_order_value'] += obj.quantity_take * obj.import_purchase_id.import_cost
-                obj.import_purchase_id.quantity_remain -= obj.quantity_take
-                obj.import_purchase_id.save(update_fields=['quantity_remain'])
 
             export_order_obj.update(
-                quantity_export=export_order_additional_fields['quantity_export'],
                 total_order_value=export_order_additional_fields['total_order_value'],
             )
 

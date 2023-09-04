@@ -92,8 +92,12 @@
     {% if quantity_take_context %}
     <td>
       <p><strong>Tổng sản phẩm xuất kho theo đơn hàng {{ export_order_id }}</strong>: {{ quantity_take_context.quantity_export }}</p>
+      {% if quantity_take_context.total_quantity_take %}
       <p><strong>Tổng sản phẩm đã xuất kho theo đơn hàng {{ export_order_id }}</strong>: {{ quantity_take_context.total_quantity_take }}</p>
+      {% endif %}
+      {% if quantity_take_context.quantity_remain %}
       <p><strong>Tổng sản phẩm còn lại theo đơn hàng {{ export_order_id }}</strong>: {{ quantity_take_context.quantity_remain }}</p>
+      {% endif %}
     </td>
     {% endif %}
   </tr>
