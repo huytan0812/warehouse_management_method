@@ -556,6 +556,20 @@ def actual_method_by_name_export_action(request, export_order_id, product, type)
     except ExportOrder.DoesNotExist:
         raise Exception("Mã đơn hàng xuất kho không tồn tại")
 
+    if export_order_obj:
+        export_order_details = ExportOrderDetail.objects.select_related('export_order_id', 'import_purchase_id').filter(export_order_id=export_order_obj)
+        total_quantity_take = export_order_details.aggregate(Sum('quantity_take')).get("quantity_take__sum", 0)
+
+    if total_quantity_take == None:
+        total_quantity_take = 0
+    quantity_remain = export_order_obj.quantity_export - total_quantity_take
+
+    quantity_take_context = {
+        'quantity_export': export_order_obj.quantity_export,
+        'total_quantity_take': total_quantity_take,
+        'quantity_remain': quantity_remain
+    }
+
     if request.method == "GET":
         # All blank fields in a form with GET request
         # are blank string values
@@ -587,19 +601,6 @@ def actual_method_by_name_export_action(request, export_order_id, product, type)
             'quantity_remain_less_than': quantity_remain_less_than,
             'import_cost_greater_than': import_cost_greater_than,
             'import_cost_less_than': import_cost_less_than
-        }
-
-        if export_order_obj:
-            export_order_details = ExportOrderDetail.objects.select_related('export_order_id', 'import_purchase_id').filter(export_order_id=export_order_obj)
-            total_quantity_take = export_order_details.aggregate(Sum('quantity_take')).get("quantity_take__sum", 0)
-            if total_quantity_take == None:
-                total_quantity_take = 0
-            quantity_remain = export_order_obj.quantity_export - total_quantity_take
-
-        quantity_take_context = {
-            'quantity_export': export_order_obj.quantity_export,
-            'total_quantity_take': total_quantity_take,
-            'quantity_remain': quantity_remain
         }
 
         TYPE_OF_INVENTORY = type
@@ -638,7 +639,8 @@ def actual_method_by_name_export_action(request, export_order_id, product, type)
     if request.method == "POST":
         actual_method_form = ActualMethodInventory(request.POST, 
                                                    product=product,
-                                                   type=type)
+                                                   type=type,
+                                                   quantity_export_remain=quantity_remain)
         
         if actual_method_form.is_valid():
             chosen_purchase = actual_method_form.get_purchase()
