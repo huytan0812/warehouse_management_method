@@ -150,16 +150,20 @@ class FilteringInventory(forms.Form):
 
         if self.type == "starting_inventory":
             import_shipments = ImportShipment.objects.select_related('supplier_id', 'current_accounting_period').filter(
-                date__lt = current_accounting_period_obj.date_applied
+                date__lt = current_accounting_period_obj.date_applied,
+                total_shipment_value__gt=0
             )
 
         elif self.type == "current_accounting_period":
             import_shipments = ImportShipment.objects.select_related('supplier_id', 'current_accounting_period').filter(
-                current_accounting_period = current_accounting_period_obj
+                current_accounting_period = current_accounting_period_obj,
+                total_shipment_value__gt=0
             )
         
         else:
-            import_shipments = ImportShipment.objects.select_related('supplier_id', 'current_accounting_period').all()
+            import_shipments = ImportShipment.objects.select_related('supplier_id', 'current_accounting_period').filter(
+                total_shipment_value__gt=0
+            )
 
         if self.product != None:
             product_obj = Product.objects.get(name=self.product)
@@ -170,7 +174,9 @@ class FilteringInventory(forms.Form):
         self.fields['import_shipments'].queryset = import_shipments
 
 class ActualMethodInventory(forms.Form):
-    chosen_purchases = forms.ModelChoiceField(queryset=ImportPurchase.objects.select_related('import_shipment_id', 'product_id').all(),
+    chosen_purchases = forms.ModelChoiceField(queryset=ImportPurchase.objects.select_related('import_shipment_id', 'product_id').filter(
+                                                import_shipment_id__total_shipment_value__gt=0
+                                            ),
                                               widget=forms.Select(attrs={'class': 'form-control select', 'required': True}),
                                               label="Danh sách đơn hàng tồn kho đầu kỳ")
     quantity_take = forms.IntegerField(widget=forms.NumberInput(attrs={'class': 'form-control', 
@@ -307,6 +313,7 @@ class ActualMethodInventory(forms.Form):
 
             import_purchases = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').filter(
                 import_shipment_id__date__lt=current_accounting_period_obj.date_applied,
+                import_shipment_id__total_shipment_value__gt=0,
                 product_id=product_obj,
                 quantity_remain__gt=0
             ).order_by('-import_shipment_id__date')
@@ -315,12 +322,15 @@ class ActualMethodInventory(forms.Form):
 
             import_purchases = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').filter(
                 import_shipment_id__current_accounting_period=current_accounting_period_obj,
+                import_shipment_id__total_shipment_value__gt=0,
                 product_id=product_obj,
                 quantity_remain__gt=0
             ).order_by('import_shipment_id__date')
 
         else:
-            import_purchases = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').all()
+            import_purchases = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').filter(
+                import_shipment_id__total_shipment_value__gt=0
+            )
 
         import_purchases = self.filter_queryset_by_factors(import_purchases)
 

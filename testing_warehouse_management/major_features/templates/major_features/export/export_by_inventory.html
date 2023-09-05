@@ -255,6 +255,20 @@
   </div>
 </div>
 
+{% if starting_inventory_form %}
+<p>
+  <a href="{% url 'actual_method_by_name_export_action' export_order_id=export_order_id product=product type='current_accounting_period' %}">
+    Chọn đơn hàng nhập kho từ Hàng tồn kho phát sinh trong kỳ
+  </a>
+</p>
+{% else %}
+<p>
+  <a href="{% url 'actual_method_by_name_export_action' export_order_id=export_order_id product=product type='starting_inventory' %}">
+    Chọn đơn hàng nhập kho từ Hàng tồn kho đầu kỳ
+  </a>
+</p>
+{% endif %}
+
 <div class="container d-flex justify-content-center" style="margin-top: 20px;">
     <div class="form-container">
         <form action="{% url 'actual_method_by_name_export_action' export_order_id product type %}" method="post" class="shipment-form">

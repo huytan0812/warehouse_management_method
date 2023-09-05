@@ -98,5 +98,5 @@ class ExportOrderDetail(models.Model):
     quantity_take = models.IntegerField(null=False, blank=False, default=0)
 
     def __str__(self):
-        return f"Export Order Id {self.export_order_id.id} takes {self.quantity_take} of Import Shipment Id {self.import_purchase_id.id}"
+        return f"Export Order Id {self.export_order_id.id} takes {self.quantity_take} of Import Purchase Id {self.import_purchase_id.id}"
     

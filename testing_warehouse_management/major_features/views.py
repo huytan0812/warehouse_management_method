@@ -564,6 +564,10 @@ def actual_method_by_name_export_action(request, export_order_id, product, type)
         total_quantity_take = 0
     quantity_remain = export_order_obj.quantity_export - total_quantity_take
 
+    if quantity_remain == 0:
+        export_shipment_code = export_order_obj.export_shipment_id.export_shipment_code
+        return HttpResponseRedirect(reverse("export_order_action", kwargs={'export_shipment_code': export_shipment_code}))
+
     quantity_take_context = {
         'quantity_export': export_order_obj.quantity_export,
         'total_quantity_take': total_quantity_take,
