@@ -550,13 +550,29 @@ def actual_method_by_name_export_action(request, export_order_id, product, type)
     Handling logic for each export order object detail creation by actual method by name.
     """
 
+    export_order_obj = None
+    try:
+        export_order_obj = ExportOrder.objects.select_related('export_shipment_id').get(pk=int(export_order_id))
+    except ExportOrder.DoesNotExist:
+        raise Exception("Mã đơn hàng xuất kho không tồn tại")
 
     if request.method == "GET":
-        import_shipment = request.GET["import_shipments"] if request.GET["import_shipments"] != "" else None
-        quantity_remain_greater_than = int(request.GET["quantity_remain_greater_than"]) if request.GET["quantity_remain_greater_than"] != "" else 0
-        quantity_remain_less_than = int(request.GET["quantity_remain_less_than"]) if request.GET["quantity_remain_less_than"] != "" else 0
-        import_cost_greater_than = int(request.GET["import_cost_greater_than"]) if request.GET["import_cost_greater_than"] != "" else 0
-        import_cost_less_than = int(request.GET["import_cost_less_than"]) if request.GET["import_cost_less_than"] != "" else 0
+        # All blank fields in a form with GET request
+        # are blank string values
+
+        # Get field values from GET request
+        get_import_shipment = request.GET.get("import_shipments", None)
+        get_quantity_remain_greater_than = request.GET.get("quantity_remain_greater_than", None)
+        get_quantity_remain_less_than = request.GET.get("quantity_remain_less_than", None)
+        get_import_cost_greater_than = request.GET.get("import_cost_greater_than", None)
+        get_import_cost_less_than = request.GET.get("import_cost_less_than", None)
+
+        # Sanitizing
+        import_shipment = get_import_shipment if get_import_shipment != "" else None
+        quantity_remain_greater_than = int(get_quantity_remain_greater_than) if get_quantity_remain_greater_than else 0
+        quantity_remain_less_than = int(get_quantity_remain_less_than) if get_quantity_remain_less_than else 0
+        import_cost_greater_than = int(get_import_cost_greater_than) if get_import_cost_greater_than else 0
+        import_cost_less_than = int(get_import_cost_less_than) if get_import_cost_less_than else 0
 
         import_shipment_obj = None
         if import_shipment != None:
@@ -572,12 +588,6 @@ def actual_method_by_name_export_action(request, export_order_id, product, type)
             'import_cost_greater_than': import_cost_greater_than,
             'import_cost_less_than': import_cost_less_than
         }
-
-        export_order_obj = None
-        try:
-            export_order_obj = ExportOrder.objects.select_related('export_shipment_id').get(pk=int(export_order_id))
-        except ExportOrder.DoesNotExist:
-            raise Exception("Mã đơn hàng xuất kho không tồn tại")
 
         if export_order_obj:
             export_order_details = ExportOrderDetail.objects.select_related('export_order_id', 'import_purchase_id').filter(export_order_id=export_order_obj)
@@ -627,7 +637,6 @@ def actual_method_by_name_export_action(request, export_order_id, product, type)
 
     if request.method == "POST":
         actual_method_form = ActualMethodInventory(request.POST, 
-                                                   export_order_id=export_order_id,
                                                    product=product,
                                                    type=type)
         
@@ -636,7 +645,7 @@ def actual_method_by_name_export_action(request, export_order_id, product, type)
             quantity_take = actual_method_form.get_quantity_take()
 
             export_order_detail_obj = ExportOrderDetail.objects.create(
-                export_order_id=export_order_id,
+                export_order_id=export_order_obj,
                 import_purchase_id=chosen_purchase,
                 quantity_take=quantity_take
             )

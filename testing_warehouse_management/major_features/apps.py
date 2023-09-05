@@ -6,4 +6,4 @@ class MajorFeaturesConfig(AppConfig):
     name = 'major_features'
 
     def ready(self):
-        from . import signals
+        import major_features.signals
