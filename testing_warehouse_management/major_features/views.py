@@ -441,17 +441,19 @@ def export_order_action(request, export_shipment_code):
             export_order_form_obj.export_shipment_id = export_shipment_obj
             export_order_form_obj.save()
 
-            if current_warehouse_management_method.name == "Thực tế đích danh":
-                return HttpResponseRedirect(reverse('choose_type_of_inventory', kwargs={'export_order_id': export_order_form_obj.id}))
-            else:
-                if "save_and_continue" in request.POST:
-                    return HttpResponseRedirect(reverse("export_order_action", kwargs={'export_shipment_code': export_shipment_code}))
-                if "save_and_complete" in request.POST:
-                    # Implement export_action_save_and_complete view
-                    pass
+            computing_export_cost(export_order_form_obj.id)
 
         else:
             return HttpResponse("Invalid Form", content_type="text/plain")
+        
+        if current_warehouse_management_method.name == "Thực tế đích danh":
+            return HttpResponseRedirect(reverse('choose_type_of_inventory', kwargs={'export_order_id': export_order_form_obj.id}))
+        
+        if "save_and_continue" in request.POST:
+            return HttpResponseRedirect(reverse("export_order_action", kwargs={'export_shipment_code': export_shipment_code}))
+        if "save_and_complete" in request.POST:
+            # Implement export_action_save_and_complete view
+            pass
 
     context = {
         'export_shipment_code': export_shipment_code,
@@ -679,7 +681,7 @@ def complete_export_order_by_inventory(request, export_order_id):
     Handling logic for updating 'total_order_value' field for export order object
     """
 
-    export_order_obj = ExportOrder.objects.select_related('export_shipment_id').select_for_update().filter(export_order_id=export_order_id)
+    export_order_obj = ExportOrder.objects.select_related('export_shipment_id').select_for_update().filter(pk=export_order_id)
     export_order_details_obj = ExportOrderDetail.objects.select_related('export_order_id', 'import_purchase_id').filter(export_order_id=export_order_obj[0])
 
     export_order_additional_fields = {
