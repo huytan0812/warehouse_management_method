@@ -21,10 +21,6 @@ class AccoutingPeriod(models.Model):
     # After that month, renew the date_end field to the value of the last day of next month
     # If not, create a new AccountingPeriod object
     date_end = models.DateField(null=False, blank=False)
-    starting_inventory = models.IntegerField(null=True, blank=True, default=0)
-    ending_inventory = models.IntegerField(null=True, blank=True, default=0)
-    cogs = models.IntegerField(null=True, blank=True, default=0)
-    quantity_inventory = models.IntegerField(null=True, blank=True, default=0)
 
     def __str__(self):
         return f"Accounting period starts on {self.date_applied} & end on {self.date_end} in the usage of {self.warehouse_management_method.name}"
@@ -68,6 +64,7 @@ class ImportPurchase(models.Model):
     import_shipment_id = models.ForeignKey(ImportShipment, on_delete=models.CASCADE, null=False, blank=False, related_name="%(class)s_import_purchases_package")
     product_id = models.ForeignKey(Product, null=False, blank=False, on_delete=models.CASCADE, related_name="%(class)s_involving_import_purchases")
     quantity_import = models.IntegerField(null=False, blank=False, default=0)
+    value_import = models.IntegerField(null=True, blank=True, default=0)
     quantity_remain = models.IntegerField(null=True, blank=True, default=0)
     import_cost = models.IntegerField(null=False, blank=False, default=1)
 

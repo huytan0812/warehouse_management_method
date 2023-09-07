@@ -1,5 +1,6 @@
 from . views import *
 from . models import *
+from django.db.models import *
 
 def computing_export_cost(export_order_id):
     try:
@@ -68,5 +69,6 @@ def LIFO(export_order_obj):
 
 def average_method_constantly(export_order_obj):
     pass
+
 
 
