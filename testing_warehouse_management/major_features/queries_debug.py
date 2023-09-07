@@ -478,3 +478,31 @@ def testing_chaining_queryset():
     connection_queries = connection.queries
     for connection_query in connection_queries:
         print(connection_query)
+
+@query_debugger
+def assigning_starting_inventory():
+    accounting_periods = AccoutingPeriod.objects.select_related('warehouse_management_method').exclude(pk=20)
+    for accounting_period in accounting_periods:
+        prev_period = AccoutingPeriod.objects.select_relate('warehouse_management_method').filter(
+            pk__lt=accounting_period.id
+        ).order_by('-id').first()
+        accounting_period.starting_inventory = prev_period.ending_inventory
+        accounting_period.save(update_fields=["starting_inventory"])
+
+    connection_queries = connection.queries
+    for connection_query in connection_queries:
+        print(connection_query)
+
+@query_debugger
+def assigning_ending_inventory():
+    accounting_periods = AccoutingPeriod.objects.select_related('warehouse_management_method').exclude(pk=20)
+    for accounting_period in accounting_periods:
+        import_shipments = ImportShipment.objects.select_related('supplier_id', 'current_accounting_period').filter(
+            current_accounting_period=accounting_period
+        )
+        total_import_shipments_value = import_shipments.aggregate(Sum('total_shipment_value')).get('total_shipment_value__sum', 0)
+        accounting_period.ending_inventory = accounting_period.starting_inventory + total_import_shipments_value
+        accounting_period.save(update_fields=["ending_inventory"])
+    connection_queries = connection.queries
+    for connection_query in connection_queries:
+        print(connection_query)
