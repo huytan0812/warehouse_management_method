@@ -24,7 +24,7 @@ class AccoutingPeriod(models.Model):
 
     def __str__(self):
         return f"Accounting period starts on {self.date_applied} & end on {self.date_end} in the usage of {self.warehouse_management_method.name}"
-    
+
 class Supplier(models.Model):
     name = models.CharField(max_length=200, blank=False, null=False, default="")
     address = models.TextField(max_length=1500, blank=True, null=True, default="")
@@ -101,3 +101,24 @@ class ExportOrderDetail(models.Model):
     def __str__(self):
         return f"Export Order Id {self.export_order_id.id} takes {self.quantity_take} of Import Purchase Id {self.import_purchase_id.id}"
     
+class AccountingPeriodInventory(models.Model):
+    accounting_period_id = models.ForeignKey(AccoutingPeriod, on_delete=models.CASCADE, null=False, blank=False, related_name="%(class)s_period_inventory")
+    product_id = models.ForeignKey(Product, on_delete=models.CASCADE, null=False, blank=False, related_name="%(class)s_product_inventory")
+
+    starting_inventory = models.IntegerField(null=True, blank=True, default=0)
+    starting_quantity = models.IntegerField(null=True, blank=True, default=0)
+
+    total_cogs = models.IntegerField(null=True, blank=True, default=0)
+
+    ending_inventory = models.IntegerField(null=True, blank=True, default=0)
+    ending_quantity = models.IntegerField(null=True, blank=True, default=0)
+
+    def __str__(self):
+        return f"""
+            Accouting Period: {self.accounting_period_id.id} | Product: {self.product_id.name}
+            Starting Inventory: {self.starting_inventory} | Starting Quantity: {self.starting_quantity}
+            Total COGS: {self.total_cogs}
+            Ending Inventory: {self.ending_inventory} | Ending Quantity: {self.ending_quantity}
+        """
+
+
