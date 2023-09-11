@@ -11,9 +11,9 @@ from django.views.decorators.cache import cache_control
 from django.core.paginator import Paginator
 from . models import *
 from . forms import *
-from . warehouse_management_methods import *
 from . decorators import is_activating_accounting_period
 from . queries_debug import query_debugger
+from . warehouse_management_methods import computing_export_cost
 
 # Create your views here.
 def index(request):

@@ -68,7 +68,31 @@ def LIFO(export_order_obj):
         )
 
 def average_method_constantly(export_order_obj):
-    pass
+    current_accounting_period = AccoutingPeriod.objects.latest('id')
+
+    product = export_order_obj.product_id
+    accounting_period_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').filter(
+        product_id=product
+    )
+    product_starting_inventory = accounting_period_inventory.starting_inventory
+    product_starting_quantity = accounting_period_inventory.starting_quantity
+
+    product_current_import_inventory = accounting_period_inventory.import_inventory
+    product_current_import_quantity = accounting_period_inventory.import_quantity
+    
+    product_current_cogs = accounting_period_inventory.total_cogs
+    product_current_quantity_export = accounting_period_inventory.total_quantity_export
+
+    total_inventory_before_export_order = product_starting_inventory + product_current_import_inventory - product_current_cogs
+    total_quantity_before_export_order = product_starting_quantity + product_current_import_quantity - product_current_quantity_export
+
+    cogs = total_inventory_before_export_order / total_quantity_before_export_order
+    export_order_value = cogs * export_order_obj.quantity_export
+    export_order_obj.total_order_value = export_order_value
+
+    export_order_obj.save(update_fields=["total_order_value"])
+
+
 
 
 

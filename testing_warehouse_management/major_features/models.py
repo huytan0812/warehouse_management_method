@@ -108,7 +108,11 @@ class AccountingPeriodInventory(models.Model):
     starting_inventory = models.IntegerField(null=True, blank=True, default=0)
     starting_quantity = models.IntegerField(null=True, blank=True, default=0)
 
+    import_inventory = models.IntegerField(null=True, blank=True, default=0)
+    import_quantity = models.IntegerField(null=True, blank=True, default=0)
+
     total_cogs = models.IntegerField(null=True, blank=True, default=0)
+    total_quantity_export = models.IntegerField(null=True, blank=True, default=0)
 
     ending_inventory = models.IntegerField(null=True, blank=True, default=0)
     ending_quantity = models.IntegerField(null=True, blank=True, default=0)
