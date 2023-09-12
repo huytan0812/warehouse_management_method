@@ -76,6 +76,8 @@ class ExportShipment(models.Model):
     export_shipment_code = models.CharField(max_length=20, unique=True, null=False, blank=False, default="")
     agency_id = models.ForeignKey(Agency, null=False, blank=False, on_delete=models.CASCADE, related_name="%(class)s_received_export_shipments")
     date = models.DateField(null=False, blank=False)
+
+    # Total Shipment value = Sum(all export_order obj's total_order_value field reference to export_shipment obj)
     total_shipment_value = models.IntegerField(null=True, blank=True, default=0)
     current_accounting_period = models.ForeignKey(AccoutingPeriod, on_delete=models.CASCADE, null=True, blank=True,
                                                   related_name="%(class)s_following_export_shipments")
@@ -87,7 +89,11 @@ class ExportOrder(models.Model):
     export_shipment_id = models.ForeignKey(ExportShipment, on_delete=models.CASCADE, null=False, blank=False, related_name="%(class)s_export_orders_package")
     product_id = models.ForeignKey(Product, null=False, blank=False, on_delete=models.CASCADE, related_name="%(class)s_involving_export_orders")
     quantity_export = models.IntegerField(null=False, blank=False, default=0)
+
+    # Unit price involving with revenue
     unit_price = models.IntegerField(null=False, blank=False, default=1)
+
+    # Total order value = Sum(each export_order_detail obj's export_price * quantity_take)
     total_order_value = models.IntegerField(null=True, blank=True, default=0)
 
     def __str__(self):
@@ -97,11 +103,17 @@ class ExportOrderDetail(models.Model):
     export_order_id = models.ForeignKey(ExportOrder, null=False, blank=False, on_delete=models.CASCADE, related_name="%(class)s_involving_import_purchases")
     import_purchase_id = models.ForeignKey(ImportPurchase, null=False, blank=False, on_delete=models.CASCADE, related_name="%(class)s_involving_export_orders")
     quantity_take = models.IntegerField(null=False, blank=False, default=0)
+    export_price = models.IntegerField(null=True, blank=True, default=0)
 
     def __str__(self):
         return f"Export Order Id {self.export_order_id.id} takes {self.quantity_take} of Import Purchase Id {self.import_purchase_id.id}"
     
 class AccountingPeriodInventory(models.Model):
+    """
+    Showing the starting inventory, import_inventory, ending_inventory & COGS of a product
+    in a particular accounting period
+    """
+
     accounting_period_id = models.ForeignKey(AccoutingPeriod, on_delete=models.CASCADE, null=False, blank=False, related_name="%(class)s_period_inventory")
     product_id = models.ForeignKey(Product, on_delete=models.CASCADE, null=False, blank=False, related_name="%(class)s_product_inventory")
 
@@ -111,6 +123,7 @@ class AccountingPeriodInventory(models.Model):
     import_inventory = models.IntegerField(null=True, blank=True, default=0)
     import_quantity = models.IntegerField(null=True, blank=True, default=0)
 
+    # Total COGS = Sum(involving product's export_order obj's total_order_value field)
     total_cogs = models.IntegerField(null=True, blank=True, default=0)
     total_quantity_export = models.IntegerField(null=True, blank=True, default=0)
 
