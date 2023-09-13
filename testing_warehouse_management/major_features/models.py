@@ -71,7 +71,9 @@ class ImportPurchase(models.Model):
     def __str__(self):
         return f"""Mã đơn hàng: {self.id} | Lô hàng: {self.import_shipment_id.import_shipment_code} | 
         SLCL: {self.quantity_remain} | Đơn giá nhập kho: {self.import_cost}"""
-    
+
+# Update this model's object's total_shipment_value field
+# in the export action complete view
 class ExportShipment(models.Model):
     export_shipment_code = models.CharField(max_length=20, unique=True, null=False, blank=False, default="")
     agency_id = models.ForeignKey(Agency, null=False, blank=False, on_delete=models.CASCADE, related_name="%(class)s_received_export_shipments")
@@ -84,7 +86,10 @@ class ExportShipment(models.Model):
 
     def __str__(self):
         return f"Export Shipment Id: {self.id}"
-    
+
+# Update this model's object's total_order_value field
+# in the handling_exporting_action() function
+# in module warehouse_management_methods.py
 class ExportOrder(models.Model):
     export_shipment_id = models.ForeignKey(ExportShipment, on_delete=models.CASCADE, null=False, blank=False, related_name="%(class)s_export_orders_package")
     product_id = models.ForeignKey(Product, null=False, blank=False, on_delete=models.CASCADE, related_name="%(class)s_involving_export_orders")
@@ -98,7 +103,10 @@ class ExportOrder(models.Model):
 
     def __str__(self):
         return f"Export Order of {self.quantity_export} {self.product_id.name} in packaging of Export Shipment Id: {self.export_shipment_id.id}"
-    
+
+# Create this model object
+# in the handling_exporting_action() function
+# in module warehouse_management_methods.py
 class ExportOrderDetail(models.Model):
     export_order_id = models.ForeignKey(ExportOrder, null=False, blank=False, on_delete=models.CASCADE, related_name="%(class)s_involving_import_purchases")
     import_purchase_id = models.ForeignKey(ImportPurchase, null=False, blank=False, on_delete=models.CASCADE, related_name="%(class)s_involving_export_orders")
@@ -107,7 +115,11 @@ class ExportOrderDetail(models.Model):
 
     def __str__(self):
         return f"Export Order Id {self.export_order_id.id} takes {self.quantity_take} of Import Purchase Id {self.import_purchase_id.id}"
-    
+
+# Update this model's object's total_cogs field
+# in the export action complete view
+# Also update this model's object's import_inventory field & import_quantity_field
+# in the import action complete view
 class AccountingPeriodInventory(models.Model):
     """
     Showing the starting inventory, import_inventory, ending_inventory & COGS of a product

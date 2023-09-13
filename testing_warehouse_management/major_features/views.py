@@ -13,7 +13,7 @@ from . models import *
 from . forms import *
 from . decorators import is_activating_accounting_period
 from . queries_debug import query_debugger
-from . warehouse_management_methods import computing_export_cost
+from . warehouse_management_methods import handling_exporting_action
 
 # Create your views here.
 def index(request):
@@ -441,7 +441,7 @@ def export_order_action(request, export_shipment_code):
             export_order_form_obj.export_shipment_id = export_shipment_obj
             export_order_form_obj.save()
 
-            computing_export_cost(export_order_form_obj.id)
+            handling_exporting_action(export_order_form_obj.id)
 
         else:
             return HttpResponse("Invalid Form", content_type="text/plain")
