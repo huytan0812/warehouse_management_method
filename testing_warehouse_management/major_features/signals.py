@@ -2,6 +2,15 @@ from . models import *
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 
+@receiver(post_save, sender=Product)
+def create_product_inventory_obj(sender, instance, created, **kwargs):
+    if created:
+        current_accounting_period = AccoutingPeriod.objects.latest('id')
+        AccountingPeriodInventory.objects.create(
+            accounting_period_id = current_accounting_period,
+            product_id = instance
+        )
+
 @receiver(post_save, sender=ExportOrderDetail)
 def after_processing_export_order_details(sender, instance, created, **kwargs):
     if created:
