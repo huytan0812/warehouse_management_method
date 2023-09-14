@@ -506,3 +506,22 @@ def assigning_ending_inventory():
     connection_queries = connection.queries
     for connection_query in connection_queries:
         print(connection_query)
+
+@query_debugger
+def testing_select_for_update():
+    accounting_period_obj = AccoutingPeriod.objects.latest('id')
+    product = Product.objects.get(name='Cebraton')
+
+    with transaction.atomic():
+        accounting_period_inventory_objs1 = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').select_for_update().filter(
+            accounting_period_id=accounting_period_obj,
+            product_id__name=product.name
+        )
+        accounting_period_inventory_objs1.update(starting_inventory=10)
+        accounting_period_inventory_objs2 = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').select_for_update().all()
+        list(accounting_period_inventory_objs2)
+        accounting_period_inventory_objs2.update(ending_inventory=20)
+
+    connection_queries = connection.queries
+    for connection_query in connection_queries:
+        print(connection_query)

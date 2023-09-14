@@ -292,7 +292,8 @@ def save_and_complete(request, import_shipment_code):
     try:
         with transaction.atomic():
             for import_purchase in import_shipment_purchases:
-                
+                current_accounting_period = AccoutingPeriod.objects.latest('id')
+
                 # Import Shipment Calculating total_shipment_value handling
                 import_purchase_value = import_purchase.quantity_import * import_purchase.import_cost
                 total_import_shipment_value += import_purchase_value
@@ -307,6 +308,10 @@ def save_and_complete(request, import_shipment_code):
             
             for product, value_container in product_additional_fields.items():
                 Product.objects.filter(name=product).update(quantity_on_hand=value_container[0], current_total_value=value_container[1])
+                AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').select_for_update().filter(
+                    accounting_period_id=current_accounting_period,
+                    product_id__name=product
+                ).update(import_inventory=value_container[0], import_quantity=value_container[1])
 
             import_shipment_obj.update(total_shipment_value=total_import_shipment_value)
             
