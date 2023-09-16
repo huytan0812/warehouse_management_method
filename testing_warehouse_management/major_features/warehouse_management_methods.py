@@ -97,9 +97,7 @@ def LIFO(export_order_obj):
 
 def average_method_constantly(export_order_obj):
     product = export_order_obj.product_id
-    accounting_period_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').filter(
-        product_id=product
-    )
+    accounting_period_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').get(product_id__pk=product.pk)
     product_starting_inventory = accounting_period_inventory.starting_inventory
     product_starting_quantity = accounting_period_inventory.starting_quantity
 

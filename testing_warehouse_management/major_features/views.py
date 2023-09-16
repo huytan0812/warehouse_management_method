@@ -448,14 +448,14 @@ def export_order_action(request, export_shipment_code):
             export_order_form_obj.export_shipment_id = export_shipment_obj
             export_order_form_obj.save()
 
-            handling_exporting_action(export_order_form_obj.id)
-
         else:
             return HttpResponse("Invalid Form", content_type="text/plain")
         
         if current_warehouse_management_method.name == "Thực tế đích danh":
             return HttpResponseRedirect(reverse('choose_type_of_inventory', kwargs={'export_order_id': export_order_form_obj.id}))
         
+        handling_exporting_action(export_order_form_obj.id)
+
         if "save_and_continue" in request.POST:
             return HttpResponseRedirect(reverse("export_order_action", kwargs={'export_shipment_code': export_shipment_code}))
         if "save_and_complete" in request.POST:
@@ -658,11 +658,13 @@ def actual_method_by_name_export_action(request, export_order_id, product, type)
         if actual_method_form.is_valid():
             chosen_purchase = actual_method_form.get_purchase()
             quantity_take = actual_method_form.get_quantity_take()
+            import_cost = actual_method_form.get_import_cost()
 
             export_order_detail_obj = ExportOrderDetail.objects.create(
                 export_order_id=export_order_obj,
                 import_purchase_id=chosen_purchase,
-                quantity_take=quantity_take
+                quantity_take=quantity_take,
+                export_price = import_cost
             )
 
             if "save_and_continue" in request.POST:

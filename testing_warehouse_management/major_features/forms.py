@@ -253,6 +253,10 @@ class ActualMethodInventory(forms.Form):
     def get_quantity_take(self):
         quantity_take = self.cleaned_data['quantity_take']
         return quantity_take
+    
+    def get_import_cost(self):
+        purchase = self.get_purchase()
+        return purchase.import_cost
 
     def combine_quantity_remain_queryset(self, queryset, filter_greater_than, filter_less_than):
         combine_queryset = queryset
