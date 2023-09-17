@@ -246,14 +246,17 @@ class ActualMethodInventory(forms.Form):
         self._len_queryset = new_length
         print("New length of queryset is: ", self.len_queryset)
 
+    # This function can only access after validating form successfully
     def get_purchase(self):
         purchase = self.cleaned_data['chosen_purchases']
         return purchase
     
+    # This function can only access after validating form successfully
     def get_quantity_take(self):
         quantity_take = self.cleaned_data['quantity_take']
         return quantity_take
     
+    # This function can only access after validating form successfully
     def get_import_cost(self):
         purchase = self.get_purchase()
         return purchase.import_cost
