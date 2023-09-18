@@ -46,10 +46,38 @@
 {% endblock %}
 
 {% block title %}
-<h2>Hoàn tất đơn hàng xuất kho {{ export_order.id }} thuộc lô hàng xuất kho {{ export_order.export_shipment_id.export_shipment_code }}</h2>
+<h2>Hoàn tất đơn hàng xuất kho {{ export_order_obj.pk }} thuộc lô hàng xuất kho {{ export_shipment_code }}</h2>
 {% endblock %}
 
 {% block body %}
+
+<ul>
+  <li><strong>Mã lô hàng xuất kho:</strong> {{ export_shipment_code }}</li>
+  <li><strong>Mã đơn hàng xuất kho:</strong> {{ export_order_obj.pk }}</li>
+  <li><strong>Xuất kho sản phẩm:</strong> {{ export_order_obj.product_id.name }}</li>
+</ul>
+
+<table class="table table-bordered table-striped table-dark w-auto" style="margin: auto;">
+  <thead>
+    <tr>
+      <th scope="col">Mã đơn hàng nhập kho</th>
+      <th scope="col">Số lượng lấy ra</th>
+      <th scope="col">Đơn giá xuất bán</th>
+      <th scope="col">Giá trị xuất bán</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for export_order_detail in export_order_details %}
+    <tr>
+      <td>{{ export_order_detail.import_purchase_id.pk }}</td>
+      <td>{{ export_order_detail.quantity_take }}</td>
+      <td>{{ export_order_detail.export_price }}</td>
+      <td>{{ export_order_detail.quantity_take|multiply:export_order_detail.export_price|intcomma }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
 <p>
   <a href="{% url 'export_order_action' export_shipment_code %}">Tiếp tục xuất kho sản phẩm khác theo lô hàng xuất kho {{ export_shipment_code }}</a>
 </p>

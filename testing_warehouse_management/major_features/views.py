@@ -281,6 +281,10 @@ def save_and_continue(request, import_shipment_code):
 def save_and_complete(request, import_shipment_code):
 
     import_shipment_obj = ImportShipment.objects.select_related('supplier_id').select_for_update().filter(import_shipment_code=import_shipment_code)
+
+    if len(import_shipment_obj) == 0:
+        raise Exception("Không tồn tại mã lô hàng nhập kho")
+
     if import_shipment_obj[0].total_shipment_value > 0:
         return HttpResponse("Save_and_complete_error: You cannot backward after finishing the import shipment object", content_type="text/plain") 
 
@@ -427,6 +431,26 @@ def export_action(request):
     }
 
     return render(request, "major_features/export/export_action.html", context)
+
+@cache_control(no_cache=True, must_revalidate=True)
+@transaction.atomic()
+def export_action_complete(request, export_shipment_code):
+    export_shipment_obj = ExportShipment.objects.select_related('agency_id').select_for_update().filter(
+        export_shipment_code = export_shipment_code
+    )
+
+    if len(export_shipment_obj) == 0:
+        raise Exception("Không tồn tại mã lô hàng xuất kho")
+    
+    export_orders = ExportOrder.objects.select_related('export_shipment_id', 'product_id').filter(
+        export_shipment_id = export_shipment_obj[0]
+    )
+
+    product_export_containers = {}
+
+    for export_order in export_orders:
+        pass
+
 
 def export_order_action(request, export_shipment_code):
     """
@@ -682,7 +706,7 @@ def complete_export_order_by_inventory(request, export_order_id):
     Handling logic for updating 'total_order_value' field for export order object
     """
 
-    export_order_obj = ExportOrder.objects.select_related('export_shipment_id').select_for_update().filter(pk=export_order_id)
+    export_order_obj = ExportOrder.objects.select_related('export_shipment_id', 'product_id').select_for_update().filter(pk=export_order_id)
     export_order_details_obj = ExportOrderDetail.objects.select_related('export_order_id', 'import_purchase_id').filter(export_order_id__pk=export_order_obj[0].pk)
 
     export_order_additional_fields = {
@@ -701,7 +725,7 @@ def complete_export_order_by_inventory(request, export_order_id):
         raise Exception("Integrity Bug")
     
     context = {
-        'export_order': export_order_obj[0],
+        'export_order_obj': export_order_obj[0],
         'export_shipment_code': export_order_obj[0].export_shipment_id.export_shipment_code,
         'export_order_details': export_order_details_obj
     }
