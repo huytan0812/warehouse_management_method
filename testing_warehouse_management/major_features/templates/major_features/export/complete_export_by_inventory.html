@@ -50,5 +50,10 @@
 {% endblock %}
 
 {% block body %}
-
+<p>
+  <a href="{% url 'export_order_action' export_shipment_code %}">Tiếp tục xuất kho sản phẩm khác theo lô hàng xuất kho {{ export_shipment_code }}</a>
+</p>
+<p>
+  <a href="#">Hoàn tất lô hàng xuất kho {{ export_shipment_code }}</a>
+</p>
 {% endblock %}

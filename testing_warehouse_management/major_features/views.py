@@ -448,19 +448,18 @@ def export_order_action(request, export_shipment_code):
             export_order_form_obj.export_shipment_id = export_shipment_obj
             export_order_form_obj.save()
 
-        else:
-            return HttpResponse("Invalid Form", content_type="text/plain")
+            if current_warehouse_management_method.name == "Thực tế đích danh":
+                return HttpResponseRedirect(reverse('choose_type_of_inventory', kwargs={'export_order_id': export_order_form_obj.id}))
         
-        if current_warehouse_management_method.name == "Thực tế đích danh":
-            return HttpResponseRedirect(reverse('choose_type_of_inventory', kwargs={'export_order_id': export_order_form_obj.id}))
-        
-        handling_exporting_action(export_order_form_obj.id)
+            handling_exporting_action(export_order_form_obj.id)
 
-        if "save_and_continue" in request.POST:
-            return HttpResponseRedirect(reverse("export_order_action", kwargs={'export_shipment_code': export_shipment_code}))
-        if "save_and_complete" in request.POST:
-            # Implement export_action_save_and_complete view
-            pass
+            if "save_and_continue" in request.POST:
+                return HttpResponseRedirect(reverse("export_order_action", kwargs={'export_shipment_code': export_shipment_code}))
+            if "save_and_complete" in request.POST:
+                # Implement export_action_save_and_complete view
+                return
+
+        return HttpResponse("Invalid Form", content_type="text/plain")
 
     context = {
         'export_shipment_code': export_shipment_code,
@@ -565,23 +564,23 @@ def actual_method_by_name_export_action(request, export_order_id, product, type)
     except ExportOrder.DoesNotExist:
         raise Exception("Mã đơn hàng xuất kho không tồn tại")
 
-    if export_order_obj:
-        export_order_details = ExportOrderDetail.objects.select_related('export_order_id', 'import_purchase_id').filter(export_order_id=export_order_obj)
-        total_quantity_take = export_order_details.aggregate(Sum('quantity_take')).get("quantity_take__sum", 0)
+    export_order_details = ExportOrderDetail.objects.select_related('export_order_id', 'import_purchase_id').filter(export_order_id=export_order_obj)
+    total_quantity_take = export_order_details.aggregate(Sum('quantity_take')).get("quantity_take__sum", 0)
 
     if total_quantity_take == None:
         total_quantity_take = 0
-    quantity_remain = export_order_obj.quantity_export - total_quantity_take
 
-    if quantity_remain == 0:
-        export_shipment_code = export_order_obj.export_shipment_id.export_shipment_code
-        return HttpResponseRedirect(reverse("export_order_action", kwargs={'export_shipment_code': export_shipment_code}))
+    quantity_remain = export_order_obj.quantity_export - total_quantity_take
 
     quantity_take_context = {
         'quantity_export': export_order_obj.quantity_export,
         'total_quantity_take': total_quantity_take,
         'quantity_remain': quantity_remain
     }
+
+    # Immediately return to complete_export_order_by_inventory route
+    if quantity_take_context["quantity_remain"] == 0:
+        return HttpResponseRedirect(reverse('complete_export_order_by_inventory', kwargs={'export_order_id': export_order_id}))
 
     if request.method == "GET":
         # All blank fields in a form with GET request
@@ -667,18 +666,11 @@ def actual_method_by_name_export_action(request, export_order_id, product, type)
                 export_price = import_cost
             )
 
-            if "save_and_continue" in request.POST:
-                return HttpResponseRedirect(reverse('actual_method_by_name_export_action', kwargs={
-                    'export_order_id': export_order_id,
-                    'product': product,
-                    'type': type
-                }))
-
-            if "save_and_complete" in request.POST:
-                return HttpResponseRedirect(reverse('complete_export_order_by_inventory', kwargs={
-                    'export_order_id': export_order_id
-                }))
-
+            return HttpResponseRedirect(reverse('actual_method_by_name_export_action', kwargs={
+                'export_order_id': export_order_id,
+                'product': product,
+                'type': type
+            }))
         else:
             return HttpResponse("Invalid Form", content_type="text/plain")
 
@@ -691,26 +683,26 @@ def complete_export_order_by_inventory(request, export_order_id):
     """
 
     export_order_obj = ExportOrder.objects.select_related('export_shipment_id').select_for_update().filter(pk=export_order_id)
-    export_order_details_obj = ExportOrderDetail.objects.select_related('export_order_id', 'import_purchase_id').filter(export_order_id=export_order_obj[0])
+    export_order_details_obj = ExportOrderDetail.objects.select_related('export_order_id', 'import_purchase_id').filter(export_order_id__pk=export_order_obj[0].pk)
 
     export_order_additional_fields = {
         'total_order_value': 0
     }
 
+    for obj in export_order_details_obj:
+        export_order_additional_fields['total_order_value'] += obj.quantity_take * obj.export_price
+
     try:
         with transaction.atomic():
-            for obj in export_order_details_obj:
-                export_order_additional_fields['total_order_value'] += obj.quantity_take * obj.import_purchase_id.import_cost
-
             export_order_obj.update(
                 total_order_value=export_order_additional_fields['total_order_value'],
             )
-
     except IntegrityError:
         raise Exception("Integrity Bug")
     
     context = {
         'export_order': export_order_obj[0],
+        'export_shipment_code': export_order_obj[0].export_shipment_id.export_shipment_code,
         'export_order_details': export_order_details_obj
     }
 
