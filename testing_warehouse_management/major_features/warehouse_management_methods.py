@@ -1,6 +1,7 @@
 from . views import *
 from . models import *
 from django.db.models import *
+from django.db import connection, reset_queries
 
 def handling_exporting_action(export_order_id):
     try:
@@ -17,6 +18,17 @@ def handling_exporting_action(export_order_id):
     else:
         average_method_constantly(export_order_obj)
 
+def update_purchase_quantity_remain(purchase, export_order_detail_obj):
+    purchase.quantity_remain -= export_order_detail_obj.quantity_take
+    purchase.save(update_fields=["quantity_remain"])
+    return
+
+def update_import_shipment_total_value_remain(import_shipment_obj, export_order_detail_obj):
+    import_shipment_obj.total_shipment_remain -= export_order_detail_obj.quantity_take * export_order_detail_obj.export_price
+    import_shipment_obj.save(update_fields=["total_shipment_remain"])
+    return
+
+@query_debugger
 def FIFO(export_order_obj):
     import_purchases = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').select_for_update().filter(
             import_shipment_id__total_shipment_value__gt=0,
@@ -37,7 +49,12 @@ def FIFO(export_order_obj):
                         quantity_take = quantity_export_remain,
                         export_price = purchase.import_cost
                     )
-                    export_total_order_value += quantity_export_remain * purchase.import_cost
+                    export_total_order_value += export_order_detail_obj.quantity_take * export_order_detail_obj.export_price
+
+                    update_purchase_quantity_remain(purchase, export_order_detail_obj)
+                    import_shipment_obj = purchase.import_shipment_id
+                    update_import_shipment_total_value_remain(import_shipment_obj, export_order_detail_obj)
+                    
                     break
                 
                 quantity_export_remain -= purchase.quantity_remain
@@ -47,14 +64,22 @@ def FIFO(export_order_obj):
                     quantity_take = purchase.quantity_remain,
                     export_price = purchase.import_cost
                 )
-                export_total_order_value += purchase.quantity_remain * purchase.import_cost
+                export_total_order_value += export_order_detail_obj.quantity_take * export_order_detail_obj.export_price
+
+                update_purchase_quantity_remain(purchase, export_order_detail_obj)
+                import_shipment_obj = purchase.import_shipment_id
+                update_import_shipment_total_value_remain(import_shipment_obj, export_order_detail_obj)
 
             export_order_obj.total_order_value = export_total_order_value
-            export_order_obj.save(update_fields=["total_order_value"])
-            
+            export_order_obj.save(update_fields=["total_order_value"])        
     except IntegrityError:
         raise Exception("Integrity Bug")
+    
+    connection_queries = connection.queries
+    for connection_query in connection_queries:
+        print(connection_query)
 
+@query_debugger
 def LIFO(export_order_obj):
     import_purchases = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').select_for_update().filter(
             import_shipment_id__total_shipment_value__gt=0,
@@ -77,7 +102,12 @@ def LIFO(export_order_obj):
                         quantity_take = quantity_export_remain,
                         export_price = purchase.import_cost
                     )
-                    export_total_order_value += quantity_export_remain * purchase.import_cost
+                    export_total_order_value += export_order_detail_obj.quantity_take * export_order_detail_obj.export_price
+
+                    update_purchase_quantity_remain(purchase, export_order_detail_obj)
+                    import_shipment_obj = purchase.import_shipment_id
+                    update_import_shipment_total_value_remain(import_shipment_obj, export_order_detail_obj)
+                    
                     break
                 
                 quantity_export_remain -= purchase.quantity_remain
@@ -87,13 +117,20 @@ def LIFO(export_order_obj):
                     quantity_take = purchase.quantity_remain,
                     export_price = purchase.import_cost
                 )
-                export_total_order_value += purchase.quantity_remain * purchase.import_cost
+                export_total_order_value += export_order_detail_obj.quantity_take * export_order_detail_obj.export_price
+
+                update_purchase_quantity_remain(purchase, export_order_detail_obj)
+                import_shipment_obj = purchase.import_shipment_id
+                update_import_shipment_total_value_remain(import_shipment_obj, export_order_detail_obj)
 
             export_order_obj.total_order_value = export_total_order_value
-            export_order_obj.save(update_fields=["total_order_value"])
-
+            export_order_obj.save(update_fields=["total_order_value"])        
     except IntegrityError:
         raise Exception("Integrity Bug")
+    
+    connection_queries = connection.queries
+    for connection_query in connection_queries:
+        print(connection_query)
 
 def average_method_constantly(export_order_obj):
     product = export_order_obj.product_id

@@ -318,7 +318,7 @@ def save_and_complete(request, import_shipment_code):
                     product_id__name=product
                 ).update(import_inventory=value_container[1], import_quantity=value_container[0])
 
-            import_shipment_obj.update(total_shipment_value=total_import_shipment_value)
+            import_shipment_obj.update(total_shipment_value=total_import_shipment_value, total_shipment_remain=total_import_shipment_value)
             
     except IntegrityError:
         raise Exception("Integrity Bug")

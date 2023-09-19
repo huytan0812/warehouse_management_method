@@ -1,7 +1,6 @@
 from django.db import connection, reset_queries, transaction
 import time
 import functools
-from django.db import connection
 import pytz
 import calendar
 from datetime import date, datetime, timedelta
@@ -522,6 +521,15 @@ def testing_select_for_update():
         list(accounting_period_inventory_objs2)
         accounting_period_inventory_objs2.update(ending_inventory=20)
 
+    connection_queries = connection.queries
+    for connection_query in connection_queries:
+        print(connection_query)
+
+@transaction.atomic()
+@query_debugger
+def testing_locking_transaction():
+    import_purchase = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').select_for_update(of=("self", "import_shipment_id")).latest('id')
+    print(import_purchase)
     connection_queries = connection.queries
     for connection_query in connection_queries:
         print(connection_query)
