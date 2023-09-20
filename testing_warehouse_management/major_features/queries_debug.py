@@ -525,11 +525,25 @@ def testing_select_for_update():
     for connection_query in connection_queries:
         print(connection_query)
 
-@transaction.atomic()
+# def update_minimum_quantity(product):
+#     product.minimum_quantity = 20
+#     product.save(update_fields=["minimum_quantity"])
+
 @query_debugger
 def testing_locking_transaction():
-    import_purchase = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').select_for_update(of=("self", "import_shipment_id")).latest('id')
-    print(import_purchase)
+    with transaction.atomic():
+        accounting_period_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').select_for_update().filter(
+            product_id__name = 'Cebraton'
+        )
+        for obj in accounting_period_inventory:
+            product = obj.product_id
+            product.minimum_quantity = 30
+            product.save(update_fields=["minimum_quantity"])
+            print(product.minimum_quantity)
+            
+        print(accounting_period_inventory.explain(ANALYZE=True))
     connection_queries = connection.queries
     for connection_query in connection_queries:
         print(connection_query)
+    
+
