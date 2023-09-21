@@ -71,7 +71,7 @@ class ImportPurchase(models.Model):
 
     def __str__(self):
         return f"""Mã đơn hàng: {self.id} | Lô hàng: {self.import_shipment_id.import_shipment_code} | 
-        SLCL: {self.quantity_remain} | Đơn giá nhập kho: {self.import_cost}"""
+        Sản phẩm: {self.product_id.name} | SLCL: {self.quantity_remain} | Đơn giá nhập kho: {self.import_cost}"""
 
 # Update this model's object's total_shipment_value field
 # in the export action complete view

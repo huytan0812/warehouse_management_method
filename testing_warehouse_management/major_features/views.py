@@ -280,7 +280,7 @@ def save_and_continue(request, import_shipment_code):
 @transaction.atomic
 def save_and_complete(request, import_shipment_code):
 
-    import_shipment_obj = ImportShipment.objects.select_related('supplier_id').select_for_update().filter(import_shipment_code=import_shipment_code)
+    import_shipment_obj = ImportShipment.objects.select_related('supplier_id').select_for_update(of=("self")).filter(import_shipment_code=import_shipment_code)
 
     if len(import_shipment_obj) == 0:
         raise Exception("Không tồn tại mã lô hàng nhập kho")
@@ -295,7 +295,6 @@ def save_and_complete(request, import_shipment_code):
     product_additional_fields = {}
 
     for import_purchase in import_shipment_purchases:
-        current_accounting_period = AccoutingPeriod.objects.latest('id')
 
         # Import Shipment Calculating total_shipment_value handling
         import_purchase_value = import_purchase.quantity_import * import_purchase.import_cost
@@ -309,10 +308,16 @@ def save_and_complete(request, import_shipment_code):
             product_additional_fields[import_purchase.product_id.name][0] += import_purchase.quantity_import
             product_additional_fields[import_purchase.product_id.name][1] += import_purchase_value
 
+    current_accounting_period = AccoutingPeriod.objects.latest('id')
+
     try:
         with transaction.atomic():
             for product, value_container in product_additional_fields.items():
-                Product.objects.select_for_update().filter(name=product).update(quantity_on_hand=value_container[0], current_total_value=value_container[1])
+                Product.objects.select_for_update().filter(name=product).update(
+                    quantity_on_hand=value_container[0], 
+                    current_total_value=value_container[1]
+                )
+
                 AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').select_for_update().filter(
                     accounting_period_id=current_accounting_period,
                     product_id__name=product
@@ -435,7 +440,7 @@ def export_action(request):
 @cache_control(no_cache=True, must_revalidate=True)
 @transaction.atomic()
 def export_action_complete(request, export_shipment_code):
-    export_shipment_obj = ExportShipment.objects.select_related('agency_id').select_for_update().filter(
+    export_shipment_obj = ExportShipment.objects.select_related('agency_id').select_for_update(of=("self")).filter(
         export_shipment_code = export_shipment_code
     )
 
@@ -447,10 +452,40 @@ def export_action_complete(request, export_shipment_code):
     )
 
     product_export_containers = {}
+    total_shipment_value = 0
 
     for export_order in export_orders:
-        pass
+        if export_order.product_id.name not in product_export_containers:
+            product_export_containers[export_order.product_id.name] = {
+                'total_quantity_take': export_order.quantity_export,
+                'total_order_value': export_order.total_order_value
+            }
+        else:
+            product_export_container = product_export_containers[export_order.product_id.name]
+            product_export_container['total_quantity_take'] += export_order.quantity_export
+            product_export_container['total_order_value'] += export_order.total_order_value
+        total_shipment_value += export_order.total_order_value
+    
+    current_accounting_period = AccoutingPeriod.objects.latest('id')
 
+    try:
+        with transaction.atomic():
+            for product, value_container in product_export_containers.items():
+                product_obj = Product.objects.select_for_update().get(name=product)
+                product_obj.quantity_on_hand -= value_container["total_quantity_take"]
+                product_obj.current_total_value -= value_container["total_order_value"]
+                product_obj.save(update_fields=["quantity_on_hand", "current_total_value"])
+
+                accounting_inventory_obj = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').select_for_update(of=("self")).get(
+                    accounting_period_id = current_accounting_period,
+                    product_id__name = product
+                )
+                accounting_inventory_obj.total_cogs += value_container["total_order_value"]
+                accounting_inventory_obj.total_quantity_export += value_container["total_quantity_take"]
+                accounting_inventory_obj.save(update_fields=["total_cogs", "total_quantity_export"])
+
+    except IntegrityError:
+        raise Exception("Integrity Bug")
 
 def export_order_action(request, export_shipment_code):
     """

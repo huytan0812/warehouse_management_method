@@ -14,13 +14,16 @@ def create_product_inventory_obj(sender, instance, created, **kwargs):
 
 @receiver(post_delete, sender=ExportOrderDetail)
 def return_quantity_for_import_purchase(sender, instance, **kwargs):
-    # ImportPurchase section
-    involving_import_purchase = instance.import_purchase_id
-    involving_import_purchase.quantity_remain = involving_import_purchase.quantity_remain + instance.quantity_take
-    involving_import_purchase.save(update_fields=["quantity_remain"])
+    with transaction.atomic():
+        # ImportPurchase section
+        involving_import_purchase = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').select_for_update(of=("self", "import_shipment_id")).get(
+            pk=instance.import_purchase_id.pk
+        )
+        involving_import_purchase.quantity_remain = involving_import_purchase.quantity_remain + instance.quantity_take
+        involving_import_purchase.save(update_fields=["quantity_remain"])
 
-    # ImportShipment section
-    involving_import_shipment = ImportShipment.objects.get(pk=involving_import_purchase.import_shipment_id.id)
-    return_value = instance.quantity_take * involving_import_purchase.import_cost
-    involving_import_shipment.total_shipment_remain += return_value
-    involving_import_shipment.save(update_fields=["total_shipment_remain"])
+        # ImportShipment section
+        involving_import_shipment = involving_import_purchase.import_shipment_id
+        return_value = instance.quantity_take * involving_import_purchase.import_cost
+        involving_import_shipment.total_shipment_remain += return_value
+        involving_import_shipment.save(update_fields=["total_shipment_remain"])

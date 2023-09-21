@@ -30,7 +30,7 @@ def update_import_shipment_total_value_remain(import_shipment_obj, export_order_
 
 @query_debugger
 def FIFO(export_order_obj):
-    import_purchases = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').select_for_update().filter(
+    import_purchases = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').select_for_update(of=("self", "import_shipment_id")).filter(
             import_shipment_id__total_shipment_value__gt=0,
             product_id__name=export_order_obj.product_id.name,
             quantity_remain__gt=0
@@ -81,13 +81,11 @@ def FIFO(export_order_obj):
 
 @query_debugger
 def LIFO(export_order_obj):
-    import_purchases = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').select_for_update().filter(
+    import_purchases = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').select_for_update(of=("self", "import_shipment_id")).filter(
             import_shipment_id__total_shipment_value__gt=0,
             product_id__name=export_order_obj.product_id.name,
             quantity_remain__gt=0
         ).order_by('-import_shipment_id__date', '-id')
-
-    quantity_export_remain = export_order_obj.quantity_export
 
     try:
         with transaction.atomic():
@@ -152,7 +150,7 @@ def average_method_constantly(export_order_obj):
 
     export_order_value = export_price * quantity_export
 
-    import_purchases = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').select_for_update().filter(
+    import_purchases = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').select_for_update(of=("self", "import_shipment_id")).filter(
         import_shipment_id__total_shipment_value__gt=0,
         product_id__name = export_order_obj.product_id.name,
         quantity_remain__gt=0
@@ -169,7 +167,11 @@ def average_method_constantly(export_order_obj):
                         quantity_take = quantity_export_remain,
                         export_price = export_price
                     )
-                    return
+                    update_purchase_quantity_remain(purchase, export_order_detail_obj)
+                    import_shipment_obj = purchase.import_shipment_id
+                    update_import_shipment_total_value_remain(import_shipment_obj, export_order_detail_obj)
+
+                    break
                 
                 quantity_export_remain -= purchase.quantity_remain
                 export_order_detail_obj = ExportOrderDetail.objects.create(
@@ -179,9 +181,12 @@ def average_method_constantly(export_order_obj):
                     export_price = export_price
                 )
 
+                update_purchase_quantity_remain(purchase, export_order_detail_obj)
+                import_shipment_obj = purchase.import_shipment_id
+                update_import_shipment_total_value_remain(import_shipment_obj, export_order_detail_obj)
+
             export_order_obj.total_order_value = export_order_value
             export_order_obj.save(update_fields=["total_order_value"])
-
     except IntegrityError:
         raise Exception("Integrity Bug")
 
