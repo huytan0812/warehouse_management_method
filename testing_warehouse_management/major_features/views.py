@@ -484,8 +484,20 @@ def export_action_complete(request, export_shipment_code):
                 accounting_inventory_obj.total_quantity_export += value_container["total_quantity_take"]
                 accounting_inventory_obj.save(update_fields=["total_cogs", "total_quantity_export"])
 
+            export_shipment_obj.update(total_shipment_value=total_shipment_value)
+
     except IntegrityError:
         raise Exception("Integrity Bug")
+    
+    context = {
+        'export_shipment_code': export_shipment_obj[0].export_shipment_code,
+        'agency': export_shipment_obj[0].agency_id.name,
+        'export_shipment_date': export_shipment_obj[0].date,
+        'export_shipment_orders': export_orders,
+        'export_shipment_value': total_shipment_value
+    }
+
+    return render(request, "major_features/export/export_action_complete.html", context)
 
 def export_order_action(request, export_shipment_code):
     """
@@ -511,12 +523,7 @@ def export_order_action(request, export_shipment_code):
                 return HttpResponseRedirect(reverse('choose_type_of_inventory', kwargs={'export_order_id': export_order_form_obj.id}))
         
             handling_exporting_action(export_order_form_obj.id)
-
-            if "save_and_continue" in request.POST:
-                return HttpResponseRedirect(reverse("export_order_action", kwargs={'export_shipment_code': export_shipment_code}))
-            if "save_and_complete" in request.POST:
-                # Implement export_action_save_and_complete view
-                return
+            return HttpResponseRedirect(reverse('complete_export_order_by_inventory', kwargs={'export_order_id': export_order_form_obj.id}))
 
         return HttpResponse("Invalid Form", content_type="text/plain")
 
@@ -639,6 +646,7 @@ def actual_method_by_name_export_action(request, export_order_id, product, type)
 
     # Immediately return to complete_export_order_by_inventory route
     if quantity_take_context["quantity_remain"] == 0:
+        update_export_order_value_for_actual_method_by_name(export_order_id)
         return HttpResponseRedirect(reverse('complete_export_order_by_inventory', kwargs={'export_order_id': export_order_id}))
 
     if request.method == "GET":
@@ -732,16 +740,14 @@ def actual_method_by_name_export_action(request, export_order_id, product, type)
             }))
         else:
             return HttpResponse("Invalid Form", content_type="text/plain")
-
-@query_debugger
-@transaction.atomic      
-def complete_export_order_by_inventory(request, export_order_id):
+        
+def update_export_order_value_for_actual_method_by_name(export_order_id):
     """
     Only for 'actual_method_by_name'.
     Handling logic for updating 'total_order_value' field for export order object
     """
 
-    export_order_obj = ExportOrder.objects.select_related('export_shipment_id', 'product_id').select_for_update().filter(pk=export_order_id)
+    export_order_obj = ExportOrder.objects.select_related('export_shipment_id', 'product_id').select_for_update(of=("self")).filter(pk=export_order_id)
     export_order_details_obj = ExportOrderDetail.objects.select_related('export_order_id', 'import_purchase_id').filter(export_order_id__pk=export_order_obj[0].pk)
 
     export_order_additional_fields = {
@@ -758,10 +764,19 @@ def complete_export_order_by_inventory(request, export_order_id):
             )
     except IntegrityError:
         raise Exception("Integrity Bug")
+
+def complete_export_order_by_inventory(request, export_order_id):
+
+    try:
+        export_order_obj = ExportOrder.objects.select_related('export_shipment_id', 'product_id').get(pk=export_order_id)
+    except ExportOrder.DoesNotExist:
+        raise Exception("Mã đơn hàng xuất kho không tồn tại")
+    
+    export_order_details_obj = ExportOrderDetail.objects.select_related('export_order_id', 'import_purchase_id').filter(export_order_id__pk=export_order_obj.pk)
     
     context = {
-        'export_order_obj': export_order_obj[0],
-        'export_shipment_code': export_order_obj[0].export_shipment_id.export_shipment_code,
+        'export_order_obj': export_order_obj,
+        'export_shipment_code': export_order_obj.export_shipment_id.export_shipment_code,
         'export_order_details': export_order_details_obj
     }
 
