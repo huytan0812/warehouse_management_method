@@ -280,7 +280,7 @@ def save_and_continue(request, import_shipment_code):
 @transaction.atomic
 def save_and_complete(request, import_shipment_code):
 
-    import_shipment_obj = ImportShipment.objects.select_related('supplier_id').select_for_update(of=("self")).filter(import_shipment_code=import_shipment_code)
+    import_shipment_obj = ImportShipment.objects.select_related('supplier_id').select_for_update(of=("self",)).filter(import_shipment_code=import_shipment_code)
 
     if len(import_shipment_obj) == 0:
         raise Exception("Không tồn tại mã lô hàng nhập kho")
@@ -440,7 +440,7 @@ def export_action(request):
 @cache_control(no_cache=True, must_revalidate=True)
 @transaction.atomic()
 def export_action_complete(request, export_shipment_code):
-    export_shipment_obj = ExportShipment.objects.select_related('agency_id').select_for_update(of=("self")).filter(
+    export_shipment_obj = ExportShipment.objects.select_related('agency_id').select_for_update(of=("self",)).filter(
         export_shipment_code = export_shipment_code
     )
 
@@ -476,7 +476,7 @@ def export_action_complete(request, export_shipment_code):
                 product_obj.current_total_value -= value_container["total_order_value"]
                 product_obj.save(update_fields=["quantity_on_hand", "current_total_value"])
 
-                accounting_inventory_obj = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').select_for_update(of=("self")).get(
+                accounting_inventory_obj = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').select_for_update(of=("self",)).get(
                     accounting_period_id = current_accounting_period,
                     product_id__name = product
                 )
@@ -733,6 +733,8 @@ def actual_method_by_name_export_action(request, export_order_id, product, type)
                 export_price = import_cost
             )
 
+            update_import_purchase(export_order_detail_obj.pk)
+
             return HttpResponseRedirect(reverse('actual_method_by_name_export_action', kwargs={
                 'export_order_id': export_order_id,
                 'product': product,
@@ -740,14 +742,40 @@ def actual_method_by_name_export_action(request, export_order_id, product, type)
             }))
         else:
             return HttpResponse("Invalid Form", content_type="text/plain")
-        
+
+@transaction.atomic()
+def update_import_purchase(export_order_detail_id):
+    try:
+        export_order_detail_obj = ExportOrderDetail.objects.get(pk=export_order_detail_id)
+    except ExportOrderDetail.DoesNotExist:
+        raise Exception("Không tồn tại chi tiết đơn hàng xuất kho")
+    
+    import_purchase = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').select_for_update(of=("self", "import_shipment_id",)).get(
+        pk = export_order_detail_obj.import_purchase_id.pk
+    )
+
+    # Update import purchase object's quantity_remain field
+    import_purchase.quantity_remain -= export_order_detail_obj.quantity_take
+
+    # Update involving import purchase object's total_shipment_remain field
+    involving_import_shipment = import_purchase.import_shipment_id
+    involving_import_shipment.total_shipment_remain -= export_order_detail_obj.quantity_take * export_order_detail_obj.export_price
+
+    try:
+        with transaction.atomic():
+            import_purchase.save(update_fields=["quantity_remain"])
+            involving_import_shipment.save(update_fields=["total_shipment_remain"])
+    except IntegrityError:
+        raise Exception("Integrity Bug")
+
+@transaction.atomic()        
 def update_export_order_value_for_actual_method_by_name(export_order_id):
     """
     Only for 'actual_method_by_name'.
     Handling logic for updating 'total_order_value' field for export order object
     """
 
-    export_order_obj = ExportOrder.objects.select_related('export_shipment_id', 'product_id').select_for_update(of=("self")).filter(pk=export_order_id)
+    export_order_obj = ExportOrder.objects.select_related('export_shipment_id', 'product_id').select_for_update(of=("self",)).filter(pk=export_order_id)
     export_order_details_obj = ExportOrderDetail.objects.select_related('export_order_id', 'import_purchase_id').filter(export_order_id__pk=export_order_obj[0].pk)
 
     export_order_additional_fields = {

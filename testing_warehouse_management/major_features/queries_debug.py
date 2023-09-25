@@ -140,9 +140,9 @@ def is_equal_current_total_value():
     
     for purchase in purchases:
         if purchase.product_id.name not in product_current_total_value:
-            product_current_total_value[purchase.product_id.name] = purchase.quantity_import * purchase.import_cost
+            product_current_total_value[purchase.product_id.name] = purchase.quantity_remain * purchase.import_cost
         else:
-            product_current_total_value[purchase.product_id.name] += purchase.quantity_import * purchase.import_cost
+            product_current_total_value[purchase.product_id.name] += purchase.quantity_remain * purchase.import_cost
 
     product_sum = 0
     for obj in product_current_total_value:
