@@ -549,3 +549,4 @@ def testing_select_related():
     connection_queries = connection.queries
     for connection_query in connection_queries:
         print(connection_query)
+

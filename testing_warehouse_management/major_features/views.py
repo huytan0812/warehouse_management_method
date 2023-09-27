@@ -302,8 +302,7 @@ def save_and_complete(request, import_shipment_code):
 
         # Product quantity_on_hand handling
         if import_purchase.product_id.name not in product_additional_fields:
-            product_additional_fields[import_purchase.product_id.name] = [import_purchase.product_id.quantity_on_hand + import_purchase.quantity_import, 
-                                                                            import_purchase.product_id.current_total_value + import_purchase_value]
+            product_additional_fields[import_purchase.product_id.name] = [import_purchase.quantity_import, import_purchase_value]
         else:
             product_additional_fields[import_purchase.product_id.name][0] += import_purchase.quantity_import
             product_additional_fields[import_purchase.product_id.name][1] += import_purchase_value
@@ -313,15 +312,15 @@ def save_and_complete(request, import_shipment_code):
     try:
         with transaction.atomic():
             for product, value_container in product_additional_fields.items():
-                Product.objects.select_for_update().filter(name=product).update(
-                    quantity_on_hand=value_container[0], 
-                    current_total_value=value_container[1]
-                )
-
-                AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').select_for_update().filter(
+                product_accounting_inventory_obj = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').select_for_update().get(
                     accounting_period_id=current_accounting_period,
                     product_id__name=product
-                ).update(import_inventory=value_container[1], import_quantity=value_container[0])
+                )
+                product_accounting_inventory_obj.import_inventory += value_container[1]
+                product_accounting_inventory_obj.import_quantity += value_container[0]
+                product_accounting_inventory_obj.ending_inventory += value_container[1]
+                product_accounting_inventory_obj.ending_quantity += value_container[0]
+                product_accounting_inventory_obj.save(update_fields=["import_inventory", "import_quantity", "ending_inventory", "ending_quantity"])
 
             import_shipment_obj.update(total_shipment_value=total_import_shipment_value, total_shipment_remain=total_import_shipment_value)
             
@@ -471,18 +470,15 @@ def export_action_complete(request, export_shipment_code):
     try:
         with transaction.atomic():
             for product, value_container in product_export_containers.items():
-                product_obj = Product.objects.select_for_update().get(name=product)
-                product_obj.quantity_on_hand -= value_container["total_quantity_take"]
-                product_obj.current_total_value -= value_container["total_order_value"]
-                product_obj.save(update_fields=["quantity_on_hand", "current_total_value"])
-
                 accounting_inventory_obj = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').select_for_update(of=("self",)).get(
                     accounting_period_id = current_accounting_period,
                     product_id__name = product
                 )
                 accounting_inventory_obj.total_cogs += value_container["total_order_value"]
                 accounting_inventory_obj.total_quantity_export += value_container["total_quantity_take"]
-                accounting_inventory_obj.save(update_fields=["total_cogs", "total_quantity_export"])
+                accounting_inventory_obj.ending_inventory -= value_container["total_order_value"]
+                accounting_inventory_obj.ending_quantity -= value_container["total_quantity_take"]
+                accounting_inventory_obj.save(update_fields=["total_cogs", "total_quantity_export", "ending_inventory", "ending_quantity"])
 
             export_shipment_obj.update(total_shipment_value=total_shipment_value)
 
