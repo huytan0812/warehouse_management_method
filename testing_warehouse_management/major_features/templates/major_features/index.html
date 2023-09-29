@@ -64,12 +64,12 @@
           </tr>
         </thead>
         <tbody>
-            {% for product in products %}
+            {% for product in product_period_inventory %}
             <tr>
-                <td scope="col">{{ product.sku }}</td>
-                <td scope="col">{{ product.name }}</td>
-                <td scope="col" style="text-align: right;">{{ product.quantity_on_hand|intcomma }}</td>
-                <td scope="col" style="text-align: right;">{{ product.current_total_value|intcomma }}</td>
+                <td scope="col">{{ product.product_id.sku }}</td>
+                <td scope="col">{{ product.product_id.name }}</td>
+                <td scope="col" style="text-align: right;">{{ product.ending_quantity|intcomma }}</td>
+                <td scope="col" style="text-align: right;">{{ product.ending_inventory|intcomma }}</td>
               </tr>
             {% endfor %}
         </tbody>

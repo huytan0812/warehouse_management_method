@@ -100,13 +100,17 @@ def is_equal_quantity_on_hand():
     Validating the product quantity on hand must equal to
     the sum of product's import purchases quantity remain
     """
+    current_accounting_period = AccoutingPeriod.objects.latest('id')
 
-    products = Product.objects.all()
-    for product in products:
-        import_purchases_by_product = ImportPurchase.objects.filter(import_shipment_id__total_shipment_value__gt=0,product_id=product)
+    product_accounting_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').filter(
+        accounting_period_id = current_accounting_period
+    )
+    for product in product_accounting_inventory:
+        import_purchases_by_product = ImportPurchase.objects.filter(import_shipment_id__total_shipment_value__gt = 0, 
+                                                                    product_id = product.product_id)
         import_purchases_by_product_sum = import_purchases_by_product.aggregate(Sum("quantity_remain")).get("quantity_remain__sum", 0)
-        print(f"Product {product.name}: {product.quantity_on_hand} - Purchase: {import_purchases_by_product_sum}")
-        if product.quantity_on_hand != import_purchases_by_product_sum:
+        print(f"Product {product.product_id.name}: {product.ending_quantity} - Purchase: {import_purchases_by_product_sum}")
+        if product.ending_quantity != import_purchases_by_product_sum:
             return False
     return True
 
@@ -137,6 +141,7 @@ def is_equal_current_total_value():
 
     product_current_total_value = {}
     purchases = ImportPurchase.objects.select_related('product_id').filter(import_shipment_id__total_shipment_value__gt=0)
+    current_accounting_period = AccoutingPeriod.objects.latest('id')
     
     for purchase in purchases:
         if purchase.product_id.name not in product_current_total_value:
@@ -146,13 +151,18 @@ def is_equal_current_total_value():
 
     product_sum = 0
     for obj in product_current_total_value:
-        product = Product.objects.get(name=obj)
+        product = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').get(
+            accounting_period_id = current_accounting_period,
+            product_id__name = obj
+        )
         product_sum += product_current_total_value[obj]
-        print(f"Testing dictionary: {obj} - {product_current_total_value[obj]} | From database: {product.name} - {product.current_total_value}")
-        if product.current_total_value != product_current_total_value[obj]:
+        print(f"Testing dictionary: {obj} - {product_current_total_value[obj]} | From database: {product.product_id.name} - {product.ending_inventory}")
+        if product.ending_inventory != product_current_total_value[obj]:
             return False
         
-    product_agg_sum = Product.objects.all().aggregate(Sum('current_total_value')).get("current_total_value__sum", 0)
+    product_agg_sum = AccountingPeriodInventory.objects.filter(
+        accounting_period_id = current_accounting_period
+    ).aggregate(Sum('ending_inventory')).get('ending_inventory__sum', 0)
     print(f"Product Aggregate Sum: {product_agg_sum} - Product Sum: {product_sum}")
 
     connection_queries = connection.queries

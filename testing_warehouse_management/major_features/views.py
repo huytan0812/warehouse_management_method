@@ -17,29 +17,25 @@ from . warehouse_management_methods import handling_exporting_action
 
 # Create your views here.
 def index(request):
+    current_accounting_period = AccoutingPeriod.objects.select_related('warehouse_management_method').latest('id')
 
-    products = Product.objects.all()
+    product_period_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').filter(
+        accounting_period_id = current_accounting_period
+    )
     date_picker_form = DatePickerForm()
 
     context = {
-        'products': products,
+        'product_period_inventory': product_period_inventory,
         'date_picker_form': date_picker_form
     }
 
-    CHOSEN_METHOD_COUNT = 1
-    method_count = WarehouseManagementMethod.objects.filter(is_currently_applied=True).count()
-
-    # Handling if a method was chosen before
-    if  method_count == CHOSEN_METHOD_COUNT:
-
-        # Handling validating if an accounting period object exists
-        currently_accounting_period_id = AccoutingPeriod.objects.aggregate(Max("id")).get("id__max", 0)
-        currently_accounting_period_obj = AccoutingPeriod.objects.select_related('warehouse_management_method').get(pk=int(currently_accounting_period_id))
-        context['method'] = currently_accounting_period_obj.warehouse_management_method
-        context['accounting_period'] = currently_accounting_period_obj
+    # Handling if the current method is currently applied
+    if  current_accounting_period.warehouse_management_method.is_currently_applied:
+        context['method'] = current_accounting_period.warehouse_management_method
+        context['accounting_period'] = current_accounting_period
 
         today = datetime.today().date()
-        if currently_accounting_period_obj.date_end < today:
+        if current_accounting_period.date_end < today:
             context['alert_message'] = """
             Cảnh báo phương pháp quản lý hàng tồn kho chưa được cập nhật lại hoặc thay đổi sang phương pháp khác.
             Bạn sẽ không thể thực hiện nhập kho hay xuất kho

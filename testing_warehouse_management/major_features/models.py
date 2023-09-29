@@ -147,7 +147,8 @@ class AccountingPeriodInventory(models.Model):
         return f"""
             Accouting Period: {self.accounting_period_id.id} | Product: {self.product_id.name}
             Starting Inventory: {self.starting_inventory} | Starting Quantity: {self.starting_quantity}
-            Total COGS: {self.total_cogs}
+            Importing Inventory: {self.import_inventory} | Importing Quantity: {self.import_quantity}
+            Total COGS: {self.total_cogs} | Total Quantity export: {self.total_quantity_export}
             Ending Inventory: {self.ending_inventory} | Ending Quantity: {self.ending_quantity}
         """
 
