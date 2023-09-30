@@ -560,3 +560,43 @@ def testing_select_related():
     for connection_query in connection_queries:
         print(connection_query)
 
+@query_debugger
+def check_import_inventory():
+    current_accounting_period = AccoutingPeriod.objects.latest('id')
+    product_current_purchases = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').filter(
+        import_shipment_id__current_accounting_period = current_accounting_period,
+        import_shipment_id__total_shipment_value__gt = 0
+    )
+    product_inventory_container = {}
+
+    for purchase in product_current_purchases:
+        if purchase.product_id.name not in product_inventory_container:
+            product_inventory_container[purchase.product_id.name] = {
+                'import_quantity': purchase.quantity_import,
+                'import_inventory': purchase.quantity_import * purchase.import_cost
+            }
+        else:
+            product_inventory_container[purchase.product_id.name]['import_quantity'] += purchase.quantity_import
+            product_inventory_container[purchase.product_id.name]['import_inventory'] += purchase.quantity_import * purchase.import_cost
+
+    products_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').filter(
+        accounting_period_id = current_accounting_period
+    )
+    for product in products_inventory:
+        product_current_inventory = product_inventory_container[product.product_id.name]
+
+        if product_current_inventory['import_quantity'] != product.import_quantity:
+            return False
+        if product_current_inventory['import_inventory'] != product.import_inventory:
+            return False
+        
+        print(f"""
+            From Import Purchase:
+              - Import quantity: {product_current_inventory['import_quantity']}
+              - Import inventory : {product_current_inventory['import_inventory']}
+            From Accounting Period Inventory:
+              - Import quantity: {product.import_quantity}
+              - Import inventory: {product.import_inventory}
+        """)
+
+    return True

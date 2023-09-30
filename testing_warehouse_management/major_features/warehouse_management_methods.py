@@ -23,11 +23,6 @@ def update_purchase_quantity_remain(purchase, export_order_detail_obj):
     purchase.save(update_fields=["quantity_remain"])
     return
 
-def update_import_shipment_total_value_remain(import_shipment_obj, export_order_detail_obj):
-    import_shipment_obj.total_shipment_remain -= export_order_detail_obj.quantity_take * export_order_detail_obj.export_price
-    import_shipment_obj.save(update_fields=["total_shipment_remain"])
-    return
-
 @query_debugger
 def FIFO(export_order_obj):
     import_purchases = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').select_for_update(of=("self", "import_shipment_id")).filter(
@@ -52,8 +47,6 @@ def FIFO(export_order_obj):
                     export_total_order_value += export_order_detail_obj.quantity_take * export_order_detail_obj.export_price
 
                     update_purchase_quantity_remain(purchase, export_order_detail_obj)
-                    import_shipment_obj = purchase.import_shipment_id
-                    update_import_shipment_total_value_remain(import_shipment_obj, export_order_detail_obj)
                     
                     break
                 
@@ -67,8 +60,6 @@ def FIFO(export_order_obj):
                 export_total_order_value += export_order_detail_obj.quantity_take * export_order_detail_obj.export_price
 
                 update_purchase_quantity_remain(purchase, export_order_detail_obj)
-                import_shipment_obj = purchase.import_shipment_id
-                update_import_shipment_total_value_remain(import_shipment_obj, export_order_detail_obj)
 
             export_order_obj.total_order_value = export_total_order_value
             export_order_obj.save(update_fields=["total_order_value"])        
@@ -103,8 +94,6 @@ def LIFO(export_order_obj):
                     export_total_order_value += export_order_detail_obj.quantity_take * export_order_detail_obj.export_price
 
                     update_purchase_quantity_remain(purchase, export_order_detail_obj)
-                    import_shipment_obj = purchase.import_shipment_id
-                    update_import_shipment_total_value_remain(import_shipment_obj, export_order_detail_obj)
                     
                     break
                 
@@ -118,8 +107,6 @@ def LIFO(export_order_obj):
                 export_total_order_value += export_order_detail_obj.quantity_take * export_order_detail_obj.export_price
 
                 update_purchase_quantity_remain(purchase, export_order_detail_obj)
-                import_shipment_obj = purchase.import_shipment_id
-                update_import_shipment_total_value_remain(import_shipment_obj, export_order_detail_obj)
 
             export_order_obj.total_order_value = export_total_order_value
             export_order_obj.save(update_fields=["total_order_value"])        
@@ -168,8 +155,6 @@ def average_method_constantly(export_order_obj):
                         export_price = export_price
                     )
                     update_purchase_quantity_remain(purchase, export_order_detail_obj)
-                    import_shipment_obj = purchase.import_shipment_id
-                    update_import_shipment_total_value_remain(import_shipment_obj, export_order_detail_obj)
 
                     break
                 
@@ -182,8 +167,6 @@ def average_method_constantly(export_order_obj):
                 )
 
                 update_purchase_quantity_remain(purchase, export_order_detail_obj)
-                import_shipment_obj = purchase.import_shipment_id
-                update_import_shipment_total_value_remain(import_shipment_obj, export_order_detail_obj)
 
             export_order_obj.total_order_value = export_order_value
             export_order_obj.save(update_fields=["total_order_value"])

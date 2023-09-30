@@ -79,12 +79,20 @@
     </tr>
     {% endfor %}
   </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="3">Tổng giá trị</td>
+      <td>{{ export_order_obj.total_order_value|intcomma }}</td>
+    </tr>
+  </tfoot>
 </table>
 
+{% if export_shipment_value == 0 %}
 <p>
   <a href="{% url 'export_order_action' export_shipment_code %}">Tiếp tục xuất kho sản phẩm khác theo lô hàng xuất kho {{ export_shipment_code }}</a>
 </p>
 <p>
   <a href="{% url 'export_action_complete' export_shipment_code %}">Hoàn tất lô hàng xuất kho {{ export_shipment_code }}</a>
 </p>
+{% endif %}
 {% endblock %}

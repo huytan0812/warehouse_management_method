@@ -318,7 +318,7 @@ def save_and_complete(request, import_shipment_code):
                 product_accounting_inventory_obj.ending_quantity += value_container[0]
                 product_accounting_inventory_obj.save(update_fields=["import_inventory", "import_quantity", "ending_inventory", "ending_quantity"])
 
-            import_shipment_obj.update(total_shipment_value=total_import_shipment_value, total_shipment_remain=total_import_shipment_value)
+            import_shipment_obj.update(total_shipment_value=total_import_shipment_value)
             
     except IntegrityError:
         raise Exception("Integrity Bug")
@@ -442,6 +442,9 @@ def export_action_complete(request, export_shipment_code):
     if len(export_shipment_obj) == 0:
         raise Exception("Không tồn tại mã lô hàng xuất kho")
     
+    if export_shipment_obj[0].total_shipment_value > 0:
+        return HttpResponse(f"Bạn đã xác nhận hoàn tất lô hàng xuất kho {export_shipment_obj[0].export_shipment_code} này trước đó", content_type="text/plain")
+
     export_orders = ExportOrder.objects.select_related('export_shipment_id', 'product_id').filter(
         export_shipment_id = export_shipment_obj[0]
     )
@@ -749,14 +752,9 @@ def update_import_purchase(export_order_detail_id):
     # Update import purchase object's quantity_remain field
     import_purchase.quantity_remain -= export_order_detail_obj.quantity_take
 
-    # Update involving import purchase object's total_shipment_remain field
-    involving_import_shipment = import_purchase.import_shipment_id
-    involving_import_shipment.total_shipment_remain -= export_order_detail_obj.quantity_take * export_order_detail_obj.export_price
-
     try:
         with transaction.atomic():
             import_purchase.save(update_fields=["quantity_remain"])
-            involving_import_shipment.save(update_fields=["total_shipment_remain"])
     except IntegrityError:
         raise Exception("Integrity Bug")
 
@@ -797,6 +795,7 @@ def complete_export_order_by_inventory(request, export_order_id):
     context = {
         'export_order_obj': export_order_obj,
         'export_shipment_code': export_order_obj.export_shipment_id.export_shipment_code,
+        'export_shipment_value': export_order_obj.export_shipment_id.total_shipment_value,
         'export_order_details': export_order_details_obj
     }
 

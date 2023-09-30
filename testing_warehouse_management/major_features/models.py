@@ -54,7 +54,6 @@ class ImportShipment(models.Model):
     supplier_id = models.ForeignKey(Supplier, on_delete=models.CASCADE, null=False, blank=False, related_name="%(class)s_sent_import_shipments")
     date = models.DateField(null=False, blank=False)
     total_shipment_value = models.IntegerField(null=True, blank=True, default=0)
-    total_shipment_remain = models.IntegerField(null=True, blank=True, default=0)
     current_accounting_period = models.ForeignKey(AccoutingPeriod, on_delete=models.CASCADE, null=True, blank=True,
                                                   related_name="%(class)s_following_import_shipments")
 

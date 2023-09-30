@@ -84,6 +84,7 @@
 
 <p>Tổng giá trị xuất kho của lô hàng {{ export_shipment_code }}: <strong>{{ export_shipment_value|intcomma }}</strong></p>
 
+<a href="{% url 'export_shipments' %}">Theo dõi các lô hàng xuất kho</a>
 <a href="{% url 'index' %}">Trang chủ</a>
 
 {% endblock %}
