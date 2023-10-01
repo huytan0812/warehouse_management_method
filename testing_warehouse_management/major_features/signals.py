@@ -35,3 +35,29 @@ def return_quantity_for_import_purchase(sender, instance, **kwargs):
         )
         involving_import_purchase.quantity_remain = involving_import_purchase.quantity_remain + instance.quantity_take
         involving_import_purchase.save(update_fields=["quantity_remain"])
+
+@receiver(post_save, sender=AccoutingPeriod)
+def create_product_inventory(sender, instance, created, **kwargs):
+    if created:
+        new_accounting_period = instance
+        prev_accounting_period = AccoutingPeriod.objects.select_related('warehouse_management_method').filter(
+            date_applied__lt = new_accounting_period.date_applied
+        ).order_by('-date_applied').first()
+        prev_products_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').select_for_update(of=("self",)).filter(
+            accounting_period_id = prev_accounting_period
+        )
+
+        with transaction.atomic():
+            for prev_product_inventory in prev_products_inventory:
+                new_product_inventory = AccountingPeriodInventory.objects.create(
+                    accounting_period_id = new_accounting_period,
+                    product_id = prev_product_inventory.product_id,
+                    starting_inventory = prev_product_inventory.ending_inventory,
+                    starting_quantity = prev_product_inventory.ending_quantity,
+                    import_inventory = 0,
+                    import_quantity = 0,
+                    total_cogs = 0,
+                    total_quantity_export = 0,
+                    ending_inventory = prev_product_inventory.ending_inventory,
+                    ending_quantity = prev_product_inventory.ending_quantity
+                )
