@@ -118,8 +118,12 @@ def LIFO(export_order_obj):
         print(connection_query)
 
 def average_method_constantly(export_order_obj):
+    current_accounting_period = AccoutingPeriod.objects.latest('id')
     product = export_order_obj.product_id
-    accounting_period_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').get(product_id__pk=product.pk)
+    accounting_period_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').get(
+        accounting_period_id = current_accounting_period,
+        product_id__pk=product.pk
+        )
     product_starting_inventory = accounting_period_inventory.starting_inventory
     product_starting_quantity = accounting_period_inventory.starting_quantity
 
@@ -132,7 +136,7 @@ def average_method_constantly(export_order_obj):
     total_inventory_before_export_order = product_starting_inventory + product_current_import_inventory - product_current_cogs
     total_quantity_before_export_order = product_starting_quantity + product_current_import_quantity - product_current_quantity_export
 
-    export_price = total_inventory_before_export_order / total_quantity_before_export_order
+    export_price = round(total_inventory_before_export_order / total_quantity_before_export_order)
     quantity_export = export_order_obj.quantity_export
 
     export_order_value = export_price * quantity_export

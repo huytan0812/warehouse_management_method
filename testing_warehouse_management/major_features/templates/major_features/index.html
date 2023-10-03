@@ -93,6 +93,11 @@
     <input type="submit" value="Submit">
 </form>
 
+<p>
+  <strong style="display: block; color: red;">Chỉ dành cho mục đích kiểm thử</strong>
+  <a href="{% url 'apply_warehouse_management' %}">Chọn phương pháp khác để kiểm thử</a>
+</p>
+
 {% if alert_message %}
 <div class="alert alert-danger" role="alert">
   {{ alert_message }}

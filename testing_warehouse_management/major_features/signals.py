@@ -14,6 +14,10 @@ def create_product_inventory_obj(sender, instance, created, **kwargs):
 
 @receiver(post_delete, sender=ExportOrder)
 def return_inventory(sender, instance, **kwargs):
+    if instance.export_shipment_id.total_shipment_value == 0:
+        # do nothing
+        return
+
     current_accounting_period = AccoutingPeriod.objects.latest('id')
     with transaction.atomic():
         product_accounting_inventory_obj = AccountingPeriodInventory.objects.select_related("accounting_period_id", "product_id").select_for_update(of=("self", )).get(

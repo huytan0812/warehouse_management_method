@@ -139,15 +139,20 @@ def is_equal_current_total_value():
     product's import purchases quantity remain & product's import purchases import cost
     """
 
-    product_current_total_value = {}
-    purchases = ImportPurchase.objects.select_related('product_id').filter(import_shipment_id__total_shipment_value__gt=0)
     current_accounting_period = AccoutingPeriod.objects.latest('id')
+    product_current_total_value = {}
+
+    import_purchases = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').filter(import_shipment_id__total_shipment_value__gt=0)
+    export_orders = ExportOrder.objects.select_related('export_shipment_id', 'product_id').filter(export_shipment_id__total_shipment_value__gt=0)
     
-    for purchase in purchases:
+    for purchase in import_purchases:
         if purchase.product_id.name not in product_current_total_value:
-            product_current_total_value[purchase.product_id.name] = purchase.quantity_remain * purchase.import_cost
+            product_current_total_value[purchase.product_id.name] = purchase.quantity_import * purchase.import_cost
         else:
-            product_current_total_value[purchase.product_id.name] += purchase.quantity_remain * purchase.import_cost
+            product_current_total_value[purchase.product_id.name] += purchase.quantity_import * purchase.import_cost
+
+    for order in export_orders:
+        product_current_total_value[order.product_id.name] -= order.total_order_value
 
     product_sum = 0
     for obj in product_current_total_value:
