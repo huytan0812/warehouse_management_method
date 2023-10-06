@@ -1,29 +1,13 @@
 from . views import *
 from . models import *
 from django.db.models import *
-from django.db import connection, reset_queries
-
-def handling_exporting_action(export_order_id):
-    try:
-        export_order_obj = ExportOrder.objects.select_related('export_shipment_id', 'product_id').get(pk=export_order_id)
-    except ExportOrder.DoesNotExist:
-        raise Exception("Không tồn tại mã đơn hàng xuất kho")
-    
-    current_accounting_period = export_order_obj.export_shipment_id.current_accounting_period
-    current_warehouse_management_method = current_accounting_period.warehouse_management_method
-    if current_warehouse_management_method.pk == 1:
-        FIFO(export_order_obj)
-    elif current_warehouse_management_method.pk == 2:
-        LIFO(export_order_obj)
-    else:
-        average_method_constantly(export_order_obj)
+from django.db import transaction, IntegrityError
 
 def update_purchase_quantity_remain(purchase, export_order_detail_obj):
     purchase.quantity_remain -= export_order_detail_obj.quantity_take
     purchase.save(update_fields=["quantity_remain"])
     return
 
-@query_debugger
 def FIFO(export_order_obj):
     import_purchases = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').select_for_update(of=("self", "import_shipment_id")).filter(
             import_shipment_id__total_shipment_value__gt=0,
@@ -65,12 +49,7 @@ def FIFO(export_order_obj):
             export_order_obj.save(update_fields=["total_order_value"])        
     except IntegrityError:
         raise Exception("Integrity Bug")
-    
-    connection_queries = connection.queries
-    for connection_query in connection_queries:
-        print(connection_query)
 
-@query_debugger
 def LIFO(export_order_obj):
     import_purchases = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').select_for_update(of=("self", "import_shipment_id")).filter(
             import_shipment_id__total_shipment_value__gt=0,
@@ -112,12 +91,9 @@ def LIFO(export_order_obj):
             export_order_obj.save(update_fields=["total_order_value"])        
     except IntegrityError:
         raise Exception("Integrity Bug")
-    
-    connection_queries = connection.queries
-    for connection_query in connection_queries:
-        print(connection_query)
 
-def average_method_constantly(export_order_obj):
+
+def weighted_average_constantly(export_order_obj):
     current_accounting_period = AccoutingPeriod.objects.latest('id')
     product = export_order_obj.product_id
     accounting_period_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').get(
@@ -137,6 +113,23 @@ def average_method_constantly(export_order_obj):
     total_quantity_before_export_order = product_starting_quantity + product_current_import_quantity - product_current_quantity_export
 
     export_price = round(total_inventory_before_export_order / total_quantity_before_export_order)
+
+    product_inventory_container = {
+        'starting_inventory': product_starting_inventory,
+        'starting_quantity': product_starting_quantity,
+        'current_import_inventory': product_current_import_inventory,
+        'current_import_quantity': product_current_import_quantity,
+        'current_cogs': product_current_cogs,
+        'current_quantity_export': product_current_quantity_export,
+        'total_inventory_before_export_order': total_inventory_before_export_order,
+        'total_quantity_before_export_order': total_quantity_before_export_order,
+        'export_price': export_price
+    }
+
+    return product_inventory_container
+
+def completing_weighted_average_constantly_method(export_order_obj, export_price):
+
     quantity_export = export_order_obj.quantity_export
 
     export_order_value = export_price * quantity_export
@@ -176,7 +169,7 @@ def average_method_constantly(export_order_obj):
             export_order_obj.save(update_fields=["total_order_value"])
     except IntegrityError:
         raise Exception("Integrity Bug")
-
+    
 
 
 

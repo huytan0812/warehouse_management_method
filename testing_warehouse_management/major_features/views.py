@@ -13,7 +13,7 @@ from . models import *
 from . forms import *
 from . decorators import is_activating_accounting_period
 from . queries_debug import query_debugger
-from . warehouse_management_methods import handling_exporting_action
+from . warehouse_management_methods import *
 
 # Create your views here.
 def index(request):
@@ -503,6 +503,11 @@ def export_order_action(request, export_shipment_code):
     export_shipment_obj = ExportShipment.objects.select_related('current_accounting_period').get(export_shipment_code=export_shipment_code)
     current_warehouse_management_method = export_shipment_obj.current_accounting_period.warehouse_management_method
     
+    FIFO_PK = 1
+    LIFO_PK = 2
+    WEIGHTED_AVERAGE_PK = 4
+    SPECIFIC_IDENTICATION_PK = 5
+
     export_order_form = ExportOrderForm()
 
     if request.method == "POST":
@@ -514,10 +519,20 @@ def export_order_action(request, export_shipment_code):
             export_order_form_obj.export_shipment_id = export_shipment_obj
             export_order_form_obj.save()
 
-            if current_warehouse_management_method.name == "Thực tế đích danh":
+            if current_warehouse_management_method.pk == SPECIFIC_IDENTICATION_PK:
                 return HttpResponseRedirect(reverse('choose_type_of_inventory', kwargs={'export_order_id': export_order_form_obj.id}))
-        
-            handling_exporting_action(export_order_form_obj.id)
+            
+            if current_warehouse_management_method.pk == WEIGHTED_AVERAGE_PK:
+                return HttpResponseRedirect(reverse('weighted_average', kwargs={'export_order_id': export_order_form_obj.id}))
+            
+            export_order_obj = ExportOrder.objects.select_related('export_shipment_id', 'product_id').get(pk=export_order_form_obj.id)
+
+            if current_warehouse_management_method.pk == LIFO_PK:
+                LIFO(export_order_obj)
+
+            if current_warehouse_management_method.pk == FIFO_PK:
+                FIFO(export_order_obj)
+                
             return HttpResponseRedirect(reverse('complete_export_order_by_inventory', kwargs={'export_order_id': export_order_form_obj.id}))
 
         return HttpResponse("Invalid Form", content_type="text/plain")
@@ -782,6 +797,27 @@ def update_export_order_value_for_actual_method_by_name(export_order_id):
             )
     except IntegrityError:
         raise Exception("Integrity Bug")
+
+def weighted_average(request, export_order_id):
+    try:
+        export_order_obj = ExportOrder.objects.select_related('export_shipment_id', 'product_id').get(pk=export_order_id)
+    except ExportOrder.DoesNotExist:
+        raise Exception("Không tồn tại mã đơn hàng xuất kho")
+    
+    weighted_average_cost_info = weighted_average_constantly(export_order_obj)
+    completing_weighted_average_constantly_method(export_order_obj, weighted_average_cost_info["export_price"])
+
+    export_order_details_obj = ExportOrderDetail.objects.select_related('export_order_id', 'import_purchase_id').filter(export_order_id__pk=export_order_obj.pk)
+
+    context = {
+        'export_order_obj': export_order_obj,
+        'export_shipment_code': export_order_obj.export_shipment_id.export_shipment_code,
+        'export_shipment_value': export_order_obj.export_shipment_id.total_shipment_value,
+        'export_order_details': export_order_details_obj,
+        'weighted_average_cost_info': weighted_average_cost_info
+    }
+
+    return render(request, "major_features/export/complete_export_by_inventory.html", context)
 
 def complete_export_order_by_inventory(request, export_order_id):
 

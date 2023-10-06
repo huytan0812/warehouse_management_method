@@ -43,6 +43,10 @@ urlpatterns = [
           views.complete_export_order_by_inventory,
           name="complete_export_order_by_inventory"),
 
+     path("export_action/weighted_average/<int:export_order_id>",
+          views.weighted_average,
+          name="weighted_average"),
+
      # Reports section
      path("reports", views.reports, name="reports"),
      path("reports/revenue", views.reports_revenue, name="reports_revenue"),
