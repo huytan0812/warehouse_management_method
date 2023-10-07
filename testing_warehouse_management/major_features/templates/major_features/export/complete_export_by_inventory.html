@@ -74,7 +74,7 @@
     <li><strong>Tổng SL sản phẩm được xuất kho: </strong>{{ weighted_average_cost_info.current_quantity_export|intcomma }}</li>
     <li><strong>Tổng giá trị HTK trước lần xuất kho đơn hàng trên: </strong>{{ weighted_average_cost_info.total_inventory_before_export_order|intcomma }}</li>
     <li><strong>Tổng SL HTK trước lần xuất kho đơn hàng trên: </strong>{{ weighted_average_cost_info.total_quantity_before_export_order|intcomma }}</li>
-    <li><strong>Giá xuất kho: </strong>{{ weighted_average_cost_info.total_quantity_before_export_order.export_price|intcomma }}</li>
+    <li><strong>Giá xuất kho: </strong>{{ weighted_average_cost_info.export_price|intcomma }}</li>
   </ul>
 </div>
 {% endif %}

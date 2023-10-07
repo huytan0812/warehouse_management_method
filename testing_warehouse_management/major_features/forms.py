@@ -84,6 +84,26 @@ class ExportOrderForm(ModelForm):
             'unit_price': "Đơn giá bán",
         }
 
+    def clean_quantity_export(self):
+        quantity_export = self.cleaned_data["quantity_export"]
+        if 'product_id' in self.cleaned_data:
+            product = self.cleaned_data["product_id"]
+            current_accounting_period = AccoutingPeriod.objects.latest('id')
+            product_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').get(
+                accounting_period_id = current_accounting_period,
+                product_id = product
+            )
+            if product_inventory.ending_quantity < quantity_export:
+                raise ValidationError(
+                    gettext_lazy("SLCL của sản phẩm %(product)s nhỏ hơn SL xuất kho của đơn hàng"),
+                    params = {'product': product}
+                )
+            
+        return quantity_export
+        
+            
+        
+
 class FilteringInventory(forms.Form):
 
     # ImportShipment model
