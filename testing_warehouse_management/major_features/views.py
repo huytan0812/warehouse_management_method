@@ -133,7 +133,7 @@ def date_handling(request):
 # Import Shipment Section
 def import_shipments(request):
 
-    import_shipments = ImportShipment.objects.select_related('supplier_id').order_by('-date')
+    import_shipments = ImportShipment.objects.select_related('supplier_id').order_by('-date', '-id')
     import_shipments_paginator = Paginator(import_shipments, 10)
 
     page_number = request.GET.get("page")
@@ -149,7 +149,7 @@ def import_shipments(request):
 
 def import_shipment_details(request, import_shipment_code):
     import_shipment_obj = ImportShipment.objects.get(import_shipment_code=import_shipment_code)
-    import_shipment_purchases = ImportPurchase.objects.select_related('product_id').filter(import_shipment_id=import_shipment_obj).order_by('product_id__name')
+    import_shipment_purchases = ImportPurchase.objects.select_related('product_id').filter(import_shipment_id=import_shipment_obj).order_by('product_id__name', '-id')
 
     products_purchase_value = {}
 

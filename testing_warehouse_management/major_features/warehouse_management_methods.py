@@ -112,6 +112,7 @@ def weighted_average_constantly(export_order_obj):
     total_inventory_before_export_order = product_starting_inventory + product_current_import_inventory - product_current_cogs
     total_quantity_before_export_order = product_starting_quantity + product_current_import_quantity - product_current_quantity_export
 
+    unround_export_price = total_inventory_before_export_order / total_quantity_before_export_order
     export_price = round(total_inventory_before_export_order / total_quantity_before_export_order)
 
     product_inventory_container = {
@@ -123,6 +124,7 @@ def weighted_average_constantly(export_order_obj):
         'current_quantity_export': product_current_quantity_export,
         'total_inventory_before_export_order': total_inventory_before_export_order,
         'total_quantity_before_export_order': total_quantity_before_export_order,
+        'unround_export_price': unround_export_price,
         'export_price': export_price
     }
 
