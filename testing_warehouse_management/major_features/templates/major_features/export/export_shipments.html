@@ -53,7 +53,91 @@
 
 {% block body %}
 <p>Phương pháp xác định giá trị hàng tồn kho đang được chọn: <strong>{{ current_method.name }}</strong></p>
-<h3>Trang theo dõi các lô hàng xuất kho theo ngày: {{ datepicker|date:"d/m/Y" }}</h3>
+<h3 style="text-align: center;">Theo dõi các lô hàng xuất kho</h3>
+
+<div id="export-shipment-container" style="margin-top: 15px;">
+    <table class="table table-bordered table-striped table-dark w-auto" style="margin: auto;">
+        <thead>
+          <tr>
+            <th scope="col">Mã lô hàng</th>
+            <th scope="col">Xuất cho đại lý</th>
+            <th scope="col">Ngày xuất kho</th>
+            <th scope="col">Tổng giá trị lô hàng (Đơn vị tính: VND)</th>
+            <th scope="col">Theo dõi chi tiết</th>
+            <th scope="col">Trạng thái</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for export_shipment in page_obj %}
+          <tr>
+            <td style="text-align: left;">{{ export_shipment.export_shipment_code }}</td>
+            <td style="text-align: left;">{{ export_shipment.agency_id.name }}</td>
+            <td style="text-align: left;">{{ export_shipment.date }}</td>
+            <td style="text-align: right;">{{ export_shipment.total_shipment_value|intcomma }}</td>
+
+            {% if export_shipment.total_shipment_value > 0 %}
+            <td><a href="{% url 'export_shipment_details' export_shipment.export_shipment_code %}">Lô hàng</a></td>
+            <td style="color: #c3e6cb">Đã hoàn tất</td>
+            {% else %}
+            <td>
+              <a href="#">
+                Xóa  
+              </a>
+              <span> / </span>
+              <a href="#">
+                Tiếp tục
+              </a>
+            </td>
+            <td style="color: #f5c6cb;">Chưa hoàn tất</td>
+            {% endif %}
+
+          </tr>
+          {% endfor %}
+        </tbody>
+        <tfoot>
+          <tr>
+            <td  style="color: #0d6efd; background-color: white !important;"><strong>Kết quả: </strong>
+              {{ results_count }} dòng
+            </td>
+            <td colspan="5" style="text-align: right; background-color: white !important;">
+
+              <nav aria-label="Page navigation example" style="display: inline-block; position: static;">
+              <ul class="pagination" style="margin-top: 15px;">
+
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                  <a class="page-link" href="?page={{page_obj.previous_page_number}}" aria-label="Previous">
+                {% else %}
+                <li class="page-item disabled">
+                  <a class="page-link" href="#" aria-label="Previous">
+                {% endif %}
+                    <span aria-hidden="true">&laquo;</span>
+                    <span class="sr-only">Trước</span>
+                  </a>
+                </li>
+
+                <li class="page-item">
+                  <span class="page-link">Trang {{ page_obj.number }} trong {{ page_obj.paginator.num_pages }}</span>
+                </li>
+
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                  <a class="page-link" href="?page={{page_obj.next_page_number}}" aria-label="Next">
+                {% else %}
+                <li class="page-item disabled">
+                  <a class="page-link" href="#" aria-label="Next">
+                {% endif %}
+                    <span aria-hidden="true">&raquo;</span>
+                    <span class="sr-only">Sau</span>
+                  </a>
+                </li>
+              </ul>
+              </nav>
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+</div>
 
 <a href="{% url 'export_action' %}">Thực hiện xuất kho lô hàng</a>
 {% endblock %}

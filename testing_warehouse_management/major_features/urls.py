@@ -22,6 +22,7 @@ urlpatterns = [
 
      # Export section
      path("export_shipments", views.export_shipments, name="export_shipments"),
+     path("export_shipment_details/<str:export_shipment_code>", views.export_shipment_details, name="export_shipment_details"),
      path("export_action", views.export_action, name="export_action"),
      path("export_action_complete/<str:export_shipment_code>", views.export_action_complete, name="export_action_complete"),
      path("export_action/export_order_action/<str:export_shipment_code>", views.export_order_action, name="export_order_action"),

@@ -133,7 +133,7 @@ def date_handling(request):
 # Import Shipment Section
 def import_shipments(request):
 
-    import_shipments = ImportShipment.objects.select_related('supplier_id').order_by('-date', '-id')
+    import_shipments = ImportShipment.objects.select_related('supplier_id').all().order_by('-date', '-id')
     import_shipments_paginator = Paginator(import_shipments, 10)
 
     page_number = request.GET.get("page")
@@ -149,7 +149,7 @@ def import_shipments(request):
 
 def import_shipment_details(request, import_shipment_code):
     import_shipment_obj = ImportShipment.objects.get(import_shipment_code=import_shipment_code)
-    import_shipment_purchases = ImportPurchase.objects.select_related('product_id').filter(import_shipment_id=import_shipment_obj).order_by('product_id__name', '-id')
+    import_shipment_purchases = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').filter(import_shipment_id=import_shipment_obj).order_by('product_id__name', '-id')
 
     products_purchase_value = {}
 
@@ -383,7 +383,7 @@ def export_shipments(request):
     Rendering all export shipments paginately
     """
 
-    export_shipments = ExportShipment.objects.select_related('agency_id')
+    export_shipments = ExportShipment.objects.select_related('agency_id').all().order_by('-date', '-id')
     export_shipments_paginator = Paginator(export_shipments, 10)
     page_number = request.GET.get("page")
     page_obj = export_shipments_paginator.get_page(page_number)
@@ -397,6 +397,23 @@ def export_shipments(request):
         'results_count': results_count
     }
     return render(request, "major_features/export/export_shipments.html", context)
+
+def export_shipment_details(request, export_shipment_code):
+    export_shipment_obj = ExportShipment.objects.get(export_shipment_code=export_shipment_code)
+    export_shipment_orders = ExportOrder.objects.select_related('export_shipment_id', 'product_id').filter(export_shipment_id=export_shipment_obj).order_by(
+        'product_id__name', 
+        '-id')
+
+    context = {
+        'export_shipment_obj': export_shipment_obj,
+        'export_shipment_code': export_shipment_obj.export_shipment_code,
+        'agency': export_shipment_obj.agency_id.name,
+        'export_shipment_date': export_shipment_obj.date,
+        'export_shipment_orders': export_shipment_orders,
+        'export_shipment_value': export_shipment_obj.total_shipment_value,
+    }
+
+    return render(request, "major_features/export/export_action_complete.html", context)
 
 # Export Action Section
 
