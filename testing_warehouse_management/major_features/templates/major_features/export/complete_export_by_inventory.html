@@ -58,7 +58,7 @@
   <ul>
     <li><strong style="color: black;">Mã lô hàng xuất kho:</strong> {{ export_shipment_code }}</li>
     <li><strong style="color: black;">Mã đơn hàng xuất kho:</strong> {{ export_order_obj.pk }}</li>
-    <li><strong style="color: black;">Xuất kho sản phẩm:</strong> {{ export_order_obj.product_id.name }} với đơn giá bán là {{ export_order_obj.unit_price }}/sp </li>
+    <li><strong style="color: black;">Xuất kho sản phẩm:</strong> {{ export_order_obj.product_id.name }} với đơn giá bán là {{ export_order_obj.unit_price|intcomma }}/sp </li>
   </ul>
 </div>
 
@@ -81,6 +81,7 @@
 {% endif %}
 
 <table class="table table-bordered table-striped table-dark w-auto" style="margin: auto;">
+  <caption>Chi tiết đơn hàng xuất kho {{ export_order_obj.pk }}</caption>
   <thead>
     <tr>
       <th scope="col">Mã đơn hàng nhập kho</th>
@@ -108,6 +109,32 @@
     </tr>
   </tfoot>
 </table>
+
+<div id="export_shipment_orders" style="margin-top: 20px;">
+<table class="table table-bordered table-striped table-dark w-auto" style="margin: auto;">
+  <caption>Chi tiết lô hàng xuất kho {{ export_shipment_code }}</caption>
+    <thead>
+      <tr>
+        <th scope="col">Sản phẩm</th>
+        <th scope="col">Đơn giá bán</th>
+        <th scope="col">Số lượng xuất kho</th>
+        <th scope="col">GVHB</th>
+        <th scope="col">Theo dõi</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for export_order in export_shipment_orders %}
+      <tr>
+        <td>{{ export_order.product_id.name }}</td>
+        <td>{{ export_order.unit_price|intcomma }}</td>
+        <td>{{ export_order.quantity_export}}</td>
+        <td>{{ export_order.total_order_value|intcomma }}</td>
+        <td><a href="{% url 'complete_export_order_by_inventory' export_order.pk %}">Chi tiết đơn hàng</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
 
 {% if export_shipment_value == 0 %}
 <p>

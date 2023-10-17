@@ -845,6 +845,11 @@ def update_export_order_value_for_actual_method_by_name(export_order_id):
         raise Exception("Integrity Bug")
 
 def weighted_average(request, export_order_id):
+    """
+    'complete_export_order_by_inventory for displaying export price calculation info
+    for weighted average method
+    """
+
     try:
         export_order_obj = ExportOrder.objects.select_related('export_shipment_id', 'product_id').get(pk=export_order_id)
     except ExportOrder.DoesNotExist:
@@ -855,12 +860,19 @@ def weighted_average(request, export_order_id):
 
     export_order_details_obj = ExportOrderDetail.objects.select_related('export_order_id', 'import_purchase_id').filter(export_order_id__pk=export_order_obj.pk)
 
+    export_shipment_obj = export_order_obj.export_shipment_id
+    export_shipment_orders = ExportOrder.objects.select_related('export_shipment_id', 'product_id').filter(
+        export_shipment_id__export_shipment_code = export_shipment_obj.export_shipment_code
+    )
+
+
     context = {
         'export_order_obj': export_order_obj,
-        'export_shipment_code': export_order_obj.export_shipment_id.export_shipment_code,
-        'export_shipment_value': export_order_obj.export_shipment_id.total_shipment_value,
+        'export_shipment_code': export_shipment_obj.export_shipment_code,
+        'export_shipment_value': export_shipment_obj.total_shipment_value,
         'export_order_details': export_order_details_obj,
-        'weighted_average_cost_info': weighted_average_cost_info
+        'weighted_average_cost_info': weighted_average_cost_info,
+        'export_shipment_orders': export_shipment_orders
     }
 
     return render(request, "major_features/export/complete_export_by_inventory.html", context)
@@ -871,14 +883,20 @@ def complete_export_order_by_inventory(request, export_order_id):
         export_order_obj = ExportOrder.objects.select_related('export_shipment_id', 'product_id').get(pk=export_order_id)
     except ExportOrder.DoesNotExist:
         raise Exception("Mã đơn hàng xuất kho không tồn tại")
-    
+
     export_order_details_obj = ExportOrderDetail.objects.select_related('export_order_id', 'import_purchase_id').filter(export_order_id__pk=export_order_obj.pk)
+
+    export_shipment_obj = export_order_obj.export_shipment_id
+    export_shipment_orders = ExportOrder.objects.select_related('export_shipment_id', 'product_id').filter(
+        export_shipment_id__export_shipment_code = export_shipment_obj.export_shipment_code
+    )
     
     context = {
         'export_order_obj': export_order_obj,
-        'export_shipment_code': export_order_obj.export_shipment_id.export_shipment_code,
-        'export_shipment_value': export_order_obj.export_shipment_id.total_shipment_value,
-        'export_order_details': export_order_details_obj
+        'export_shipment_code': export_shipment_obj.export_shipment_code,
+        'export_shipment_value': export_shipment_obj.total_shipment_value,
+        'export_order_details': export_order_details_obj,
+        'export_shipment_orders': export_shipment_orders
     }
 
     return render(request, "major_features/export/complete_export_by_inventory.html", context)
