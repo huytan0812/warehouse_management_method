@@ -54,9 +54,15 @@
 
 {% block body %}
 <div>
-    <p>Mã lô hàng xuất kho: <strong>{{ export_shipment_code }}</strong></p>
-    <p>Phân phối lô hàng cho đại lý: <strong>{{ agency }}</strong></p>
-    <p>Ngày xuất kho lô hàng: <strong>{{ export_shipment_date }}</strong></p>
+  <ul>
+    <li><strong style="color: black;">Kỳ kế toán: </strong>bắt đầu từ ngày {{ export_shipment_accounting_period.date_applied|date:"d/m/Y" }} 
+      cho tới ngày {{ export_shipment_accounting_period.date_end|date:"d/m/Y" }}
+    </li>
+    <li><strong style="color: black;">Phương pháp xác định giá trị HTK: </strong>{{ export_shipment_accounting_period.warehouse_management_method.name }}</li>
+    <li><strong style="color: black;">Mã lô hàng xuất kho: </strong>{{ export_shipment_code }}</li>
+    <li><strong style="color: black;">Phân phối lô hàng cho đại lý: </strong>{{ agency }}</li>
+    <li><strong style="color: black;">Ngày xuất kho lô hàng: </strong>{{ export_shipment_date|date:"d/m/Y" }}</li>
+  </ul>
 </div>
 
 <table class="table table-bordered table-striped table-dark w-auto" style="margin: auto;">
@@ -73,7 +79,7 @@
       {% for export_order in export_shipment_orders %}
       <tr>
         <td>{{ export_order.product_id.name }}</td>
-        <td>{{ export_order.unit_price }}</td>
+        <td>{{ export_order.unit_price|intcomma }}</td>
         <td>{{ export_order.quantity_export}}</td>
         <td>{{ export_order.total_order_value|intcomma }}</td>
         <td><a href="{% url 'complete_export_order_by_inventory' export_order.pk %}">Chi tiết đơn hàng</a></td>

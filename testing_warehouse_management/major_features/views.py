@@ -140,7 +140,19 @@ def import_shipments(request):
     page_obj = import_shipments_paginator.get_page(page_number)
 
     results_count = page_obj.end_index() - page_obj.start_index() + 1
+
+    current_accounting_period = AccoutingPeriod.objects.select_related('warehouse_management_method').latest('id')
+    
+    current_products_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').filter(
+        accounting_period_id = current_accounting_period
+    )
+    current_total_import_inventory = current_products_inventory.aggregate(Sum('import_inventory')).get('import_inventory__sum', 0)
+    current_total_import_quantity = current_products_inventory.aggregate(Sum('import_quantity')).get('import_quantity__sum', 0)
+
     context = {
+        'current_method': current_accounting_period.warehouse_management_method,
+        'current_total_import_inventory': current_total_import_inventory,
+        'current_total_import_quantity': current_total_import_quantity,
         'import_shipments': import_shipments,
         'page_obj': page_obj,
         'results_count': results_count
@@ -390,19 +402,34 @@ def export_shipments(request):
 
     results_count = page_obj.end_index() - page_obj.start_index() + 1
 
-    current_method = WarehouseManagementMethod.objects.filter(is_currently_applied=True)
+    current_accounting_period = AccoutingPeriod.objects.select_related('warehouse_management_method').latest('id')
+
+    current_products_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').filter(
+        accounting_period_id = current_accounting_period
+    )
+    current_total_cogs = current_products_inventory.aggregate(Sum('total_cogs')).get('total_cogs__sum', 0)
+    current_total_quantity_export = current_products_inventory.aggregate(Sum('total_quantity_export')).get('total_quantity_export__sum', 0)
+
     context = {
-        'current_method': current_method,
+        'current_method': current_accounting_period.warehouse_management_method,
+        'current_total_cogs': current_total_cogs,
+        'current_total_quantity_export': current_total_quantity_export,
         'page_obj': page_obj,
         'results_count': results_count
     }
     return render(request, "major_features/export/export_shipments.html", context)
 
 def export_shipment_details(request, export_shipment_code):
-    export_shipment_obj = ExportShipment.objects.get(export_shipment_code=export_shipment_code)
+    try:
+        export_shipment_obj = ExportShipment.objects.select_related('current_accounting_period', 'agency_id').get(export_shipment_code=export_shipment_code)
+    except ExportShipment.DoesNotExist:
+        raise Exception("Không tồn tại mã lô hàng xuất kho")
+    
     export_shipment_orders = ExportOrder.objects.select_related('export_shipment_id', 'product_id').filter(export_shipment_id=export_shipment_obj).order_by(
         'product_id__name', 
         '-id')
+
+    export_shipment_accounting_period = export_shipment_obj.current_accounting_period
 
     context = {
         'export_shipment_obj': export_shipment_obj,
@@ -411,6 +438,7 @@ def export_shipment_details(request, export_shipment_code):
         'export_shipment_date': export_shipment_obj.date,
         'export_shipment_orders': export_shipment_orders,
         'export_shipment_value': export_shipment_obj.total_shipment_value,
+        'export_shipment_accounting_period': export_shipment_accounting_period
     }
 
     return render(request, "major_features/export/export_action_complete.html", context)
@@ -452,7 +480,7 @@ def export_action(request):
 @cache_control(no_cache=True, must_revalidate=True)
 @transaction.atomic()
 def export_action_complete(request, export_shipment_code):
-    export_shipment_obj = ExportShipment.objects.select_related('agency_id').select_for_update(of=("self",)).filter(
+    export_shipment_obj = ExportShipment.objects.select_related('current_accounting_period', 'agency_id').select_for_update(of=("self",)).filter(
         export_shipment_code = export_shipment_code
     )
 
@@ -464,7 +492,7 @@ def export_action_complete(request, export_shipment_code):
 
     export_orders = ExportOrder.objects.select_related('export_shipment_id', 'product_id').filter(
         export_shipment_id = export_shipment_obj[0]
-    )
+    ).order_by('product_id__name', '-id')
 
     product_export_containers = {}
     total_shipment_value = 0
@@ -481,7 +509,7 @@ def export_action_complete(request, export_shipment_code):
             product_export_container['total_order_value'] += export_order.total_order_value
         total_shipment_value += export_order.total_order_value
     
-    current_accounting_period = AccoutingPeriod.objects.latest('id')
+    current_accounting_period = AccoutingPeriod.objects.select_related('warehouse_management_method').latest('id')
 
     try:
         with transaction.atomic():
@@ -506,7 +534,8 @@ def export_action_complete(request, export_shipment_code):
         'agency': export_shipment_obj[0].agency_id.name,
         'export_shipment_date': export_shipment_obj[0].date,
         'export_shipment_orders': export_orders,
-        'export_shipment_value': total_shipment_value
+        'export_shipment_value': total_shipment_value,
+        'export_shipment_accounting_period': current_accounting_period
     }
 
     return render(request, "major_features/export/export_action_complete.html", context)

@@ -52,7 +52,17 @@
 {% endblock %}
 
 {% block body %}
-<p>Phương pháp xác định giá trị hàng tồn kho đang được chọn: <strong>{{ current_method.name }}</strong></p>
+<ul>
+  <li><strong style="color: black;">Phương pháp xác định giá trị hàng tồn kho đang được chọn: </strong>{{ current_method.name }}</li>
+  <li>
+    <strong style="color: black;">Tổng giá trị xuất kho của toàn bộ sản phẩm trong kỳ: </strong>{{ current_total_cogs|intcomma }} / 
+    <a href="#">Xem chi tiết</a>
+  </li>
+  <li>
+    <strong style="color: black;">Tổng số lượng xuất kho của toàn bộ sản phẩm trong kỳ: </strong>{{ current_total_quantity_export|intcomma }} / 
+    <a href="#">Xem chi tiết</a>
+  </li>
+</ul>
 <h3 style="text-align: center;">Theo dõi các lô hàng xuất kho</h3>
 
 <div id="export-shipment-container" style="margin-top: 15px;">
@@ -72,7 +82,7 @@
           <tr>
             <td style="text-align: left;">{{ export_shipment.export_shipment_code }}</td>
             <td style="text-align: left;">{{ export_shipment.agency_id.name }}</td>
-            <td style="text-align: left;">{{ export_shipment.date }}</td>
+            <td style="text-align: left;">{{ export_shipment.date|date:"d/m/Y" }}</td>
             <td style="text-align: right;">{{ export_shipment.total_shipment_value|intcomma }}</td>
 
             {% if export_shipment.total_shipment_value > 0 %}

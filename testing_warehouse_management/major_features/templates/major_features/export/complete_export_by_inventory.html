@@ -56,9 +56,9 @@
 
 <div>
   <ul>
-    <li><strong>Mã lô hàng xuất kho:</strong> {{ export_shipment_code }}</li>
-    <li><strong>Mã đơn hàng xuất kho:</strong> {{ export_order_obj.pk }}</li>
-    <li><strong>Xuất kho sản phẩm:</strong> {{ export_order_obj.product_id.name }} với đơn giá bán là {{ export_order_obj.unit_price }}/sp </li>
+    <li><strong style="color: black;">Mã lô hàng xuất kho:</strong> {{ export_shipment_code }}</li>
+    <li><strong style="color: black;">Mã đơn hàng xuất kho:</strong> {{ export_order_obj.pk }}</li>
+    <li><strong style="color: black;">Xuất kho sản phẩm:</strong> {{ export_order_obj.product_id.name }} với đơn giá bán là {{ export_order_obj.unit_price }}/sp </li>
   </ul>
 </div>
 
@@ -66,16 +66,16 @@
 <div>
   <strong>Giá xuất kho của đơn hàng xuất kho {{ export_order_obj.pk }} được tính dựa trên các thành phần sau:</strong>
   <ul>
-    <li><strong>Giá trị HTK đầu kỳ: </strong>{{ weighted_average_cost_info.starting_inventory|intcomma }}</li>
-    <li><strong>SL HTK đầu kỳ: </strong>{{ weighted_average_cost_info.starting_quantity|intcomma }}</li>
-    <li><strong>Giá trị HTK được nhập trong kỳ: </strong>{{ weighted_average_cost_info.current_import_inventory|intcomma }}</li>
-    <li><strong>SL được nhập trong kỳ: </strong>{{ weighted_average_cost_info.current_import_quantity|intcomma }}</li>
-    <li><strong>Tổng GVHB trong kỳ: </strong>{{ weighted_average_cost_info.current_cogs|intcomma }}</li>
-    <li><strong>Tổng SL sản phẩm được xuất kho: </strong>{{ weighted_average_cost_info.current_quantity_export|intcomma }}</li>
-    <li><strong>Tổng giá trị HTK trước lần xuất kho đơn hàng trên: </strong>{{ weighted_average_cost_info.total_inventory_before_export_order|intcomma }}</li>
-    <li><strong>Tổng SL HTK trước lần xuất kho đơn hàng trên: </strong>{{ weighted_average_cost_info.total_quantity_before_export_order|intcomma }}</li>
-    <li><strong>Giá xuất kho chưa làm tròn: </strong>{{ weighted_average_cost_info.unround_export_price|intcomma }}</li>
-    <li><strong>Giá xuất kho: </strong>{{ weighted_average_cost_info.export_price|intcomma }}</li>
+    <li><strong style="color: black;">Giá trị HTK đầu kỳ: </strong>{{ weighted_average_cost_info.starting_inventory|intcomma }}</li>
+    <li><strong style="color: black;">SL HTK đầu kỳ: </strong>{{ weighted_average_cost_info.starting_quantity|intcomma }}</li>
+    <li><strong style="color: black;">Giá trị HTK được nhập trong kỳ: </strong>{{ weighted_average_cost_info.current_import_inventory|intcomma }}</li>
+    <li><strong style="color: black;">SL được nhập trong kỳ: </strong>{{ weighted_average_cost_info.current_import_quantity|intcomma }}</li>
+    <li><strong style="color: black;">Tổng GVHB trong kỳ: </strong>{{ weighted_average_cost_info.current_cogs|intcomma }}</li>
+    <li><strong style="color: black;">Tổng SL sản phẩm được xuất kho: </strong>{{ weighted_average_cost_info.current_quantity_export|intcomma }}</li>
+    <li><strong style="color: black;">Tổng giá trị HTK trước lần xuất kho đơn hàng trên: </strong>{{ weighted_average_cost_info.total_inventory_before_export_order|intcomma }}</li>
+    <li><strong style="color: black;">Tổng SL HTK trước lần xuất kho đơn hàng trên: </strong>{{ weighted_average_cost_info.total_quantity_before_export_order|intcomma }}</li>
+    <li><strong style="color: black;">Giá xuất kho chưa làm tròn: </strong>{{ weighted_average_cost_info.unround_export_price|intcomma }}</li>
+    <li><strong style="color: black;">Giá xuất kho: </strong>{{ weighted_average_cost_info.export_price|intcomma }}</li>
   </ul>
 </div>
 {% endif %}
