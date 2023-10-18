@@ -43,30 +43,6 @@ def index(request):
 
     return render(request, "major_features/index.html", context)
 
-def reports(request):
-
-    context = {}
-
-    current_accounting_period_id = AccoutingPeriod.objects.aggregate(Max('id')).get("id__max", 0)
-
-    # Handling inventory at the starting of an accounting period
-    accounting_periods_id = AccoutingPeriod.objects.exclude(pk=current_accounting_period_id).values_list('id', flat=True)
-    if len(accounting_periods_id) >= 1:
-        import_shipments_id = ImportShipment.objects.filter(current_accounting_period__in=accounting_periods_id).values_list('id', flat=True)
-        import_purchases = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').filter(import_shipment_id__in=import_shipments_id,
-                                                                                                            quantity_remain__gt=0)
-        products_inventory = {}
-        for purchase in import_purchases:
-            if purchase.product_id.name not in products_inventory:
-                products_inventory[purchase.product_id.name] = {'quantity_remain': purchase.quantity_remain, 
-                                                                'inventory_value': purchase.quantity_remain * purchase.import_cost}
-            else:
-                products_inventory[purchase.product_id.name]['quantity_remain'] += purchase.quantity_remain
-                products_inventory[purchase.product_id.name]['inventory_value'] += purchase.quantity_remain * purchase.import_cost
-        context['products_inventory'] = products_inventory
-    
-    return render(request, "major_features/reports/reports.html", context)
-
 def reports_revenue(request):
     context = {}
     return render(request, "major_features/reports/revenue.html", context)

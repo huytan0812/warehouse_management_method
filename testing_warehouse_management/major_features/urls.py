@@ -49,7 +49,6 @@ urlpatterns = [
           name="weighted_average"),
 
      # Reports section
-     path("reports", views.reports, name="reports"),
      path("reports/revenue", views.reports_revenue, name="reports_revenue"),
      path("reports/import_section", views.reports_import_section, name="reports_import_section"),
      path("reports/export_section", views.reports_export_section, name="reports_export_section"),
