@@ -37,8 +37,25 @@
             </li>
           </ul>
         </li>
-        <li class="nav-item" style="padding: 2.5px 5px 2.5px 5px;">
+        <li class="nav-item dropdown-trigger" style="padding: 2.5px 5px 2.5px 5px;">
           <a class="nav-link" style="color: white;" href="{% url 'reports_revenue' %}">Thống kê</a>
+          <ul class="dropdown-ul">
+            <li class="nav-item dropdown-li">
+              <a class="nav-link" href="{% url 'reports_revenue' %}" style="color: white; text-decoration: none;">
+                Doanh thu
+              </a>
+            </li>
+            <li class="nav-item dropdown-li">
+              <a class="nav-link" href="{% url 'reports_import_section' %}" style="color: white; text-decoration: none;">
+                Nhập kho
+              </a>
+            </li>
+            <li class="nav-item dropdown-li">
+              <a class="nav-link" href="{% url 'reports_export_section' %}" style="color: white; text-decoration: none;">
+                Xuất kho
+              </a>
+            </li>
+          </ul>
         </li>
       </ul>
     </div>

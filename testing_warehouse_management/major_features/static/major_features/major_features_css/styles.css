@@ -130,3 +130,7 @@ input {
     border-radius: 4px;
     box-shadow: 0 0 10px #7CB9E8;
 }
+
+#columnchart_values{
+    display: block;
+}

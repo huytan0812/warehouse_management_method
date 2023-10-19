@@ -48,6 +48,13 @@ def reports_revenue(request):
     return render(request, "major_features/reports/revenue.html", context)
 
 def reports_import_section(request):
+    data_array = [
+        ["Copper", 8.94, "#b87333"],
+        ["Silver", 10.49, "silver"],
+        ["Gold", 19.30, "gold"],
+        ["Platinum", 21.45, "color: #e5e4e2"]
+      ]
+    
     context = {}
     return render(request, "major_features/reports/import_section.html", context)
 
