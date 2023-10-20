@@ -1,3 +1,4 @@
+import json
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render
 from datetime import date, datetime, timedelta
@@ -48,14 +49,35 @@ def reports_revenue(request):
     return render(request, "major_features/reports/revenue.html", context)
 
 def reports_import_section(request):
-    data_array = [
-        ["Copper", 8.94, "#b87333"],
-        ["Silver", 10.49, "silver"],
-        ["Gold", 19.30, "gold"],
-        ["Platinum", 21.45, "color: #e5e4e2"]
+    current_accounting_period = AccoutingPeriod.objects.select_related('warehouse_management_method').latest('id')
+    products_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').filter(
+        accounting_period_id = current_accounting_period
+    )
+
+    total_import_quantity = 0
+    total_import_inventory = 0
+
+    role = {'role': "style"}
+    import_inventory_data_arr = [
+        ["Sản phẩm", "Giá trị", role ]
+    ]
+    import_quantity_data_arr = [
+        ["Sản phẩm", "Số lượng", role ]
       ]
+
+    for product_inventory in products_inventory:
+        total_import_quantity += product_inventory.import_quantity
+        total_import_inventory += product_inventory.import_inventory
+        import_inventory_data_arr.append([product_inventory.product_id.name, product_inventory.import_inventory, "#01257D"])
+        import_quantity_data_arr.append([product_inventory.product_id.name, product_inventory.import_quantity, "#01257D"])
     
-    context = {}
+    context = {
+        'products_inventory': products_inventory,
+        'total_import_quantity': total_import_quantity,
+        'total_import_inventory': total_import_inventory,
+        'import_inventory_data_arr': import_inventory_data_arr,
+        'import_quantity_data_arr': import_quantity_data_arr
+    }
     return render(request, "major_features/reports/import_section.html", context)
 
 def reports_export_section(request):

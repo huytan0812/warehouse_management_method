@@ -70,41 +70,90 @@
 
 {% block body %}
 
-<div id="columnchart_values"></div>
+<div class="d-flex justify-content-center">
+  <table class="table table-bordered table-striped table-dark w-auto" style="margin: auto;">
+    <caption>Thống kê hàng hóa nhập kho</caption>
+    <thead>
+      <tr>
+        <th scope="col">Sản phẩm</th>
+        <th scope="col">Số lượng nhập kho</th>
+        <th scope="col">Giá trị nhập kho</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for product_inventory in products_inventory %}
+      <tr>
+        <td>{{ product_inventory.product_id.name }}</td>
+        <td style="text-align: right;">{{product_inventory.import_quantity|intcomma }}</td>
+        <td style="text-align: right;">{{product_inventory.import_inventory|intcomma }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+    <tfoot>
+      <tr>
+        <td style="color: #00FFFF"><strong>Tổng</strong></td>
+        <td style="color: #00FFFF; text-align: right;">{{ total_import_quantity|intcomma }}</td>
+        <td style="color: #00FFFF; text-align: right;">{{ total_import_inventory|intcomma }}</td>
+      </tr>
+    </tfoot>
+  </table>
+</div>
+
+<div class="d-flex justify-content-around">
+  <div id="import_inventory_columnchart"></div>
+  <div id="import_quantity_columnchart"></div>
+</div>
 
 {% endblock %}
 
 {% block script %}
+{{ import_inventory_data_arr|json_script:"import_inventory_data_arr" }}
+{{ import_quantity_data_arr|json_script:"import_quantity_data_arr" }}
+
 <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 <script type="text/javascript">
     google.charts.load("current", {packages:['corechart']});
     google.charts.setOnLoadCallback(drawChart);
-    function drawChart() {
-      var data = google.visualization.arrayToDataTable([
-        ["Sản phẩm", "Số lượng", { role: "style" } ],
-        ["Copper", 8.94, "#b87333"],
-        ["Silver", 10.49, "silver"],
-        ["Gold", 19.30, "gold"],
-        ["Platinum", 21.45, "color: #e5e4e2"]
-      ]);
 
-      var view = new google.visualization.DataView(data);
-      view.setColumns([0, 1,
+    const IMPORT_INVENTORY_DATA_ARR = JSON.parse(document.getElementById('import_inventory_data_arr').textContent);
+    const IMPORT_QUANTITY_DATA_ARR = JSON.parse(document.getElementById('import_quantity_data_arr').textContent);
+
+    function drawChart() {
+      var import_inventory_data = google.visualization.arrayToDataTable(IMPORT_INVENTORY_DATA_ARR)
+      var import_quantity_data = google.visualization.arrayToDataTable(IMPORT_QUANTITY_DATA_ARR);
+
+      var inventory_view = new google.visualization.DataView(import_inventory_data);
+      var quantity_view = new google.visualization.DataView(import_quantity_data);
+
+      var default_settings = [0, 1,
                        { calc: "stringify",
                          sourceColumn: 1,
                          type: "string",
                          role: "annotation" },
-                       2]);
+                       2]
 
-      var options = {
-        title: "Density of Precious Metals, in g/cm^3",
-        width: 600,
+      inventory_view.setColumns(default_settings);
+      quantity_view.setColumns(default_settings);
+
+      var default_options = {
+        title: "",
+        width: 500,
         height: 400,
         bar: {groupWidth: "95%"},
         legend: { position: "none" },
       };
-      var chart = new google.visualization.ColumnChart(document.getElementById("columnchart_values"));
-      chart.draw(view, options);
+
+      var inventory_options = default_options;
+      inventory_options["title"] = "Giá trị nhập kho của từng sản phẩm trong kỳ";
+
+      var import_inventory_chart = new google.visualization.ColumnChart(document.getElementById("import_inventory_columnchart"));
+      import_inventory_chart.draw(inventory_view, inventory_options);
+
+      var quantity_options = default_options;
+      quantity_options["title"] = "Số lượng nhập kho của từng sản phẩm trong kỳ";
+
+      var import_quantity_chart = new google.visualization.ColumnChart(document.getElementById("import_quantity_columnchart"));
+      import_quantity_chart.draw(quantity_view, quantity_options);
   }
 </script>
 {% endblock %}
