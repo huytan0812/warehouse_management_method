@@ -49,6 +49,19 @@ def reports_revenue(request):
     return render(request, "major_features/reports/revenue.html", context)
 
 def reports_import_section(request):
+    period_type = "accounting_period"
+    if request.GET.get("period_type", "") == "year":
+        period_type = "year"
+
+    if request.GET.get("period_type", "") == "quarter":
+        period_type = "quarter"
+
+    if request.GET.get("period_type", "") == "month":
+        period_type = "month"
+
+    if request.GET.get("period_type", "") == "day":
+        period_type = "day"
+
     current_accounting_period = AccoutingPeriod.objects.select_related('warehouse_management_method').latest('id')
     products_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').filter(
         accounting_period_id = current_accounting_period
@@ -72,6 +85,7 @@ def reports_import_section(request):
         import_quantity_data_arr.append([product_inventory.product_id.name, product_inventory.import_quantity, "#01257D"])
     
     context = {
+        'period_type': period_type,
         'products_inventory': products_inventory,
         'total_import_quantity': total_import_quantity,
         'total_import_inventory': total_import_inventory,
