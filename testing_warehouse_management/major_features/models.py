@@ -1,5 +1,6 @@
 from django.db import models
 from django.db.models import Q
+from django.contrib.auth.models import User
 
 # Create your models here.
 class WarehouseManagementMethod(models.Model):
@@ -56,6 +57,8 @@ class ImportShipment(models.Model):
     total_shipment_value = models.IntegerField(null=True, blank=True, default=0)
     current_accounting_period = models.ForeignKey(AccoutingPeriod, on_delete=models.CASCADE, null=True, blank=True,
                                                   related_name="%(class)s_following_import_shipments")
+    by_admin = models.ForeignKey(User, on_delete=models.PROTECT, null=True, blank=True,
+                                 related_name="%(class)s_created_import_shipments")
 
     def __str__(self):
         return f"{self.import_shipment_code}"
@@ -83,6 +86,8 @@ class ExportShipment(models.Model):
     total_shipment_value = models.IntegerField(null=True, blank=True, default=0)
     current_accounting_period = models.ForeignKey(AccoutingPeriod, on_delete=models.CASCADE, null=True, blank=True,
                                                   related_name="%(class)s_following_export_shipments")
+    by_admin = models.ForeignKey(User, on_delete=models.PROTECT, null=True, blank=True,
+                                 related_name="%(class)s_created_export_shipments")
 
     def __str__(self):
         return f"Export Shipment Id: {self.id}"

@@ -49,18 +49,24 @@ def reports_revenue(request):
     return render(request, "major_features/reports/revenue.html", context)
 
 def reports_import_section(request):
-    period_type = "accounting_period"
-    if request.GET.get("period_type", "") == "year":
-        period_type = "year"
+    unchosen_period_types = {
+        'year': "Năm",
+        'quarter': "Quý",
+        'month': "Tháng",
+        'day': "Ngày",
+        'accounting_period': "Kỳ kế toán"
+    }
+    DEFAULT_PERIOD_TYPE = "accounting_period"
+    chosen_period_type = request.GET.get("period_type", "")
 
-    if request.GET.get("period_type", "") == "quarter":
-        period_type = "quarter"
+    if chosen_period_type not in unchosen_period_types:
+        chosen_period_type = DEFAULT_PERIOD_TYPE
+    chosen_period_name = unchosen_period_types[chosen_period_type]
 
-    if request.GET.get("period_type", "") == "month":
-        period_type = "month"
-
-    if request.GET.get("period_type", "") == "day":
-        period_type = "day"
+    try:
+        del unchosen_period_types[chosen_period_type]
+    except KeyError:
+        print("Key not found")
 
     current_accounting_period = AccoutingPeriod.objects.select_related('warehouse_management_method').latest('id')
     products_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').filter(
@@ -85,7 +91,9 @@ def reports_import_section(request):
         import_quantity_data_arr.append([product_inventory.product_id.name, product_inventory.import_quantity, "#01257D"])
     
     context = {
-        'period_type': period_type,
+        'unchosen_period_types': unchosen_period_types,
+        'chosen_period_type': chosen_period_type,
+        'chosen_period_name': chosen_period_name,
         'products_inventory': products_inventory,
         'total_import_quantity': total_import_quantity,
         'total_import_inventory': total_import_inventory,

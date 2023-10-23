@@ -58,6 +58,23 @@ footer {
     z-index: 1;
 }
 
+.dropdown-active {
+    position: absolute;
+    z-index: 1000;
+    display: block;
+    min-width: 10rem;
+    padding: 0.5rem 0;
+    margin: 0;
+    font-size: 1rem;
+    color: #212529;
+    text-align: left;
+    list-style: none;
+    background-color: #fff;
+    background-clip: padding-box;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    border-radius: 0.25rem;
+}
+
 input {
     border: 2px solid #01257D !important;
     border-radius: 4px;
@@ -133,4 +150,9 @@ input {
 
 #columnchart_values{
     display: block;
+}
+
+.inline-form {
+    display: flex !important;
+    flex-direction: row !important;
 }
