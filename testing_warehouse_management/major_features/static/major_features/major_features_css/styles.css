@@ -155,4 +155,10 @@ input {
 .inline-form {
     display: flex !important;
     flex-direction: row !important;
+    justify-content: flex-start;
+}
+
+.inline-form-label {
+    margin-left: 10px;
+    margin-right: 10px;
 }

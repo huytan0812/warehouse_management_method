@@ -84,51 +84,51 @@
       
     </ul>
   </div>
-  <div class="form-group row">
+  <div class="inline-form">
     {% if chosen_period_type == 'accounting_period' %}
-    <label for="{{ chosen_period_name }}" class="col-md-2 col-form-label">{{ chosen_period_name }}: </label>
-    <div class="form-group col-md-4">
-      <select name="{{ chosen_period_name }}" class="form-control" id="{{ chosen_period_name }}">
-        <option value=""></option>
+    <label for="{{ chosen_period_name }}" class="col-form-label inline-form-label">{{ chosen_period_name }}: </label>
+    <div>
+      <select name="{{ chosen_period_name }}" class="form-select select form-select-md" id="{{ chosen_period_name }}">
+        <option value="accounting_period">Kỳ kế toán</option>
       </select>
     </div>
     {% endif %}
 
     {% if chosen_period_type == 'year' %}
-    <label for="{{ chosen_period_name }}" class="col-md-2 col-form-label">{{ chosen_period_name }}: </label>
-    <div class="form-group col-md-4">
-      <select name="{{ chosen_period_name }}" class="form-control" id="{{ chosen_period_name }}">
-        <option value=""></option>
+    <label for="{{ chosen_period_name }}"  class="col-form-label inline-form-label">{{ chosen_period_name }}: </label>
+    <div>
+      <select name="{{ chosen_period_name }}" class="form-select select form-select-md" id="{{ chosen_period_name }}">
+        <option value="2023">2023</option>
       </select>
     </div>
     {% endif %}
 
     {% if chosen_period_type == 'quarter' %}
-    <label for="{{ chosen_period_name }}" class="col-md-2 col-form-label">{{ chosen_period_name }}: </label>
-    <div class="form-group col-md-4">
-      <select name="{{ chosen_period_name }}" class="form-control" id="{{ chosen_period_name }}">
-        <option value=""></option>
+    <label for="{{ chosen_period_name }}" class="col-form-label inline-form-label">{{ chosen_period_name }}: </label>
+    <div>
+      <select name="{{ chosen_period_name }}" class="form-select select form-select-md" id="{{ chosen_period_name }}">
+        <option value="quarter3">Quý 3</option>
       </select>
     </div>
     {% endif %}
 
     {% if chosen_period_type == 'month' %}
-    <label for="{{ chosen_period_name }}" class="col-sm-4 col-form-label">{{ chosen_period_name }}: </label>
-    <div class="col-sm-8">
+    <label for="{{ chosen_period_name }}" class="col-form-label inline-form-label">{{ chosen_period_name }}: </label>
+    <div>
       <input type="text" class="form-control" id="{{ chosen_period_name }}" placeholder="mm/yyyy">
     </div>
     {% endif %}
 
     {% if chosen_period_type == 'day' %}
-    <label for="{{ chosen_period_name }}" class="col-sm-4 col-form-label">{{ chosen_period_name }}: </label>
-    <div class="col-sm-8">
+    <label for="{{ chosen_period_name }}" class="col-form-label inline-form-label">{{ chosen_period_name }}: </label>
+    <div>
       <input type="date" class="form-control" id="{{ chosen_period_name }}" placeholder="dd/mm/yyyy">
     </div>
     {% endif %}
   </div>
 </div>
 
-<div class="d-flex justify-content-center">
+<div class="d-flex justify-content-center" style="margin-top: 15px !important;">
   <table class="table table-bordered table-striped table-dark w-auto" style="margin: auto;">
     <caption>Thống kê hàng hóa nhập kho</caption>
     <thead>
