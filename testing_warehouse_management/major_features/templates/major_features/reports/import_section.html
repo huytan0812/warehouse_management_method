@@ -85,11 +85,12 @@
     </ul>
   </div>
 
-  <form action="" class="inline-form">
+  <form action="{% url 'reports_import_section' %}" class="inline-form" method="GET">
+    <input type="hidden" name="period_type" value="{{ chosen_period_type }}">
     {% if chosen_period_type == 'accounting_period' %}
-    <label for="{{ chosen_period_name }}" class="col-form-label inline-margin">{{ chosen_period_name }}: </label>
+    <label for="{{ chosen_period_type }}" class="col-form-label inline-margin">{{ chosen_period_name }}: </label>
     <div>
-      <select name="{{ chosen_period_name }}" class="form-select select form-select-md" id="{{ chosen_period_name }}">
+      <select name="{{ chosen_period_type }}" class="form-select select form-select-md" id="{{ chosen_period_type }}">
         <option value="accounting_period">Kỳ kế toán</option>
       </select>
     </div>
@@ -97,9 +98,9 @@
     {% endif %}
 
     {% if chosen_period_type == 'year' %}
-    <label for="{{ chosen_period_name }}"  class="col-form-label inline-margin">{{ chosen_period_name }}: </label>
+    <label for="{{ chosen_period_type }}"  class="col-form-label inline-margin">{{ chosen_period_name }}: </label>
     <div class="d-flex flex-row">
-      <select name="{{ chosen_period_name }}" class="form-select select form-select-md inline-margin" id="{{ chosen_period_name }}">
+      <select name="{{ chosen_period_type }}" class="form-select select form-select-md inline-margin" id="{{ chosen_period_type }}">
         <option value="2023">2023</option>
       </select>
     </div>
@@ -107,9 +108,9 @@
     {% endif %}
 
     {% if chosen_period_type == 'quarter' %}
-    <label for="{{ chosen_period_name }}" class="col-form-label inline-margin">{{ chosen_period_name }}: </label>
+    <label for="{{ chosen_period_type }}" class="col-form-label inline-margin">{{ chosen_period_name }}: </label>
     <div class="d-flex flex-row">
-      <select name="{{ chosen_period_name }}" class="form-select select form-select-md inline-margin" id="{{ chosen_period_name }}">
+      <select name="{{ chosen_period_type }}" class="form-select select form-select-md inline-margin" id="{{ chosen_period_type }}">
         <option value="quarter3">Quý 3</option>
       </select>
     </div>
@@ -117,22 +118,27 @@
     {% endif %}
 
     {% if chosen_period_type == 'month' %}
-    <label for="{{ chosen_period_name }}" class="col-form-label inline-margin">{{ chosen_period_name }}: </label>
+    <label for="{{ chosen_period_type }}" class="col-form-label inline-margin">{{ chosen_period_name }}: </label>
     <div class="d-flex flex-row">
-      <select name="{{ chosen_period_name }}" class="form-select select form-select-md" id="{{ chosen_period_name }}">
+      <select name="{{ chosen_period_type }}" class="form-select select form-select-md" id="{{ chosen_period_type }}">
         {% for month, value in months.items %}
-        <option value="{{ month }}">{{ value }}</option>
+          {% if month == request.GET.month %}
+          <option value="{{ month }}" selected>{{ value }}</option>
+          {% else %}
+          <option value="{{ month }}">{{ value }}</option>
+          {% endif %}
         {% endfor %}
       </select>
-      <input type="text" class="form-control inline-margin" id="{{ chosen_period_name }}" placeholder="yyyy" value="2023" min="0">
+      <label for="month_year" class="col-form-label inline-margin">Năm: </label>
+      <input type="text" class="form-control inline-margin" name="month_year" id="month_year" placeholder="yyyy" value="{{ request.GET.month_year }}" min="0">
     </div>
     <button type="submit" class="btn btn-secondary btn-sm" style="font-size: 1rem;">Xác nhận</button>
     {% endif %}
 
     {% if chosen_period_type == 'day' %}
-    <label for="{{ chosen_period_name }}" class="col-form-label inline-margin">{{ chosen_period_name }}: </label>
+    <label for="{{ chosen_period_type }}" class="col-form-label inline-margin">{{ chosen_period_name }}: </label>
     <div class="d-flex flex-row">
-      <input type="date" class="form-control inline-margin" id="{{ chosen_period_name }}" placeholder="dd/mm/yyyy">
+      <input type="date" name="{{ chosen_period_type }}" class="form-control inline-margin" id="{{ chosen_period_type }}" placeholder="dd/mm/yyyy">
     </div>
     <button type="submit" class="btn btn-secondary btn-sm" style="font-size: 1rem;">Xác nhận</button>
     {% endif %}
