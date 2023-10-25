@@ -68,6 +68,29 @@ def reports_import_section(request):
     except KeyError:
         print("Key not found")
 
+    if chosen_period_type == 'year':
+        pass
+
+    if chosen_period_type == 'quarter':
+        pass
+
+    months = None
+    if chosen_period_type == 'month':
+        months = {
+            '1': "Tháng 1",
+            '2': "Tháng 2",
+            '3': "Tháng 3",
+            '4': "Tháng 4",
+            '5': "Tháng 5",
+            '6': "Tháng 6",
+            '7': "Tháng 7",
+            '8': "Tháng 8",
+            '9': "Tháng 9",
+            '10': "Tháng 10",
+            '11': "Tháng 11",
+            '12': "Tháng 12",
+        }
+
     current_accounting_period = AccoutingPeriod.objects.select_related('warehouse_management_method').latest('id')
     products_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').filter(
         accounting_period_id = current_accounting_period
@@ -94,6 +117,7 @@ def reports_import_section(request):
         'unchosen_period_types': unchosen_period_types,
         'chosen_period_type': chosen_period_type,
         'chosen_period_name': chosen_period_name,
+        'months': months if months else None,
         'products_inventory': products_inventory,
         'total_import_quantity': total_import_quantity,
         'total_import_inventory': total_import_inventory,

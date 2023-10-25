@@ -156,9 +156,10 @@ input {
     display: flex !important;
     flex-direction: row !important;
     justify-content: flex-start;
+    width: 100%;
 }
 
-.inline-form-label {
+.inline-margin {
     margin-left: 10px;
     margin-right: 10px;
 }
