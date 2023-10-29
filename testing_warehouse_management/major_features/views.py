@@ -75,6 +75,18 @@ def reports_import_section(request):
     context['chosen_period_type'] = chosen_period_type
     context['chosen_period_name'] = chosen_period_name
 
+    total_import_quantity = 0
+    total_import_inventory = 0
+
+    # JSON string for google chart
+    role = {'role': "style"}
+    import_inventory_data_arr = [
+        ["Sản phẩm", "Giá trị", role ]
+    ]
+    import_quantity_data_arr = [
+        ["Sản phẩm", "Số lượng", role ]
+    ]
+
     if chosen_period_type == 'accounting_period':
         default_accounting_period = AccoutingPeriod.objects.select_related('warehouse_management_method').latest('id')
         chosen_accounting_period_id = default_accounting_period.id
@@ -100,17 +112,6 @@ def reports_import_section(request):
 
         # Set product_inventory_count for couting product's period
         product_inventory_count = 0
-        total_import_quantity = 0
-        total_import_inventory = 0
-
-        # JSON string for google chart
-        role = {'role': "style"}
-        import_inventory_data_arr = [
-            ["Sản phẩm", "Giá trị", role ]
-        ]
-        import_quantity_data_arr = [
-            ["Sản phẩm", "Số lượng", role ]
-        ]
 
         for period in chosen_accounting_period_inventory:
             product_inventory_count += 1
@@ -156,8 +157,41 @@ def reports_import_section(request):
         context['months'] = months
 
     if chosen_period_type == 'day':
-        pass
+        date_param = request.GET.get("day", None)
 
+        date_param_to_python = None
+        if date_param:
+            try:
+                date_param_to_python = datetime.strptime(date_param, "%Y-%m-%d").date()
+            except ValueError:
+                raise Exception("Ngày không hợp lệ")
+
+        if date_param_to_python:
+            context['date_param_to_python'] = date_param_to_python
+            products = Product.objects.all()
+            for product in products:
+                product_import_purchases = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').filter(
+                    import_shipment_id__date = date_param_to_python,
+                    product_id = product.pk
+                )
+                product_import_quantity = product_import_purchases.aggregate(Sum('quantity_import')).get('quantity_import__sum', 0)
+                product_import_inventory = product_import_purchases.aggregate(Sum('value_import')).get('value_import__sum', 0)
+                
+                product_import_quantity = product_import_quantity if product_import_quantity else 0
+                product_import_inventory = product_import_inventory if product_import_inventory else 0
+
+                total_import_quantity += product_import_quantity
+                total_import_inventory += product_import_inventory
+
+                # Append JSON string to google chart array
+                import_inventory_data_arr.append([product.name, product_import_inventory, "#01257D"])
+                import_quantity_data_arr.append([product.name, product_import_quantity, "#01257D"])
+            
+            context['total_import_quantity'] = total_import_quantity
+            context['total_import_inventory'] = total_import_inventory
+            context['import_inventory_data_arr'] = import_inventory_data_arr
+            context['import_quantity_data_arr'] = import_quantity_data_arr
+        
     return render(request, "major_features/reports/import_section.html", context)
 
 def reports_export_section(request):
@@ -299,6 +333,7 @@ def import_action(request):
             import_purchase_obj = import_purchase_form.save(commit=False)
             import_purchase_obj.import_shipment_id = import_shipment_obj
             import_purchase_obj.quantity_remain = import_purchase_obj.quantity_import
+            import_purchase_obj.value_import = import_purchase_obj.quantity_import * import_purchase_obj.import_cost
 
             # ModelForm object saving
             import_purchase_obj.save()

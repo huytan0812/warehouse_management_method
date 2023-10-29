@@ -148,6 +148,9 @@
     {% endif %}
 
     {% if chosen_period_type == 'day' %}
+    {% if date_param_to_python %}
+    <p>{{ date_param_to_python|date:"d/m/Y" }}</p>
+    {% endif %}
     <label for="{{ chosen_period_type }}" class="col-form-label inline-margin">{{ chosen_period_name }}: </label>
     <div class="d-flex flex-row">
       <input type="date" name="{{ chosen_period_type }}" class="form-control inline-margin" id="{{ chosen_period_type }}" placeholder="dd/mm/yyyy">
