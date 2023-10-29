@@ -49,6 +49,8 @@ def reports_revenue(request):
     return render(request, "major_features/reports/revenue.html", context)
 
 def reports_import_section(request):
+    context = {}
+
     unchosen_period_types = {
         'year': "Năm",
         'quarter': "Quý",
@@ -68,13 +70,74 @@ def reports_import_section(request):
     except KeyError:
         print("Key not found")
 
+    # Attach these three keys to context for filter-bar
+    context['unchosen_period_types'] = unchosen_period_types
+    context['chosen_period_type'] = chosen_period_type
+    context['chosen_period_name'] = chosen_period_name
+
+    if chosen_period_type == 'accounting_period':
+        default_accounting_period = AccoutingPeriod.objects.select_related('warehouse_management_method').latest('id')
+        chosen_accounting_period_id = default_accounting_period.id
+
+        accounting_period_id_param = request.GET.get("accounting_period", None)
+
+        if accounting_period_id_param:
+            chosen_accounting_period_id = accounting_period_id_param
+        
+        try:
+            chosen_accounting_period_id = int(chosen_accounting_period_id)
+        except ValueError:
+            raise Exception("Dữ liệu phải là số")
+
+        # Get all accounting period for rendering in template
+        all_accounting_period = AccoutingPeriod.objects.select_related('warehouse_management_method').all()
+        context["all_accounting_period"] = all_accounting_period
+
+        # Get all product's period inventory
+        chosen_accounting_period_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').filter(
+            accounting_period_id = chosen_accounting_period_id
+        )
+
+        # Set product_inventory_count for couting product's period
+        product_inventory_count = 0
+        total_import_quantity = 0
+        total_import_inventory = 0
+
+        # JSON string for google chart
+        role = {'role': "style"}
+        import_inventory_data_arr = [
+            ["Sản phẩm", "Giá trị", role ]
+        ]
+        import_quantity_data_arr = [
+            ["Sản phẩm", "Số lượng", role ]
+        ]
+
+        for period in chosen_accounting_period_inventory:
+            product_inventory_count += 1
+            total_import_quantity += period.import_quantity
+            total_import_inventory += period.import_inventory
+
+            # Append JSON string to google chart array
+            import_inventory_data_arr.append([period.product_id.name, period.import_inventory, "#01257D"])
+            import_quantity_data_arr.append([period.product_id.name, period.import_quantity, "#01257D"])
+
+        if product_inventory_count == 0:
+            context["non_period_found_msg"] = "Không có dữ liệu"
+            return render(request, "major_features/reports/import_section.html", context)
+    
+        context["chosen_accounting_period_id"] = chosen_accounting_period_id
+        context["products_inventory"] = chosen_accounting_period_inventory
+        context['total_import_quantity'] = total_import_quantity
+        context['total_import_inventory'] = total_import_inventory
+        context['import_inventory_data_arr'] = import_inventory_data_arr
+        context['import_quantity_data_arr'] = import_quantity_data_arr
+
     if chosen_period_type == 'year':
         pass
 
     if chosen_period_type == 'quarter':
         pass
 
-    months = None
     if chosen_period_type == 'month':
         months = {
             '1': "Tháng 1",
@@ -90,40 +153,11 @@ def reports_import_section(request):
             '11': "Tháng 11",
             '12': "Tháng 12",
         }
+        context['months'] = months
 
-    current_accounting_period = AccoutingPeriod.objects.select_related('warehouse_management_method').latest('id')
-    products_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').filter(
-        accounting_period_id = current_accounting_period
-    )
+    if chosen_period_type == 'day':
+        pass
 
-    total_import_quantity = 0
-    total_import_inventory = 0
-
-    role = {'role': "style"}
-    import_inventory_data_arr = [
-        ["Sản phẩm", "Giá trị", role ]
-    ]
-    import_quantity_data_arr = [
-        ["Sản phẩm", "Số lượng", role ]
-      ]
-
-    for product_inventory in products_inventory:
-        total_import_quantity += product_inventory.import_quantity
-        total_import_inventory += product_inventory.import_inventory
-        import_inventory_data_arr.append([product_inventory.product_id.name, product_inventory.import_inventory, "#01257D"])
-        import_quantity_data_arr.append([product_inventory.product_id.name, product_inventory.import_quantity, "#01257D"])
-    
-    context = {
-        'unchosen_period_types': unchosen_period_types,
-        'chosen_period_type': chosen_period_type,
-        'chosen_period_name': chosen_period_name,
-        'months': months if months else None,
-        'products_inventory': products_inventory,
-        'total_import_quantity': total_import_quantity,
-        'total_import_inventory': total_import_inventory,
-        'import_inventory_data_arr': import_inventory_data_arr,
-        'import_quantity_data_arr': import_quantity_data_arr
-    }
     return render(request, "major_features/reports/import_section.html", context)
 
 def reports_export_section(request):
