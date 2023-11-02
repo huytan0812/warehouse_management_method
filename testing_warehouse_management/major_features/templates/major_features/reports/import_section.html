@@ -148,14 +148,17 @@
     {% endif %}
 
     {% if chosen_period_type == 'day' %}
-    {% if date_param_to_python %}
-    <p>{{ date_param_to_python|date:"d/m/Y" }}</p>
+
+    {% if chosen_date %}
+    <p>{{ chosen_date|date:"d/m/Y" }}</p>
     {% endif %}
+
     <label for="{{ chosen_period_type }}" class="col-form-label inline-margin">{{ chosen_period_name }}: </label>
     <div class="d-flex flex-row">
-      <input type="date" name="{{ chosen_period_type }}" class="form-control inline-margin" id="{{ chosen_period_type }}" placeholder="dd/mm/yyyy">
+      <input type="date" name="{{ chosen_period_type }}" class="form-control inline-margin" value='{{ chosen_date|date:"m/d/Y" }}' id="{{ chosen_period_type }}">
     </div>
     <button type="submit" class="btn btn-secondary btn-sm" style="font-size: 1rem;">Xác nhận</button>
+
     {% endif %}
   </form>
 </div>
@@ -174,9 +177,9 @@
     <tbody>
       {% for product_inventory in products_inventory %}
       <tr>
-        <td>{{ product_inventory.product_id.name }}</td>
-        <td style="text-align: right;">{{product_inventory.import_quantity|intcomma }}</td>
-        <td style="text-align: right;">{{product_inventory.import_inventory|intcomma }}</td>
+        <td>{{ product_inventory.product_id__name }}</td>
+        <td style="text-align: right;">{{product_inventory.total_quantity|intcomma }}</td>
+        <td style="text-align: right;">{{product_inventory.total_inventory|intcomma }}</td>
       </tr>
       {% endfor %}
     </tbody>

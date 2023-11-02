@@ -74,7 +74,7 @@
 <div id="import-shipment-container">
     <p>Mã lô hàng: <strong>{{ import_shipment_code }}</strong></p>
     <p>Nhà cung cấp lô hàng: <strong>{{ import_shipment_supplier }}</strong></p>
-    <p>Ngày nhập lô hàng: <strong>{{ import_shipment_date }}</strong></p>
+    <p>Ngày nhập lô hàng: <strong>{{ import_shipment_date|date:"d/m/Y" }}</strong></p>
 </div>
 
 <div id="import-shipment-purchases">
