@@ -75,6 +75,8 @@ def reports_import_section(request):
     context['chosen_period_type'] = chosen_period_type
     context['chosen_period_name'] = chosen_period_name
 
+    # Displaying total_import_quantity & total_import_inventory
+    # in the reports import section table
     total_import_quantity = 0
     total_import_inventory = 0
 
@@ -94,12 +96,7 @@ def reports_import_section(request):
         accounting_period_id_param = request.GET.get("accounting_period", None)
 
         if accounting_period_id_param:
-            chosen_accounting_period_id = accounting_period_id_param
-        
-        try:
-            chosen_accounting_period_id = int(chosen_accounting_period_id)
-        except ValueError:
-            raise Exception("Dữ liệu phải là số")
+            chosen_accounting_period_id = validating_period_id(accounting_period_id_param)
 
         # Get all accounting period in template
         # for user to choose
@@ -114,16 +111,10 @@ def reports_import_section(request):
         chosen_accounting_period_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').filter(
             accounting_period_id = chosen_accounting_period_id
         )
-
-        if chosen_accounting_period_inventory.count() == 0:
-            context["non_period_found_msg"] = "Không có dữ liệu"
-            return render(request, "major_features/reports/import_section.html", context)
-
         products_inventory = chosen_accounting_period_inventory.values('product_id__name').annotate(
             total_quantity = Sum('import_quantity'),
             total_inventory = Sum('import_inventory')
         )
-
         for product in products_inventory:
             total_import_quantity += product['total_quantity']
             total_import_inventory += product['total_inventory']
@@ -131,6 +122,11 @@ def reports_import_section(request):
             # Append JSON string to google chart array
             import_quantity_data_arr.append([product['product_id__name'], product['total_quantity'], "#01257D"])
             import_inventory_data_arr.append([product['product_id__name'], product['total_inventory'], "#01257D"])
+
+        # If no records are found
+        if products_inventory.count() == 0:
+            context["non_period_found_msg"] = "Không có dữ liệu"
+            return render(request, "major_features/reports/import_section.html", context)
 
         # For rendering reports import section table
         context["products_inventory"] = products_inventory
@@ -145,55 +141,166 @@ def reports_import_section(request):
         # Get the current year as an int
         current_year = datetime.now().year
         default_year = current_year
-        first_day_of_the_year = datetime(default_year, 1, 1).date()
-        last_day_of_the_year = datetime(default_year, 12, 31).date()
+        chosen_year = default_year
+
+        year_param = request.GET.get("year", None)
+        if year_param:
+            chosen_year = validating_year(year_param)
+
+        # Displaying the chosen year for user
+        # in the reports/import_section.html template
+        context['chosen_year'] = chosen_year
+
+        first_day_of_the_year = datetime(chosen_year, 1, 1).date()
+        last_day_of_the_year = datetime(chosen_year, 12, 31).date()
 
         accounting_periods_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').filter(
             accounting_period_id__date_applied__gte = first_day_of_the_year,
             accounting_period_id__date_end__lte = last_day_of_the_year
-        )
-
-        if accounting_periods_inventory.count() == 0:
-            context["non_period_found_msg"] = "Không có dữ liệu"
-            return render(request, "major_features/reports/import_section.html", context)
-            
+        )           
         products_inventory = accounting_periods_inventory.values('product_id__name').annotate(
             total_quantity = Sum('import_quantity'),
             total_inventory = Sum('import_inventory')
         )
-
         for product in products_inventory:
             total_import_quantity += product['total_quantity']
             total_import_inventory += product['total_inventory']
             import_quantity_data_arr.append([product['product_id__name'], product['total_quantity'], "#01257D"])
             import_inventory_data_arr.append([product['product_id__name'], product['total_inventory'], "#01257D"])
 
+        if products_inventory.count() == 0:
+            context["non_period_found_msg"] = "Không có dữ liệu"
+            return render(request, "major_features/reports/import_section.html", context)
+
+        context['products_inventory'] = products_inventory
+        context['total_import_quantity'] = total_import_quantity
+        context['total_import_inventory'] = total_import_inventory
+        context['import_inventory_data_arr'] = import_inventory_data_arr
+        context['import_quantity_data_arr'] = import_quantity_data_arr
+   
+    if chosen_period_type == 'quarter':
+        quarters = {
+            1: {'quarter_name': "Quý 1", 'months': [1,2,3]},
+            2: {'quarter_name': "Quý 2", 'months': [4,5,6]},
+            3: {'quarter_name': "Quý 3", 'months': [7,8,9]},
+            4: {'quarter_name': "Quý 4", 'months': [10,11,12]},
+        }
+        context['quarters'] = quarters
+
+        default_quarter = 0
+        chosen_quarter = 0
+        current_month = datetime.now().month
+        current_year = datetime.now().year
+        for quarter, value in quarters.items():
+            if current_month in value['months']:
+                default_quarter = quarter
+                chosen_quarter = default_quarter
+                break
+        
+        quarter_param = request.GET.get('quarter', None)
+        if quarter_param:
+            chosen_quarter = validating_quarter(quarter_param)
+        
+        chosen_quarter_months = quarters[chosen_quarter]['months']
+        first_month_of_quarter = chosen_quarter_months[0]
+        last_month_of_quarter = chosen_quarter_months[2]
+        first_day_of_quarter = datetime(current_year, first_month_of_quarter, 1).date()
+        last_day_of_quarter = get_lastday_of_month(date(current_year, last_month_of_quarter, 1))
+
+        products_import_purchases = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').filter(
+            import_shipment_id__date__gte = first_day_of_quarter,
+            import_shipment_id__date__lte = last_day_of_quarter
+        )
+        products_inventory = products_import_purchases.values('product_id__name').annotate(
+            total_quantity = Sum('quantity_import'),
+            total_inventory = Sum('value_import')
+        )
+        for product in products_inventory:
+            total_import_quantity += product['total_quantity']
+            total_import_inventory += product['total_inventory']
+
+            # Append JSON string to google chart array
+            import_quantity_data_arr.append([product['product_id__name'], product['total_quantity'], "#01257D"])
+            import_inventory_data_arr.append([product['product_id__name'], product['total_inventory'], "#01257D"])
+
+        if products_inventory.count() == 0:
+            context["non_period_found_msg"] = "Không có dữ liệu"
+            return render(request, "major_features/reports/import_section.html", context)
+        
+        context['chosen_quarter'] = chosen_quarter
         context['products_inventory'] = products_inventory
         context['total_import_quantity'] = total_import_quantity
         context['total_import_inventory'] = total_import_inventory
         context['import_inventory_data_arr'] = import_inventory_data_arr
         context['import_quantity_data_arr'] = import_quantity_data_arr
 
-        
-    if chosen_period_type == 'quarter':
-        pass
-
     if chosen_period_type == 'month':
         months = {
-            '1': "Tháng 1",
-            '2': "Tháng 2",
-            '3': "Tháng 3",
-            '4': "Tháng 4",
-            '5': "Tháng 5",
-            '6': "Tháng 6",
-            '7': "Tháng 7",
-            '8': "Tháng 8",
-            '9': "Tháng 9",
-            '10': "Tháng 10",
-            '11': "Tháng 11",
-            '12': "Tháng 12",
+            1: "Tháng 1",
+            2: "Tháng 2",
+            3: "Tháng 3",
+            4: "Tháng 4",
+            5: "Tháng 5",
+            6: "Tháng 6",
+            7: "Tháng 7",
+            8: "Tháng 8",
+            9: "Tháng 9",
+            10: "Tháng 10",
+            11: "Tháng 11",
+            12: "Tháng 12",
         }
         context['months'] = months
+
+        current_month = datetime.now().month
+        default_month = current_month
+        chosen_month = default_month
+
+        current_month_year = datetime.now().year
+        default_month_year = current_month_year
+        chosen_month_year = default_month_year
+
+        month_param = request.GET.get('month', None)
+        month_year_param = request.GET.get('month_year', None)
+
+        if month_param:
+            chosen_month = validating_month(month_param)
+
+        if month_year_param:
+            chosen_month_year = validating_year(month_year_param)
+
+        # Displaying chosen month & chosen month year for user
+        # in the reports/import_section.html template
+        context['chosen_month'] = chosen_month
+        context['chosen_month_year'] = chosen_month_year
+
+        first_day_of_the_month = datetime(chosen_month_year, chosen_month, 1).date()
+        last_day_of_the_month = get_lastday_of_month(first_day_of_the_month)
+
+        products_import_purchases = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').filter(
+            import_shipment_id__date__gte = first_day_of_the_month,
+            import_shipment_id__date__lte = last_day_of_the_month
+        )
+        products_inventory = products_import_purchases.values('product_id__name').annotate(
+            total_quantity = Sum('quantity_import'),
+            total_inventory = Sum('value_import')
+        )        
+        for product in products_inventory:
+            total_import_quantity += product['total_quantity']
+            total_import_inventory += product['total_inventory']
+
+            # Append JSON string to google chart array
+            import_quantity_data_arr.append([product['product_id__name'], product['total_quantity'], "#01257D"])
+            import_inventory_data_arr.append([product['product_id__name'], product['total_inventory'], "#01257D"])
+
+        if products_inventory.count() == 0:
+            context["non_period_found_msg"] = "Không có dữ liệu"
+            return render(request, "major_features/reports/import_section.html", context)
+        
+        context['products_inventory'] = products_inventory
+        context['total_import_quantity'] = total_import_quantity
+        context['total_import_inventory'] = total_import_inventory
+        context['import_inventory_data_arr'] = import_inventory_data_arr
+        context['import_quantity_data_arr'] = import_quantity_data_arr
 
     if chosen_period_type == 'day':
         # Set default day for filter-bar to the current day
@@ -204,27 +311,17 @@ def reports_import_section(request):
         date_param = request.GET.get("day", None)
 
         if date_param:
-            try:
-                # Try to convert the date_param value to python date object
-                date_param_to_python = datetime.strptime(date_param, "%Y-%m-%d").date()
-                chosen_date = date_param_to_python
-            except ValueError:
-                raise Exception("Ngày không hợp lệ")
+            chosen_date = validating_date(date_param)
 
         context['chosen_date'] = chosen_date
+
         products_import_purchases = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').filter(
             import_shipment_id__date = chosen_date
         )
-
-        if products_import_purchases.count() == 0:
-            context["non_period_found_msg"] = "Không có dữ liệu"
-            return render(request, "major_features/reports/import_section.html", context)
-
         products_inventory = products_import_purchases.values('product_id__name').annotate(
             total_quantity = Sum('quantity_import'),
             total_inventory = Sum('value_import')
         )
-
         for product in products_inventory:
             total_import_quantity += product['total_quantity']
             total_import_inventory += product['total_inventory']
@@ -232,6 +329,10 @@ def reports_import_section(request):
             # Append JSON string to google chart array
             import_quantity_data_arr.append([product['product_id__name'], product['total_quantity'], "#01257D"])
             import_inventory_data_arr.append([product['product_id__name'], product['total_inventory'], "#01257D"])
+
+        if products_inventory.count() == 0:
+            context["non_period_found_msg"] = "Không có dữ liệu"
+            return render(request, "major_features/reports/import_section.html", context)
             
         context['products_inventory'] = products_inventory
         context['total_import_quantity'] = total_import_quantity
@@ -244,6 +345,62 @@ def reports_import_section(request):
 def reports_export_section(request):
     context = {}
     return render(request, "major_features/reports/export_section.html", context)
+
+def validating_period_id(period_id_param):
+    """
+    Raise Exception if period_id is not an int &
+    if not return int(period_id)
+    """
+
+    try:
+        accounting_period_id = int(period_id_param)
+    except ValueError:
+        raise Exception("Dữ liệu phải là số")
+    
+    return accounting_period_id
+
+def validating_year(year_param):
+    try:
+        chosen_year = int(year_param)
+    except ValueError:
+        raise Exception("Năm không hợp lệ")
+    if chosen_year <= 0:
+        raise Exception("Năm phải là số dương")
+    
+    return chosen_year
+
+def validating_quarter(quarter_param):
+    try:
+        chosen_quarter = int(quarter_param)
+    except ValueError:
+        raise Exception("Quý không hợp lệ")
+    if chosen_quarter <= 0:
+        raise Exception("Quý phải là số dương")
+    if chosen_quarter > 4:
+        raise Exception("Quý không tồn tại")
+    return chosen_quarter
+
+def validating_month(month_param):
+    try:
+        chosen_month = int(month_param)
+    except ValueError:
+        raise Exception("Tháng không hợp lệ")  
+    if chosen_month <= 0:
+        raise Exception("Tháng phải là số dương")
+    if chosen_month > 12:
+        raise Exception("Tháng không tồn tại")
+    
+    return chosen_month
+
+def validating_date(date_param):
+    try:
+        date_param_to_python = datetime.strptime(date_param, "%Y-%m-%d").date()
+        chosen_date = date_param_to_python
+    except ValueError:
+        raise Exception("Ngày không hợp lệ")
+    
+    return chosen_date
+# ~~~~~~~~~~~~~~~~~~~~~~
 
 def get_lastday_of_month(date_obj):
 
