@@ -605,3 +605,156 @@ def check_import_inventory():
         """)
 
     return True
+
+@query_debugger
+def check_month_inventory(month):
+    current_year = datetime.now().year
+    first_day_of_month = datetime(current_year, month, 1).date()
+    get_last_day_of_month = calendar.monthrange(current_year, month)[1]
+    last_day_of_month = datetime(current_year, month, get_last_day_of_month).date()
+    products_import_purchases = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').filter(
+        import_shipment_id__date__gte = first_day_of_month,
+        import_shipment_id__date__lte = last_day_of_month
+    )
+    products_inventory = products_import_purchases.values('product_id__name').annotate(
+        total_quantity = Sum('quantity_import'),
+        total_inventory = Sum('value_import')
+    )
+    group_by_products = {}
+    group_by_total_quantity = 0
+    group_by_total_inventory = 0
+    for product in products_inventory:
+        group_by_products[product['product_id__name']] = {
+            'total_quantity': product['total_quantity'],
+            'total_inventory': product['total_inventory']
+        }
+        group_by_total_quantity += product['total_quantity']
+        group_by_total_inventory += product['total_inventory']
+
+    iterable_products = {}
+    iterable_total_quantity = 0
+    iterable_total_inventory = 0
+
+    for purchase in products_import_purchases:
+        if purchase.product_id.name not in iterable_products:
+            iterable_products[purchase.product_id.name] = {
+                'total_quantity': purchase.quantity_import,
+                'total_inventory': purchase.value_import
+            }
+        else:
+            iterable_products[purchase.product_id.name]['total_quantity'] += purchase.quantity_import
+            iterable_products[purchase.product_id.name]['total_inventory'] += purchase.value_import
+
+        iterable_total_quantity += purchase.quantity_import
+        iterable_total_inventory += purchase.value_import
+    
+    if products_inventory.count() == 0:
+        print("~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+        print("Không có dữ liệu")
+        print("~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+    
+    no_bug = 0
+
+    for product, value in group_by_products.items():
+        iterable_product = iterable_products[product]
+        print(f"""Group by product {product}: total quantity {value['total_quantity']} total inventory {value['total_inventory']} ~
+        Iterable product {iterable_product}: total quantity {iterable_product['total_quantity']} total inventory {iterable_product['total_inventory']}
+        """)
+        if value['total_quantity'] != iterable_product['total_quantity'] or value['total_inventory'] != iterable_product['total_inventory']:
+            print("False")
+            no_bug = 1
+            break
+    
+    print(f"Group by total quantity: {group_by_total_quantity}, Iterable total quantity: {iterable_total_quantity}")
+    print(f"Group by total inventory: {group_by_total_inventory}, Iterable total inventory: {iterable_total_inventory}")
+    if group_by_total_quantity != iterable_total_quantity or group_by_total_inventory != iterable_total_inventory:
+        no_bug = 1
+    
+    for connection_query in connection.queries:
+        print(connection_query)
+    if no_bug == 1:
+        return False
+    return True
+
+@query_debugger
+def check_quarter_inventory(quarter):
+    quarters = {
+        1: {'quarter_name': "Quý 1", 'months': [1,2,3]},
+        2: {'quarter_name': "Quý 2", 'months': [4,5,6]},
+        3: {'quarter_name': "Quý 3", 'months': [7,8,9]},
+        4: {'quarter_name': "Quý 4", 'months': [10,11,12]},
+    }
+    quarter_obj = quarters[quarter]
+    quarter_months = quarter_obj['months']
+    first_month = quarter_months[0]
+    last_month = quarter_months[2]
+    current_year = datetime.now().year
+    first_day_of_quarter = datetime(current_year, first_month, 1)
+    get_last_day_of_quarter = calendar.monthrange(current_year, last_month)[1]
+    last_day_of_quarter = datetime(current_year, last_month, get_last_day_of_quarter)
+
+    products_import_purchases = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').filter(
+        import_shipment_id__date__gte = first_day_of_quarter,
+        import_shipment_id__date__lte = last_day_of_quarter
+    )
+    products_inventory = products_import_purchases.values('product_id__name').annotate(
+        total_quantity = Sum('quantity_import'),
+        total_inventory = Sum('value_import')
+    )
+    group_by_products = {}
+    group_by_total_quantity = 0
+    group_by_total_inventory = 0
+    for product in products_inventory:
+        group_by_products[product['product_id__name']] = {
+            'total_quantity': product['total_quantity'],
+            'total_inventory': product['total_inventory']
+        }
+        group_by_total_quantity += product['total_quantity']
+        group_by_total_inventory += product['total_inventory']
+
+    iterable_products = {}
+    iterable_total_quantity = 0
+    iterable_total_inventory = 0
+
+    for purchase in products_import_purchases:
+        if purchase.product_id.name not in iterable_products:
+            iterable_products[purchase.product_id.name] = {
+                'total_quantity': purchase.quantity_import,
+                'total_inventory': purchase.value_import
+            }
+        else:
+            iterable_products[purchase.product_id.name]['total_quantity'] += purchase.quantity_import
+            iterable_products[purchase.product_id.name]['total_inventory'] += purchase.value_import
+
+        iterable_total_quantity += purchase.quantity_import
+        iterable_total_inventory += purchase.value_import
+    
+    if products_inventory.count() == 0:
+        print("~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+        print("Không có dữ liệu")
+        print("~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+    
+    no_bug = 0
+
+    for product, value in group_by_products.items():
+        iterable_product = iterable_products[product]
+        print(f"""Group by product {product}: total quantity {value['total_quantity']} total inventory {value['total_inventory']} ~
+        Iterable product {iterable_product}: total quantity {iterable_product['total_quantity']} total inventory {iterable_product['total_inventory']}
+        """)
+        if value['total_quantity'] != iterable_product['total_quantity'] or value['total_inventory'] != iterable_product['total_inventory']:
+            print("False")
+            no_bug = 1
+            break
+    
+    print(f"Group by total quantity: {group_by_total_quantity}, Iterable total quantity: {iterable_total_quantity}")
+    print(f"Group by total inventory: {group_by_total_inventory}, Iterable total inventory: {iterable_total_inventory}")
+    if group_by_total_quantity != iterable_total_quantity or group_by_total_inventory != iterable_total_inventory:
+        no_bug = 1
+    
+    for connection_query in connection.queries:
+        print(connection_query)
+        
+    if no_bug == 1:
+        return False
+    return True
+
