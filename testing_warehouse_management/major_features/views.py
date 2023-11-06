@@ -44,13 +44,64 @@ def index(request):
 
     return render(request, "major_features/index.html", context)
 
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+def default_accounting_period_id():
+    default_accounting_period = AccoutingPeriod.objects.select_related('warehouse_management_method').latest('id')
+    default_accounting_period_id = default_accounting_period.id
+    return default_accounting_period_id
+
+def default_year():
+    default_year = datetime.now().year
+    return default_year
+
+def default_quarter(quarters):
+    current_month = datetime.now().month
+    for quarter, value in quarters.items():
+        if current_month in value['months']:
+            default_quarter = quarter
+            return default_quarter
+    return None
+
+def default_month():
+    default_month = datetime.now().month
+    return default_month
+
+def default_day():
+    default_date = date.today()
+    return default_date
+
+def get_quarters():
+    quarters = {
+        1: {'quarter_name': "Quý 1", 'months': [1,2,3]},
+        2: {'quarter_name': "Quý 2", 'months': [4,5,6]},
+        3: {'quarter_name': "Quý 3", 'months': [7,8,9]},
+        4: {'quarter_name': "Quý 4", 'months': [10,11,12]},
+    }
+    return quarters
+
+def get_months():
+    months = {
+        1: "Tháng 1",
+        2: "Tháng 2",
+        3: "Tháng 3",
+        4: "Tháng 4",
+        5: "Tháng 5",
+        6: "Tháng 6",
+        7: "Tháng 7",
+        8: "Tháng 8",
+        9: "Tháng 9",
+        10: "Tháng 10",
+        11: "Tháng 11",
+        12: "Tháng 12",
+    }
+    return months
+
 def reports_revenue(request):
     context = {}
     return render(request, "major_features/reports/revenue.html", context)
 
 def reports_import_section(request):
     context = {}
-
     unchosen_period_types = {
         'year': "Năm",
         'quarter': "Quý",
@@ -90,8 +141,7 @@ def reports_import_section(request):
     ]
 
     if chosen_period_type == 'accounting_period':
-        default_accounting_period = AccoutingPeriod.objects.select_related('warehouse_management_method').latest('id')
-        chosen_accounting_period_id = default_accounting_period.id
+        chosen_accounting_period_id = default_accounting_period_id()
 
         accounting_period_id_param = request.GET.get("accounting_period", None)
 
@@ -123,25 +173,9 @@ def reports_import_section(request):
             import_quantity_data_arr.append([product['product_id__name'], product['total_quantity'], "#01257D"])
             import_inventory_data_arr.append([product['product_id__name'], product['total_inventory'], "#01257D"])
 
-        # If no records are found
-        if products_inventory.count() == 0:
-            context["non_period_found_msg"] = "Không có dữ liệu"
-            return render(request, "major_features/reports/import_section.html", context)
-
-        # For rendering reports import section table
-        context["products_inventory"] = products_inventory
-        context['total_import_quantity'] = total_import_quantity
-        context['total_import_inventory'] = total_import_inventory
-        
-        # For google chart
-        context['import_inventory_data_arr'] = import_inventory_data_arr
-        context['import_quantity_data_arr'] = import_quantity_data_arr
-
     if chosen_period_type == 'year':
         # Get the current year as an int
-        current_year = datetime.now().year
-        default_year = current_year
-        chosen_year = default_year
+        chosen_year = default_year()
 
         year_param = request.GET.get("year", None)
         if year_param:
@@ -168,39 +202,21 @@ def reports_import_section(request):
             import_quantity_data_arr.append([product['product_id__name'], product['total_quantity'], "#01257D"])
             import_inventory_data_arr.append([product['product_id__name'], product['total_inventory'], "#01257D"])
 
-        if products_inventory.count() == 0:
-            context["non_period_found_msg"] = "Không có dữ liệu"
-            return render(request, "major_features/reports/import_section.html", context)
-
-        context['products_inventory'] = products_inventory
-        context['total_import_quantity'] = total_import_quantity
-        context['total_import_inventory'] = total_import_inventory
-        context['import_inventory_data_arr'] = import_inventory_data_arr
-        context['import_quantity_data_arr'] = import_quantity_data_arr
-   
     if chosen_period_type == 'quarter':
-        quarters = {
-            1: {'quarter_name': "Quý 1", 'months': [1,2,3]},
-            2: {'quarter_name': "Quý 2", 'months': [4,5,6]},
-            3: {'quarter_name': "Quý 3", 'months': [7,8,9]},
-            4: {'quarter_name': "Quý 4", 'months': [10,11,12]},
-        }
+        quarters = get_quarters()
         context['quarters'] = quarters
 
-        default_quarter = 0
-        chosen_quarter = 0
-        current_month = datetime.now().month
         current_year = datetime.now().year
-        for quarter, value in quarters.items():
-            if current_month in value['months']:
-                default_quarter = quarter
-                chosen_quarter = default_quarter
-                break
+
+        # Return the key in quarters dictionary
+        chosen_quarter = default_quarter(quarters)
         
         quarter_param = request.GET.get('quarter', None)
         if quarter_param:
             chosen_quarter = validating_quarter(quarter_param)
-        
+
+        context['chosen_quarter'] = chosen_quarter
+
         chosen_quarter_months = quarters[chosen_quarter]['months']
         first_month_of_quarter = chosen_quarter_months[0]
         last_month_of_quarter = chosen_quarter_months[2]
@@ -222,49 +238,18 @@ def reports_import_section(request):
             # Append JSON string to google chart array
             import_quantity_data_arr.append([product['product_id__name'], product['total_quantity'], "#01257D"])
             import_inventory_data_arr.append([product['product_id__name'], product['total_inventory'], "#01257D"])
-
-        if products_inventory.count() == 0:
-            context["non_period_found_msg"] = "Không có dữ liệu"
-            return render(request, "major_features/reports/import_section.html", context)
         
-        context['chosen_quarter'] = chosen_quarter
-        context['products_inventory'] = products_inventory
-        context['total_import_quantity'] = total_import_quantity
-        context['total_import_inventory'] = total_import_inventory
-        context['import_inventory_data_arr'] = import_inventory_data_arr
-        context['import_quantity_data_arr'] = import_quantity_data_arr
-
     if chosen_period_type == 'month':
-        months = {
-            1: "Tháng 1",
-            2: "Tháng 2",
-            3: "Tháng 3",
-            4: "Tháng 4",
-            5: "Tháng 5",
-            6: "Tháng 6",
-            7: "Tháng 7",
-            8: "Tháng 8",
-            9: "Tháng 9",
-            10: "Tháng 10",
-            11: "Tháng 11",
-            12: "Tháng 12",
-        }
+        months = get_months()
         context['months'] = months
 
-        current_month = datetime.now().month
-        default_month = current_month
-        chosen_month = default_month
-
-        current_month_year = datetime.now().year
-        default_month_year = current_month_year
-        chosen_month_year = default_month_year
+        chosen_month = default_month()
+        chosen_month_year = default_year()
 
         month_param = request.GET.get('month', None)
         month_year_param = request.GET.get('month_year', None)
-
         if month_param:
             chosen_month = validating_month(month_param)
-
         if month_year_param:
             chosen_month_year = validating_year(month_year_param)
 
@@ -291,22 +276,10 @@ def reports_import_section(request):
             # Append JSON string to google chart array
             import_quantity_data_arr.append([product['product_id__name'], product['total_quantity'], "#01257D"])
             import_inventory_data_arr.append([product['product_id__name'], product['total_inventory'], "#01257D"])
-
-        if products_inventory.count() == 0:
-            context["non_period_found_msg"] = "Không có dữ liệu"
-            return render(request, "major_features/reports/import_section.html", context)
         
-        context['products_inventory'] = products_inventory
-        context['total_import_quantity'] = total_import_quantity
-        context['total_import_inventory'] = total_import_inventory
-        context['import_inventory_data_arr'] = import_inventory_data_arr
-        context['import_quantity_data_arr'] = import_quantity_data_arr
-
     if chosen_period_type == 'day':
         # Set default day for filter-bar to the current day
-        today = date.today()
-        default_date = today
-        chosen_date = default_date
+        chosen_date = default_day()
 
         date_param = request.GET.get("day", None)
 
@@ -330,16 +303,20 @@ def reports_import_section(request):
             import_quantity_data_arr.append([product['product_id__name'], product['total_quantity'], "#01257D"])
             import_inventory_data_arr.append([product['product_id__name'], product['total_inventory'], "#01257D"])
 
-        if products_inventory.count() == 0:
-            context["non_period_found_msg"] = "Không có dữ liệu"
-            return render(request, "major_features/reports/import_section.html", context)
-            
-        context['products_inventory'] = products_inventory
-        context['total_import_quantity'] = total_import_quantity
-        context['total_import_inventory'] = total_import_inventory
-        context['import_inventory_data_arr'] = import_inventory_data_arr
-        context['import_quantity_data_arr'] = import_quantity_data_arr
-        
+    # If no records are found
+    if products_inventory.count() == 0:
+        context["non_period_found_msg"] = "Không có dữ liệu"
+        return render(request, "major_features/reports/import_section.html", context)
+
+    # For rendering reports import section table
+    context['products_inventory'] = products_inventory
+    context['total_import_quantity'] = total_import_quantity
+    context['total_import_inventory'] = total_import_inventory
+    
+    # For google chart
+    context['import_inventory_data_arr'] = import_inventory_data_arr
+    context['import_quantity_data_arr'] = import_quantity_data_arr
+
     return render(request, "major_features/reports/import_section.html", context)
 
 def reports_export_section(request):
