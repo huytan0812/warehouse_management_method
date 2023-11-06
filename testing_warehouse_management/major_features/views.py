@@ -206,22 +206,26 @@ def reports_import_section(request):
         quarters = get_quarters()
         context['quarters'] = quarters
 
-        current_year = datetime.now().year
-
         # Return the key in quarters dictionary
         chosen_quarter = default_quarter(quarters)
+        chosen_year = default_year()
         
         quarter_param = request.GET.get('quarter', None)
+        year_param = request.GET.get('quarter_year', None)
+
         if quarter_param:
             chosen_quarter = validating_quarter(quarter_param)
+        if year_param:
+            chosen_year = validating_year(year_param)
 
         context['chosen_quarter'] = chosen_quarter
+        context['chosen_year'] = chosen_year
 
         chosen_quarter_months = quarters[chosen_quarter]['months']
         first_month_of_quarter = chosen_quarter_months[0]
         last_month_of_quarter = chosen_quarter_months[2]
-        first_day_of_quarter = datetime(current_year, first_month_of_quarter, 1).date()
-        last_day_of_quarter = get_lastday_of_month(date(current_year, last_month_of_quarter, 1))
+        first_day_of_quarter = datetime(chosen_year, first_month_of_quarter, 1).date()
+        last_day_of_quarter = get_lastday_of_month(date(chosen_year, last_month_of_quarter, 1))
 
         products_import_purchases = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').filter(
             import_shipment_id__date__gte = first_day_of_quarter,

@@ -129,6 +129,8 @@
         {% endif %}
         {% endfor %}
       </select>
+      <label for="quarter_year" class="col-form-label inline-margin">Năm: </label>
+      <input type="number" class="form-control inline-margin" name="quarter_year" required id="quarter_year" placeholder="yyyy" value="{{ chosen_year }}" min="0">
     </div>
     <button type="submit" class="btn btn-secondary btn-sm" style="font-size: 1rem;">Xác nhận</button>
     {% endif %}
