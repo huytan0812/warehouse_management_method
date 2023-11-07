@@ -1,5 +1,7 @@
 {% extends "major_features/layout.html" %}
 
+{% load static %}
+
 {% load humanize %}
 
 {% block nav %}
@@ -65,41 +67,210 @@
 {% endblock %}
 
 {% block title %}
-<h2>Trang thống kê</h2>
+<h3 style="margin-top: 10px; text-align: center;">Thống kê hàng hóa xuất kho</h3>
 {% endblock %}
 
 {% block body %}
 
-<table style="width: 100%;">
-  <thead>
-    <tr>
-      <th style="color: #01257D; text-align: center; border-right: 2px solid #01257D !important; border-bottom: 2px solid #01257D !important;">Thống kê</th>
-      <th style="color: #01257D; text-align: center; border-bottom: 2px solid #01257D !important;">Nội dung thống kê</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td class="report-td"><a href="{% url 'reports_revenue' %}" style="text-decoration: none;">Doanh thu</a></td>
-      <td rowspan="4" style="color: #01257D; border-left: 2px solid #01257D !important;">
-      <div id="inventory">
-        <p><strong>Tồn kho đầu kỳ</strong></p>
-        {% for key, value in products_inventory.items %}
-            <p><strong>Sản phẩm {{ key }}: </strong>
-                Số lượng sản phẩm tồn kho {{ value.quantity_remain|intcomma }} | 
-                Tổng giá trị {{ value.inventory_value|intcomma }}
-            </p>
-        {% endfor %}
-      </div>
-      </td>
-    </tr>
-    <tr>
-      <td  class="report-td"><a href="{% url 'reports_import_section' %}" style="text-decoration: none;">Nhập kho</a></td>
-    </tr>
-    <tr>
-      <td  class="report-td-active"><a href="{% url 'reports_export_section' %}" style="text-decoration: none;">Xuất kho</a></td>
-    </tr>
-  </tbody>
+<div class="d-flex flex-row">
+  <div class="dropdown">
+    <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+      {{ chosen_period_name }}
+    </button>
+    <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1" id="period-type">
 
-</table>
+      {% for key, item in unchosen_period_types.items %}
+      <li><a class="dropdown-item" href="?period_type={{ key }}">{{ item }}</a></li>
+      {% endfor %}
+      
+    </ul>
+  </div>
+
+  <form action="{% url 'reports_export_section' %}" class="inline-form" method="GET">
+    <input type="hidden" name="period_type" value="{{ chosen_period_type }}">
+    {% if chosen_period_type == 'accounting_period' %}
+    <label for="{{ chosen_period_type }}" class="col-form-label inline-margin">{{ chosen_period_name }}: </label>
+    <div>
+      <select name="{{ chosen_period_type }}" class="form-select select form-select-md" id="{{ chosen_period_type }}">
+        {% for period in all_accounting_period %}
+
+        {% if period.id == chosen_accounting_period_id %}
+        <option value="{{ period.id }}" selected>
+          {{ period.warehouse_management_method }} từ {{ period.date_applied|date:"d/m/Y" }} đến {{ period.date_end|date:"d/m/Y" }}
+        </option>
+        {% else %}
+        <option value="{{ period.id }}">
+          {{ period.warehouse_management_method }} từ {{ period.date_applied|date:"d/m/Y" }} đến {{ period.date_end|date:"d/m/Y" }}
+        </option>
+        {% endif %}
+
+        {% endfor %}
+      </select>
+    </div>
+    <button type="submit" class="btn btn-secondary btn-sm inline-margin" style="font-size: 1rem;">Xác nhận</button>
+    {% endif %}
+
+    {% if chosen_period_type == 'year' %}
+    <label for="{{ chosen_period_type }}"  class="col-form-label inline-margin">{{ chosen_period_name }}: </label>
+    <div class="d-flex flex-row">
+      <input type="number" name="{{ chosen_period_type }}" value="{{ chosen_year }}" class="form-select select form-select-md inline-margin" id="{{ chosen_period_type }}">
+    </div>
+    <button type="submit" class="btn btn-secondary btn-sm" style="font-size: 1rem;">Xác nhận</button>
+    {% endif %}
+
+    {% if chosen_period_type == 'quarter' %}
+    <label for="{{ chosen_period_type }}" class="col-form-label inline-margin">{{ chosen_period_name }}: </label>
+    <div class="d-flex flex-row">
+      <select name="{{ chosen_period_type }}" class="form-select select form-select-md inline-margin" id="{{ chosen_period_type }}">
+        {% for quarter, value in quarters.items %}
+        {% if quarter == chosen_quarter %}
+        <option value="{{ quarter }}" selected>{{ value.quarter_name }}</option>
+        {% else %}
+        <option value="{{ quarter }}">{{ value.quarter_name }}</option>
+        {% endif %}
+        {% endfor %}
+      </select>
+      <label for="quarter_year" class="col-form-label inline-margin">Năm: </label>
+      <input type="number" class="form-control inline-margin" name="quarter_year" required id="quarter_year" placeholder="yyyy" value="{{ chosen_year }}" min="0">
+    </div>
+    <button type="submit" class="btn btn-secondary btn-sm" style="font-size: 1rem;">Xác nhận</button>
+    {% endif %}
+
+    {% if chosen_period_type == 'month' %}
+    <label for="{{ chosen_period_type }}" class="col-form-label inline-margin">{{ chosen_period_name }}: </label>
+    <div class="d-flex flex-row">
+      <select name="{{ chosen_period_type }}" class="form-select select form-select-md" id="{{ chosen_period_type }} required">
+        {% for month, value in months.items %}
+          {% if month == chosen_month %}
+          <option value="{{ month }}" selected>{{ value }}</option>
+          {% else %}
+          <option value="{{ month }}">{{ value }}</option>
+          {% endif %}
+        {% endfor %}
+      </select>
+      <label for="month_year" class="col-form-label inline-margin">Năm: </label>
+      <input type="number" class="form-control inline-margin" name="month_year" required id="month_year" placeholder="yyyy" value="{{ chosen_month_year }}" min="0">
+    </div>
+    <button type="submit" class="btn btn-secondary btn-sm" style="font-size: 1rem;">Xác nhận</button>
+    {% endif %}
+
+    {% if chosen_period_type == 'day' %}
+
+    {% if chosen_date %}
+    <p>{{ chosen_date|date:"d/m/Y" }}</p>
+    {% endif %}
+
+    <label for="{{ chosen_period_type }}" class="col-form-label inline-margin">{{ chosen_period_name }}: </label>
+    <div class="d-flex flex-row">
+      <input type="date" name="{{ chosen_period_type }}" class="form-control inline-margin" value='{{ chosen_date|date:"m/d/Y" }}' id="{{ chosen_period_type }}">
+    </div>
+    <button type="submit" class="btn btn-secondary btn-sm" style="font-size: 1rem;">Xác nhận</button>
+
+    {% endif %}
+  </form>
+</div>
+
+{% if not non_period_found_msg %}
+<div class="d-flex justify-content-center" style="margin-top: 20px !important;">
+  <table class="table table-bordered table-striped table-dark w-auto" style="margin: auto;">
+    <caption>Thống kê hàng hóa xuất kho</caption>
+    <thead>
+      <tr>
+        <th scope="col">Sản phẩm</th>
+        <th scope="col">Số lượng xuất kho</th>
+        <th scope="col">GVHB</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for product_inventory in products_inventory %}
+      <tr>
+        <td>{{ product_inventory.product_id__name }}</td>
+        <td style="text-align: right;">{{product_inventory.total_quantity_export|intcomma }}</td>
+        <td style="text-align: right;">{{product_inventory.total_cogs|intcomma }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+    <tfoot>
+      <tr>
+        <td style="color: #00FFFF"><strong>Tổng</strong></td>
+        <td style="color: #00FFFF; text-align: right;">{{ total_export_quantity|intcomma }}</td>
+        <td style="color: #00FFFF; text-align: right;">{{ total_export_value|intcomma }}</td>
+      </tr>
+    </tfoot>
+  </table>
+</div>
+
+<!-- Google chart -->
+<div class="d-flex justify-content-around">
+  <div id="export_value_columnchart"></div>
+  <div id="export_quantity_columnchart"></div>
+</div>
+
+{% else %}
+<div>
+  <p>
+    <strong>{{ non_period_found_msg }}</strong>
+  </p>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block script %}
+<script src="{% static 'major_features/major_features_js/reports/reports.js' %}"></script>
+
+{% if not non_period_found_msg %}
+
+{{ export_value_data_arr|json_script:"export_value_data_arr" }}
+{{ export_quantity_data_arr|json_script:"export_quantity_data_arr" }}
+
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script type="text/javascript">
+    google.charts.load("current", {packages:['corechart']});
+    google.charts.setOnLoadCallback(drawChart);
+
+    const EXPORT_VALUE_DATA_ARR = JSON.parse(document.getElementById('export_value_data_arr').textContent);
+    const EXPORT_QUANTITY_DATA_ARR = JSON.parse(document.getElementById('export_quantity_data_arr').textContent);
+
+    function drawChart() {
+      var export_value_data = google.visualization.arrayToDataTable(EXPORT_VALUE_DATA_ARR)
+      var export_quantity_data = google.visualization.arrayToDataTable(EXPORT_QUANTITY_DATA_ARR);
+
+      var inventory_view = new google.visualization.DataView(export_value_data);
+      var quantity_view = new google.visualization.DataView(export_quantity_data);
+
+      var default_settings = [0, 1,
+                       { calc: "stringify",
+                         sourceColumn: 1,
+                         type: "string",
+                         role: "annotation" },
+                       2]
+
+      inventory_view.setColumns(default_settings);
+      quantity_view.setColumns(default_settings);
+
+      var default_options = {
+        title: "",
+        width: 500,
+        height: 400,
+        bar: {groupWidth: "95%"},
+        legend: { position: "none" },
+      };
+
+      var inventory_options = default_options;
+      inventory_options["title"] = "GVHB của từng sản phẩm trong kỳ";
+
+      var export_value_chart = new google.visualization.ColumnChart(document.getElementById("export_value_columnchart"));
+      export_value_chart.draw(inventory_view, inventory_options);
+
+      var quantity_options = default_options;
+      quantity_options["title"] = "Số lượng xuất kho của từng sản phẩm trong kỳ";
+
+      var export_quantity_chart = new google.visualization.ColumnChart(document.getElementById("export_quantity_columnchart"));
+      export_quantity_chart.draw(quantity_view, quantity_options);
+  }
+</script>
+
+{% endif %}
 
 {% endblock %}

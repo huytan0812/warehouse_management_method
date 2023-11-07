@@ -199,6 +199,7 @@
   </table>
 </div>
 
+<!-- Google chart -->
 <div class="d-flex justify-content-around">
   <div id="import_inventory_columnchart"></div>
   <div id="import_quantity_columnchart"></div>
@@ -215,7 +216,7 @@
 {% endblock %}
 
 {% block script %}
-<script src="{% static 'major_features/major_features_js/reports/import_section.js' %}"></script>
+<script src="{% static 'major_features/major_features_js/reports/reports.js' %}"></script>
 
 {% if not non_period_found_msg %}
 

@@ -325,6 +325,223 @@ def reports_import_section(request):
 
 def reports_export_section(request):
     context = {}
+    unchosen_period_types = {
+        'year': "Năm",
+        'quarter': "Quý",
+        'month': "Tháng",
+        'day': "Ngày",
+        'accounting_period': "Kỳ kế toán"
+    }
+    DEFAULT_PERIOD_TYPE = "accounting_period"
+    chosen_period_type = request.GET.get("period_type", "")
+
+    if chosen_period_type not in unchosen_period_types:
+        chosen_period_type = DEFAULT_PERIOD_TYPE
+    chosen_period_name = unchosen_period_types[chosen_period_type]
+
+    try:
+        del unchosen_period_types[chosen_period_type]
+    except KeyError:
+        print("Key not found")
+
+    # Attach these three keys to context for filter-bar
+    context['unchosen_period_types'] = unchosen_period_types
+    context['chosen_period_type'] = chosen_period_type
+    context['chosen_period_name'] = chosen_period_name
+
+    # Displaying total_import_quantity & total_import_inventory
+    # in the reports import section table
+    total_export_quantity = 0
+    total_export_value = 0
+
+    # JSON string for google chart
+    role = {'role': "style"}
+    export_value_data_arr = [
+        ["Sản phẩm", "Giá trị", role ]
+    ]
+    export_quantity_data_arr = [
+        ["Sản phẩm", "Số lượng", role ]
+    ]
+
+    if chosen_period_type == 'accounting_period':
+        chosen_accounting_period_id = default_accounting_period_id()
+
+        accounting_period_id_param = request.GET.get("accounting_period", None)
+
+        if accounting_period_id_param:
+            chosen_accounting_period_id = validating_period_id(accounting_period_id_param)
+
+        # Get all accounting period in template
+        # for user to choose
+        all_accounting_period = AccoutingPeriod.objects.select_related('warehouse_management_method').all()
+        context["all_accounting_period"] = all_accounting_period
+
+        # Rendering chosen_accounting_period_id for getting selected accounting period
+        # in the select input
+        context["chosen_accounting_period_id"] = chosen_accounting_period_id
+
+        # Get all product's period inventory
+        chosen_accounting_period_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').filter(
+            accounting_period_id = chosen_accounting_period_id
+        )
+        products_inventory = chosen_accounting_period_inventory.values('product_id__name').annotate(
+            total_quantity_export = Sum('total_quantity_export'),
+            total_cogs = Sum('total_cogs')
+        )
+        for product in products_inventory:
+            total_export_quantity += product['total_quantity_export']
+            total_export_value += product['total_cogs']
+            # Append JSON string to google chart array
+            export_quantity_data_arr.append([product['product_id__name'], product['total_quantity_export'], "#01257D"])
+            export_value_data_arr.append([product['product_id__name'], product['total_cogs'], "#01257D"])
+
+    if chosen_period_type == 'year':
+        # Get the current year as an int
+        chosen_year = default_year()
+
+        year_param = request.GET.get("year", None)
+        if year_param:
+            chosen_year = validating_year(year_param)
+
+        # Displaying the chosen year for user
+        # in the reports/import_section.html template
+        context['chosen_year'] = chosen_year
+
+        first_day_of_the_year = datetime(chosen_year, 1, 1).date()
+        last_day_of_the_year = datetime(chosen_year, 12, 31).date()
+
+        accounting_periods_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').filter(
+            accounting_period_id__date_applied__gte = first_day_of_the_year,
+            accounting_period_id__date_end__lte = last_day_of_the_year
+        )           
+        products_inventory = accounting_periods_inventory.values('product_id__name').annotate(
+            total_quantity_export = Sum('total_quantity_export'),
+            total_cogs = Sum('total_cogs')
+        )
+        for product in products_inventory:
+            total_export_quantity += product['total_quantity_export']
+            total_export_value += product['total_cogs']
+            export_quantity_data_arr.append([product['product_id__name'], product['total_quantity_export'], "#01257D"])
+            export_value_data_arr.append([product['product_id__name'], product['total_cogs'], "#01257D"])
+
+    if chosen_period_type == 'quarter':
+        quarters = get_quarters()
+        context['quarters'] = quarters
+
+        # Return the key in quarters dictionary
+        chosen_quarter = default_quarter(quarters)
+        chosen_year = default_year()
+        
+        quarter_param = request.GET.get('quarter', None)
+        year_param = request.GET.get('quarter_year', None)
+
+        if quarter_param:
+            chosen_quarter = validating_quarter(quarter_param)
+        if year_param:
+            chosen_year = validating_year(year_param)
+
+        context['chosen_quarter'] = chosen_quarter
+        context['chosen_year'] = chosen_year
+
+        chosen_quarter_months = quarters[chosen_quarter]['months']
+        first_month_of_quarter = chosen_quarter_months[0]
+        last_month_of_quarter = chosen_quarter_months[2]
+        first_day_of_quarter = datetime(chosen_year, first_month_of_quarter, 1).date()
+        last_day_of_quarter = get_lastday_of_month(date(chosen_year, last_month_of_quarter, 1))
+
+        products_export_orders = ExportOrder.objects.select_related('export_shipment_id', 'product_id').filter(
+            export_shipment_id__date__gte = first_day_of_quarter,
+            export_shipment_id__date__lte = last_day_of_quarter
+        )
+        products_inventory = products_export_orders.values('product_id__name').annotate(
+            total_quantity_export = Sum('quantity_export'),
+            total_cogs = Sum('total_order_value')
+        )
+        for product in products_inventory:
+            total_export_quantity += product['total_quantity_export']
+            total_export_value += product['total_cogs']
+
+            # Append JSON string to google chart array
+            export_quantity_data_arr.append([product['product_id__name'], product['total_quantity_export'], "#01257D"])
+            export_value_data_arr.append([product['product_id__name'], product['total_cogs'], "#01257D"])
+        
+    if chosen_period_type == 'month':
+        months = get_months()
+        context['months'] = months
+
+        chosen_month = default_month()
+        chosen_month_year = default_year()
+
+        month_param = request.GET.get('month', None)
+        month_year_param = request.GET.get('month_year', None)
+        if month_param:
+            chosen_month = validating_month(month_param)
+        if month_year_param:
+            chosen_month_year = validating_year(month_year_param)
+
+        # Displaying chosen month & chosen month year for user
+        # in the reports/import_section.html template
+        context['chosen_month'] = chosen_month
+        context['chosen_month_year'] = chosen_month_year
+
+        first_day_of_the_month = datetime(chosen_month_year, chosen_month, 1).date()
+        last_day_of_the_month = get_lastday_of_month(first_day_of_the_month)
+
+        products_export_orders = ExportOrder.objects.select_related('export_shipment_id', 'product_id').filter(
+            export_shipment_id__date__gte = first_day_of_the_month,
+            export_shipment_id__date__lte = last_day_of_the_month
+        )
+        products_inventory = products_export_orders.values('product_id__name').annotate(
+            total_quantity_export = Sum('quantity_export'),
+            total_cogs = Sum('total_order_value')
+        )        
+        for product in products_inventory:
+            total_export_quantity += product['total_quantity_export']
+            total_export_value += product['total_cogs']
+
+            # Append JSON string to google chart array
+            export_quantity_data_arr.append([product['product_id__name'], product['total_quantity_export'], "#01257D"])
+            export_value_data_arr.append([product['product_id__name'], product['total_cogs'], "#01257D"])
+        
+    if chosen_period_type == 'day':
+        # Set default day for filter-bar to the current day
+        chosen_date = default_day()
+
+        date_param = request.GET.get("day", None)
+
+        if date_param:
+            chosen_date = validating_date(date_param)
+
+        context['chosen_date'] = chosen_date
+
+        products_export_orders = ExportOrder.objects.select_related('export_shipment_id', 'product_id').filter(
+            export_shipment_id__date = chosen_date
+        )
+        products_inventory = products_export_orders.values('product_id__name').annotate(
+            total_quantity_export = Sum('quantity_export'),
+            total_cogs= Sum('total_order_value')
+        )
+        for product in products_inventory:
+            total_export_quantity += product['total_quantity_export']
+            total_export_value += product['total_cogs']
+
+            # Append JSON string to google chart array
+            export_quantity_data_arr.append([product['product_id__name'], product['total_quantity_export'], "#01257D"])
+            export_value_data_arr.append([product['product_id__name'], product['total_cogs'], "#01257D"])
+
+    # If no records are found
+    if products_inventory.count() == 0:
+        context["non_period_found_msg"] = "Không có dữ liệu"
+        return render(request, "major_features/reports/export_section.html", context)
+
+    # For rendering reports import section table
+    context['products_inventory'] = products_inventory
+    context['total_export_quantity'] = total_export_quantity
+    context['total_export_value'] = total_export_value
+    
+    # For google chart
+    context['export_quantity_data_arr'] = export_quantity_data_arr
+    context['export_value_data_arr'] = export_value_data_arr
     return render(request, "major_features/reports/export_section.html", context)
 
 def validating_period_id(period_id_param):
