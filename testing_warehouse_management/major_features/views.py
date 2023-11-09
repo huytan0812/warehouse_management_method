@@ -947,9 +947,14 @@ def export_shipment_details(request, export_shipment_code):
     except ExportShipment.DoesNotExist:
         raise Exception("Không tồn tại mã lô hàng xuất kho")
     
-    export_shipment_orders = ExportOrder.objects.select_related('export_shipment_id', 'product_id').filter(export_shipment_id=export_shipment_obj).order_by(
-        'product_id__name', 
-        '-id')
+    export_shipment_orders = ExportOrder.objects.select_related('export_shipment_id', 'product_id').filter(
+            export_shipment_id=export_shipment_obj
+        ).annotate(
+            sub_revenue = F("quantity_export") * F("unit_price")
+        ).order_by(
+            'product_id__name', 
+            '-id'
+        )
 
     export_shipment_accounting_period = export_shipment_obj.current_accounting_period
 

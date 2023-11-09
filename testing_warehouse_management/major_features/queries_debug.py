@@ -4,7 +4,7 @@ import functools
 import pytz
 import calendar
 from datetime import date, datetime, timedelta
-from django.db.models import Sum, Max
+from django.db.models import Sum, F, Max
 from . models import *
 
 
@@ -813,3 +813,28 @@ def check_day_export(product_id, day):
 
     if no_bug == 1:
         return False
+    
+@query_debugger
+def update_export_shipments():
+    export_shipments = ExportShipment.objects.select_related('current_accounting_period', 'agency_id').all()
+    for export_shipment in export_shipments:
+        export_shipment_orders = ExportOrder.objects.select_related('export_shipment_id', 'product_id').filter(
+            export_shipment_id = export_shipment
+        )
+        sub_revenue = export_shipment_orders.values('export_shipment_id__export_shipment_code').annotate(
+            sub_revenue = Sum(F("quantity_export") * F("unit_price"))
+        )
+        print("~~~~~~~~~~~~~~~~~~~")
+        print(sub_revenue)
+        print("~~~~~~~~~~~~~~~~~~~")
+        export_shipment.shipment_revenue = sub_revenue[0]['sub_revenue']
+    update_export_shipments = ExportShipment.objects.bulk_update(export_shipments, ["shipment_revenue"])
+    print(update_export_shipments)
+    for connection_query in connection.queries:
+        print(connection_query)
+
+@query_debugger
+def update_period_revenue():
+    periods_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').all()
+    for period in periods_inventory:
+        pass

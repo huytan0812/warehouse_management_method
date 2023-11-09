@@ -89,6 +89,7 @@
         <th scope="col">Đơn giá bán</th>
         <th scope="col">Số lượng xuất kho</th>
         <th scope="col">GVHB</th>
+        <th scope="col">Doanh thu từ đơn hàng</th>
         <th scope="col">Theo dõi</th>
       </tr>
     </thead>
@@ -99,6 +100,7 @@
         <td>{{ export_order.unit_price|intcomma }}</td>
         <td>{{ export_order.quantity_export}}</td>
         <td>{{ export_order.total_order_value|intcomma }}</td>
+        <td>{{ export_order.sub_revenue|intcomma }}</td>
         <td><a href="{% url 'complete_export_order_by_inventory' export_order.pk %}">Chi tiết đơn hàng</a></td>
       </tr>
       {% endfor %}
@@ -106,6 +108,7 @@
 </table>
 
 <p>Tổng giá trị xuất kho của lô hàng {{ export_shipment_code }}: <strong>{{ export_shipment_value|intcomma }}</strong></p>
+<p>Tổng doanh thu của lô hàng {{ export_shipment_code }}: <strong>{{ export_shipment_obj.shipment_revenue|intcomma }}</strong></p>
 
 <a href="{% url 'export_shipments' %}">Theo dõi các lô hàng xuất kho</a>
 <a href="{% url 'index' %}">Trang chủ</a>
