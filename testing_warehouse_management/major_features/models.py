@@ -84,6 +84,7 @@ class ExportShipment(models.Model):
 
     # Total Shipment value = Sum(all export_order obj's total_order_value field reference to export_shipment obj)
     total_shipment_value = models.IntegerField(null=True, blank=True, default=0)
+    shipment_revenue = models.IntegerField(null=True, blank=True, default = 0)
     current_accounting_period = models.ForeignKey(AccoutingPeriod, on_delete=models.CASCADE, null=True, blank=True,
                                                   related_name="%(class)s_following_export_shipments")
     by_admin = models.ForeignKey(User, on_delete=models.PROTECT, null=True, blank=True,
@@ -146,6 +147,8 @@ class AccountingPeriodInventory(models.Model):
 
     ending_inventory = models.IntegerField(null=True, blank=True, default=0)
     ending_quantity = models.IntegerField(null=True, blank=True, default=0)
+
+    total_revenue = models.IntegerField(null=True, blank=True, default=0)
 
     def __str__(self):
         return f"""

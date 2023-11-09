@@ -758,3 +758,58 @@ def check_quarter_inventory(quarter):
         return False
     return True
 
+@query_debugger
+def check_day_export(product_id, day):
+    product_export_orders = ExportOrder.objects.select_related('export_shipment_id', 'product_id').filter(
+        export_shipment_id__date = day,
+        product_id = product_id
+    )
+    group_by_products = {}
+    group_by_export_orders = product_export_orders.values('product_id__name').annotate(
+        total_quantity_export = Sum('quantity_export'),
+        total_cogs = Sum('total_order_value')
+    )
+
+    group_by_total_quantity_export = 0
+    group_by_total_cogs = 0
+    for product in group_by_export_orders:
+        group_by_products[product['product_id__name']] = {
+            'total_quantity_export': product['total_quantity_export'],
+            'total_cogs': product['total_cogs']
+        }
+        group_by_total_quantity_export += product['total_quantity_export']
+        group_by_total_cogs += product['total_cogs']
+
+    iterable_products = {}
+    iterable_total_quantity_export = 0
+    iterable_total_cogs = 0
+
+    for product in product_export_orders:
+        if product.product_id.name not in iterable_products:
+            iterable_products[product.product_id.name] = {
+                'total_quantity_export': product.quantity_export,
+                'total_cogs': product.total_order_value
+            }
+        else:
+            iterable_products[product.product_id.name]['total_quantity_export'] += product.quantity_export
+            iterable_products[product.product_id.name]['total_cogs'] += product.total_order_value
+
+        iterable_total_quantity_export += product.quantity_export
+        iterable_total_cogs += product.total_order_value
+
+    no_bug = 0
+    for product, value in group_by_products.items():
+        iterable_product = iterable_products[product]
+        if value['total_quantity_export'] != iterable_product['total_quantity_export'] or value['total_cogs'] != iterable_product['total_cogs']:
+            print("Bug found")
+            no_bug = 1
+    
+    if group_by_total_quantity_export != iterable_total_quantity_export or group_by_total_cogs != iterable_total_cogs:
+        print("Bug found")
+        no_bug = 1
+
+    for connection_query in connection.queries:
+        print(connection_query)
+
+    if no_bug == 1:
+        return False
