@@ -816,7 +816,7 @@ def check_day_export(product_id, day):
     
 @query_debugger
 def update_export_shipments():
-    export_shipments = ExportShipment.objects.select_related('current_accounting_period', 'agency_id').all()
+    export_shipments = ExportShipment.objects.select_related('agency_id', 'current_accounting_period').all()
     for export_shipment in export_shipments:
         export_shipment_orders = ExportOrder.objects.select_related('export_shipment_id', 'product_id').filter(
             export_shipment_id = export_shipment
@@ -824,17 +824,111 @@ def update_export_shipments():
         sub_revenue = export_shipment_orders.values('export_shipment_id__export_shipment_code').annotate(
             sub_revenue = Sum(F("quantity_export") * F("unit_price"))
         )
+        sub_revenue_obj = sub_revenue[0]
         print("~~~~~~~~~~~~~~~~~~~")
-        print(sub_revenue)
+        print(sub_revenue_obj)
         print("~~~~~~~~~~~~~~~~~~~")
-        export_shipment.shipment_revenue = sub_revenue[0]['sub_revenue']
-    update_export_shipments = ExportShipment.objects.bulk_update(export_shipments, ["shipment_revenue"])
-    print(update_export_shipments)
+        export_shipment.shipment_revenue = sub_revenue_obj['sub_revenue']
+
+    # update_export_shipments = ExportShipment.objects.bulk_update(export_shipments, ["shipment_revenue"])
+    # print(update_export_shipments)
     for connection_query in connection.queries:
         print(connection_query)
 
 @query_debugger
-def update_period_revenue():
-    periods_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').all()
+def update_period_revenue(product_id):
+    periods_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').filter(
+        product_id = product_id
+    )
     for period in periods_inventory:
-        pass
+        export_orders = ExportOrder.objects.select_related('export_shipment_id', 'product_id').filter(
+            export_shipment_id__current_accounting_period = period.accounting_period_id,
+            product_id = product_id
+        )
+        current_period_product_revenue = export_orders.values('product_id__name').annotate(
+            revenue = Sum(F("quantity_export") * F("unit_price"))
+        )
+        current_period_product_revenue_obj = current_period_product_revenue[0]
+
+        print("~~~~~~~~~~~~~~~~~~~")
+        print(current_period_product_revenue_obj)
+        print("~~~~~~~~~~~~~~~~~~~")
+
+        period.total_revenue = current_period_product_revenue_obj['revenue']
+    
+    update_periods_revenue = AccountingPeriodInventory.objects.bulk_update(periods_inventory, ["total_revenue"])
+    print(update_periods_revenue)
+
+    for connection_query in connection.queries:
+        print(connection_query)
+
+@query_debugger
+def check_period_revenue():
+    periods_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').all()
+    total_period_revenue = periods_inventory.aggregate(Sum('total_revenue')).get('total_revenue__sum', 0)
+    export_orders = ExportOrder.objects.select_related('export_shipment_id', 'product_id').all()
+    total_exports_order_revenue = export_orders.aggregate(
+        total_revenue = Sum(F("quantity_export") * F("unit_price"))
+    ).get('total_revenue', 0)
+    if total_period_revenue == total_exports_order_revenue:
+        print(f"total_period_revenue: {total_period_revenue} = total_exports_order_revenue: {total_exports_order_revenue}")
+        print("True")
+    for connection_query in connection.queries:
+        print(connection_query)
+    return total_period_revenue == total_exports_order_revenue
+
+@query_debugger
+def check_each_product_revenue(product_id):
+    product_periods_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').filter(
+        product_id = product_id
+    )
+    total_product_periods_revenue = product_periods_inventory.aggregate(Sum('total_revenue')).get('total_revenue__sum', 0)
+    product_export_orders = ExportOrder.objects.select_related('export_shipment_id', 'product_id').filter(
+        product_id = product_id
+    )
+    total_product_orders_revenue = product_export_orders.aggregate(
+        total_product_revenue = Sum(F("quantity_export") * F("unit_price"))
+    ).get('total_product_revenue', 0)
+    if total_product_periods_revenue == total_product_orders_revenue:
+        print(f"total_product_periods_revenue: {total_product_periods_revenue} = total_product_orders_revenue: {total_product_orders_revenue}")
+        print("True")
+    for connection_query in connection.queries:
+        print(connection_query)
+    return total_product_periods_revenue == total_product_orders_revenue
+    
+@query_debugger
+def check_each_product_revenue_on_per_accounting_period(product_id):
+    product_periods_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').filter(
+        product_id = product_id
+    )
+    no_bug = 0
+    for period in product_periods_inventory:
+        print(period.accounting_period_id.pk)
+        product_period_revenue = product_periods_inventory.filter(
+            accounting_period_id = period.accounting_period_id
+        ).aggregate(Sum('total_revenue')).get('total_revenue__sum', 0)
+
+        product_export_orders = ExportOrder.objects.select_related('export_shipment_id', 'product_id').filter(
+            export_shipment_id__current_accounting_period = period.accounting_period_id,
+            product_id = product_id
+        )
+
+        total_product_revenue = product_export_orders.aggregate(
+            total_revenue = Sum(F("quantity_export") * F("unit_price"))
+        ).get('total_revenue', 0)
+
+        if product_period_revenue != total_product_revenue:
+            print(f"product_period_revenue: {product_period_revenue} != total_product_revenue: {total_product_revenue}")
+            print("False")
+            no_bug = 1
+            break
+
+        print(f"product_period_revenue: {product_period_revenue} = total_product_revenue: {total_product_revenue}")
+        print("~~~~~~~~~~~~~~~~~~~~~~~")
+    
+    for connection_query in connection.queries:
+        print(connection_query)
+
+    if no_bug == 1:
+        return False
+    return True
