@@ -1,5 +1,6 @@
 from django.urls import path, register_converter
 from . import views
+from . import reports_views
 from . converters import DateConverter
 
 register_converter(DateConverter, "date")
@@ -49,9 +50,9 @@ urlpatterns = [
           name="weighted_average"),
 
      # Reports section
-     path("reports/revenue", views.reports_revenue, name="reports_revenue"),
-     path("reports/import_section", views.reports_import_section, name="reports_import_section"),
-     path("reports/export_section", views.reports_export_section, name="reports_export_section"),
+     path("reports/revenue", reports_views.reports_revenue, name="reports_revenue"),
+     path("reports/import_section", reports_views.reports_import_section, name="reports_import_section"),
+     path("reports/export_section", reports_views.reports_export_section, name="reports_export_section"),
 
      # decorators view
      path("activating_accounting_period", views.activating_accounting_period, name="activating_accounting_period"),
