@@ -117,7 +117,132 @@ def reports_revenue(request):
             total_revenue += product['revenue']
             # Append JSON string to google chart array
             revenue_arr.append([product['product_id__name'], product['revenue'], "#01257D"])
+    
+    if chosen_period_type == 'year':
+        # Get the current year as an int
+        chosen_year = default_year()
 
+        year_param = request.GET.get("year", None)
+        if year_param:
+            chosen_year = validating_year(year_param)
+
+        # Displaying the chosen year for user
+        # in the reports/import_section.html template
+        context['chosen_year'] = chosen_year
+
+        first_day_of_the_year = datetime(chosen_year, 1, 1).date()
+        last_day_of_the_year = datetime(chosen_year, 12, 31).date()
+
+        periods_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').filter(
+            accounting_period_id__date_applied__gte = first_day_of_the_year,
+            accounting_period_id__date_end__lte = last_day_of_the_year
+        )
+        products_revenue = periods_inventory.values('product_id__name').annotate(
+            revenue = Sum("total_revenue")
+        )
+        for product in products_revenue:
+            total_revenue += product['revenue']
+            revenue_arr.append([product['product_id__name'], product['revenue'], "#01257D"])
+    
+    if chosen_period_type == 'quarter':
+        quarters = get_quarters()
+        context['quarters'] = quarters
+
+        # Return the key in quarters dictionary
+        chosen_quarter = default_quarter(quarters)
+        chosen_year = default_year()
+        
+        quarter_param = request.GET.get('quarter', None)
+        year_param = request.GET.get('quarter_year', None)
+
+        if quarter_param:
+            chosen_quarter = validating_quarter(quarter_param)
+        if year_param:
+            chosen_year = validating_year(year_param)
+
+        context['chosen_quarter'] = chosen_quarter
+        context['chosen_year'] = chosen_year
+
+        chosen_quarter_months = quarters[chosen_quarter]['months']
+        first_month_of_quarter = chosen_quarter_months[0]
+        last_month_of_quarter = chosen_quarter_months[2]
+        first_day_of_quarter = datetime(chosen_year, first_month_of_quarter, 1).date()
+        last_day_of_quarter = get_lastday_of_month(date(chosen_year, last_month_of_quarter, 1))
+
+        export_orders = ExportOrder.objects.select_related('export_shipment_id', 'product_id').filter(
+            export_shipment_id__date__gte = first_day_of_quarter,
+            export_shipment_id__date__lte = last_day_of_quarter
+        )
+        products_revenue = export_orders.values('product_id__name').annotate(
+            revenue = Sum(F("quantity_export") * F("unit_price"))
+        )
+        for product in products_revenue:
+            total_revenue += product['revenue']
+            revenue_arr.append([product['product_id__name'], product['revenue'], "#01257D"])
+
+    if chosen_period_type == 'month':
+        months = get_months()
+        context['months'] = months
+
+        chosen_month = default_month()
+        chosen_month_year = default_year()
+
+        month_param = request.GET.get('month', None)
+        month_year_param = request.GET.get('month_year', None)
+        if month_param:
+            chosen_month = validating_month(month_param)
+        if month_year_param:
+            chosen_month_year = validating_year(month_year_param)
+
+        # Displaying chosen month & chosen month year for user
+        # in the reports/import_section.html template
+        context['chosen_month'] = chosen_month
+        context['chosen_month_year'] = chosen_month_year
+
+        first_day_of_the_month = datetime(chosen_month_year, chosen_month, 1).date()
+        last_day_of_the_month = get_lastday_of_month(first_day_of_the_month)
+
+        export_orders = ExportOrder.objects.select_related('export_shipment_id', 'product_id').filter(
+            export_shipment_id__date__gte = first_day_of_the_month,
+            export_shipment_id__date__lte = last_day_of_the_month
+        )
+        products_revenue = export_orders.values('product_id__name').annotate(
+            revenue = Sum(F("quantity_export") * F("unit_price"))
+        )
+        for product in products_revenue:
+            total_revenue += product['revenue']
+            revenue_arr.append([product['product_id__name'], product['revenue'], "#01257D"])
+
+    if chosen_period_type == 'day':
+        chosen_date = default_day()
+
+        date_param = request.GET.get("day", None)
+        if date_param:
+            chosen_date = validating_date(date_param)
+
+        context['chosen_date'] = chosen_date
+
+        export_orders = ExportOrder.objects.select_related('export_shipment_id', 'product_id').filter(
+            export_shipment_id__date = chosen_date
+        )
+        products_revenue = export_orders.values('product_id__name').annotate(
+            revenue = Sum(F("quantity_export") * F("unit_price"))
+        )
+        for product in products_revenue:
+            total_revenue += product['revenue']
+            revenue_arr.append([product['product_id__name'], product['revenue'], "#01257D"])
+
+    # If no records are found
+    if products_revenue.count() == 0:
+        context["non_period_found_msg"] = "Không có dữ liệu"
+        return render(request, "major_features/reports/revenue.html", context)
+
+    # For rendering reports import section table
+    context['products_revenue'] = products_revenue
+    context['total_revenue'] = total_revenue
+    
+    # For google chart
+    context['revenue_arr'] = revenue_arr
 
     return render(request, "major_features/reports/revenue.html", context)
 
@@ -311,7 +436,6 @@ def reports_import_section(request):
         chosen_date = default_day()
 
         date_param = request.GET.get("day", None)
-
         if date_param:
             chosen_date = validating_date(date_param)
 
