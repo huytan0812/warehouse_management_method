@@ -246,6 +246,13 @@ def reports_revenue(request):
 
     return render(request, "major_features/reports/revenue.html", context)
 
+def reports_gross_profits(request):
+    """
+    Dislaying each product's gross profits 
+    according to chosen period type
+    """
+    pass
+
 def reports_import_section(request):
     """
     Dislaying each product's import inventory & import quantity 

@@ -903,6 +903,7 @@ def check_each_product_revenue_on_per_accounting_period(product_id):
     )
     no_bug = 0
     for period in product_periods_inventory:
+        print("+++++++++++++++++++++++")
         print(period.accounting_period_id.pk)
         product_period_revenue = product_periods_inventory.filter(
             accounting_period_id = period.accounting_period_id
@@ -932,3 +933,85 @@ def check_each_product_revenue_on_per_accounting_period(product_id):
     if no_bug == 1:
         return False
     return True
+
+def get_quarters():
+    quarters = {
+        1: {'quarter_name': "Quý 1", 'months': [1,2,3]},
+        2: {'quarter_name': "Quý 2", 'months': [4,5,6]},
+        3: {'quarter_name': "Quý 3", 'months': [7,8,9]},
+        4: {'quarter_name': "Quý 4", 'months': [10,11,12]},
+    }
+    return quarters
+
+def get_months():
+    months = {
+        1: "Tháng 1",
+        2: "Tháng 2",
+        3: "Tháng 3",
+        4: "Tháng 4",
+        5: "Tháng 5",
+        6: "Tháng 6",
+        7: "Tháng 7",
+        8: "Tháng 8",
+        9: "Tháng 9",
+        10: "Tháng 10",
+        11: "Tháng 11",
+        12: "Tháng 12",
+    }
+    return months
+
+@query_debugger
+def check_quarter_product_revenue():
+    current_year = 2023
+    quarters = get_quarters()
+
+    for quarter, value in quarters.items():
+        first_day_of_quarter = datetime(current_year, value['months'][0], 1).date()
+        get_last_day_of_quarter = calendar.monthrange(current_year, value['months'][2])[1]
+        last_day_of_quarter = datetime(current_year, value['months'][2], get_last_day_of_quarter).date()
+        export_orders = ExportOrder.objects.select_related('export_shipment_id', 'product_id').filter(
+            export_shipment_id__date__gte = first_day_of_quarter,
+            export_shipment_id__date__lte = last_day_of_quarter,
+        )
+        products_revenue = export_orders.values('product_id__name').annotate(
+            revenue = Sum(F("quantity_export") * F("unit_price"))
+        )
+        print(f"Quarter: {quarter}")
+        for product in products_revenue:
+            print(f"Product {product['product_id__name']}: revenue {product['revenue']}")
+
+@query_debugger
+def check_month_product_revenue():
+    current_year = 2023
+    months = get_months()
+
+    for month in months:
+        first_day_of_month = datetime(current_year, month, 1).date()
+        get_last_day_of_month = calendar.monthrange(current_year, month)[1]
+        last_day_of_month = datetime(current_year, month, get_last_day_of_month)
+        export_orders = ExportOrder.objects.select_related('export_shipment_id', 'product_id').filter(
+            export_shipment_id__date__gte = first_day_of_month,
+            export_shipment_id__date__lte = last_day_of_month,
+        )
+        products_revenue = export_orders.values('product_id__name').annotate(
+            revenue = Sum(F("quantity_export") * F("unit_price"))
+        )
+        print("++++++++++++++++++++")
+        print(f"Month: {month}")
+        for product in products_revenue:
+            print(f"Product {product['product_id__name']}: revenue {product['revenue']}")
+        print("------------------------")
+
+@query_debugger
+def check_day_product_revenue(day):
+    current_year = 2023
+    export_orders = ExportOrder.objects.select_related('export_shipment_id', 'product_id').filter(
+        export_shipment_id__date = day
+    )
+    products_revenue = export_orders.values('product_id__name').annotate(
+        revenue = Sum(F("quantity_export") * F("unit_price"))
+    )
+    day_format = datetime.strftime(day, "%d/%m/%Y")
+    print(f"Day: {day_format}")
+    for product in products_revenue:
+        print(f"Product {product['product_id__name']}: revenue {product['revenue']}")

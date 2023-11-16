@@ -198,7 +198,7 @@ def import_action(request):
         'import_purchase_form': ImportPurchaseForm()
     }
     return render(request, "major_features/import/import_action.html", context)
-
+ 
 @cache_control(no_cache=True, must_revalidate=True)
 def save_and_continue(request, import_shipment_code):
     import_shipment_obj = ImportShipment.objects.select_related('supplier_id').get(import_shipment_code=import_shipment_code)

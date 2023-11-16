@@ -51,6 +51,7 @@ urlpatterns = [
 
      # Reports section
      path("reports/revenue", reports_views.reports_revenue, name="reports_revenue"),
+     path("reports/gross_profits", reports_views.reports_gross_profits, name="reports_gross_profits"),
      path("reports/import_section", reports_views.reports_import_section, name="reports_import_section"),
      path("reports/export_section", reports_views.reports_export_section, name="reports_export_section"),
 
