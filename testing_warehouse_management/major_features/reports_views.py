@@ -251,8 +251,203 @@ def reports_gross_profits(request):
     Dislaying each product's gross profits 
     according to chosen period type
     """
-    pass
+    context = {}
+    unchosen_period_types = {
+        'year': "Năm",
+        'quarter': "Quý",
+        'month': "Tháng",
+        'day': "Ngày",
+        'accounting_period': "Kỳ kế toán"
+    }
+    DEFAULT_PERIOD_TYPE = "accounting_period"
+    chosen_period_type = request.GET.get("period_type", "")
 
+    if chosen_period_type not in unchosen_period_types:
+        chosen_period_type = DEFAULT_PERIOD_TYPE
+    chosen_period_name = unchosen_period_types[chosen_period_type]
+
+    try:
+        del unchosen_period_types[chosen_period_type]
+    except KeyError:
+        print("Key not found")
+
+    # Attach these three keys to context for filter-bar
+    context['unchosen_period_types'] = unchosen_period_types
+    context['chosen_period_type'] = chosen_period_type
+    context['chosen_period_name'] = chosen_period_name
+
+    # Displaying total_revenue in the reports revenue table
+    total_gross_profits = 0
+
+    # JSON string for google chart
+    role = {'role': "style"}
+    gross_profits_arr = [
+        ["Sản phẩm", "Lợi nhuận", role ]
+    ]
+
+    if chosen_period_type == 'accounting_period':
+        chosen_accounting_period_id = default_accounting_period_id()
+
+        accounting_period_id_param = request.GET.get("accounting_period", None)
+
+        if accounting_period_id_param:
+            chosen_accounting_period_id = validating_period_id(accounting_period_id_param)
+
+        # Rendering chosen_accounting_period_id for getting selected accounting period
+        # in the select input
+        context["chosen_accounting_period_id"] = chosen_accounting_period_id
+
+        # Get all accounting period in template
+        # for user to choose
+        all_accounting_period = AccoutingPeriod.objects.select_related('warehouse_management_method').all()
+        context["all_accounting_period"] = all_accounting_period
+
+        periods_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').filter(
+            accounting_period_id = chosen_accounting_period_id
+        )
+        products_gross_profits = periods_inventory.values('product_id__name').annotate(
+            gross_profits = F("total_revenue") - F("total_cogs")
+        )
+        for product in products_gross_profits:
+            total_gross_profits += product['gross_profits']
+            # Append JSON string to google chart array
+            gross_profits_arr.append([product['product_id__name'], product['gross_profits'], "#01257D"])
+
+    if chosen_period_type == 'year':
+        # Get the current year as an int
+        chosen_year = default_year()
+
+        year_param = request.GET.get("year", None)
+        if year_param:
+            chosen_year = validating_year(year_param)
+
+        # Displaying the chosen year for user
+        # in the reports/import_section.html template
+        context['chosen_year'] = chosen_year
+
+        first_day_of_the_year = datetime(chosen_year, 1, 1).date()
+        last_day_of_the_year = datetime(chosen_year, 12, 31).date()
+
+        accounting_periods_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').filter(
+            accounting_period_id__date_applied__gte = first_day_of_the_year,
+            accounting_period_id__date_end__lte = last_day_of_the_year
+        )           
+        products_gross_profits = accounting_periods_inventory.values('product_id__name').annotate(
+            gross_profits = Sum(F("total_revenue") - F("total_cogs"))
+        )
+        for product in products_gross_profits:
+            total_gross_profits += product['gross_profits']
+            gross_profits_arr.append([product['product_id__name'], product['gross_profits'], "#01257D"])
+    
+    if chosen_period_type == 'quarter':
+        quarters = get_quarters()
+        context['quarters'] = quarters
+
+        # Return the key in quarters dictionary
+        chosen_quarter = default_quarter(quarters)
+        chosen_year = default_year()
+        
+        quarter_param = request.GET.get('quarter', None)
+        year_param = request.GET.get('quarter_year', None)
+
+        if quarter_param:
+            chosen_quarter = validating_quarter(quarter_param)
+        if year_param:
+            chosen_year = validating_year(year_param)
+
+        context['chosen_quarter'] = chosen_quarter
+        context['chosen_year'] = chosen_year
+
+        chosen_quarter_months = quarters[chosen_quarter]['months']
+        first_month_of_quarter = chosen_quarter_months[0]
+        last_month_of_quarter = chosen_quarter_months[2]
+        first_day_of_quarter = datetime(chosen_year, first_month_of_quarter, 1).date()
+        last_day_of_quarter = get_lastday_of_month(date(chosen_year, last_month_of_quarter, 1))
+
+        products_export_orders = ExportOrder.objects.select_related('export_shipment_id', 'product_id').filter(
+            export_shipment_id__date__gte = first_day_of_quarter,
+            export_shipment_id__date__lte = last_day_of_quarter
+        )
+        products_gross_profits = products_export_orders.values('product_id__name').annotate(
+            gross_profits = Sum(
+                    (F("quantity_export") * F("unit_price")) - F("total_order_value")
+                )
+        )
+        for product in products_gross_profits:
+            total_gross_profits += product['gross_profits']
+            gross_profits_arr.append([product['product_id__name'], product['gross_profits'], "#01257D"])
+
+    if chosen_period_type == 'month':
+        months = get_months()
+        context['months'] = months
+
+        chosen_month = default_month()
+        chosen_month_year = default_year()
+
+        month_param = request.GET.get('month', None)
+        month_year_param = request.GET.get('month_year', None)
+        if month_param:
+            chosen_month = validating_month(month_param)
+        if month_year_param:
+            chosen_month_year = validating_year(month_year_param)
+
+        # Displaying chosen month & chosen month year for user
+        # in the reports/import_section.html template
+        context['chosen_month'] = chosen_month
+        context['chosen_month_year'] = chosen_month_year
+
+        first_day_of_the_month = datetime(chosen_month_year, chosen_month, 1).date()
+        last_day_of_the_month = get_lastday_of_month(first_day_of_the_month)
+
+        product_export_orders = ExportOrder.objects.select_related('export_shipment_id', 'product_id').filter(
+            export_shipment_id__date__gte = first_day_of_the_month,
+            export_shipment_id__date__lte = last_day_of_the_month,
+        )
+        products_gross_profits = product_export_orders.values('product_id__name').annotate(
+            gross_profits = Sum(
+                (F("quantity_export") * F("unit_price")) - F("total_order_value")
+            )
+        )
+        for product in products_gross_profits:
+            total_gross_profits += product['gross_profits']
+            gross_profits_arr.append([product['product_id__name'], product['gross_profits'], "#01257D"])
+
+    if chosen_period_type == 'day':
+        # Set default day for filter-bar to the current day
+        chosen_date = default_day()
+
+        date_param = request.GET.get("day", None)
+        if date_param:
+            chosen_date = validating_date(date_param)
+
+        context['chosen_date'] = chosen_date
+
+        product_export_orders = ExportOrder.objects.select_related('export_shipment_id', 'product_id').filter(
+            export_shipment_id__date = chosen_date
+        )
+        products_gross_profits = product_export_orders.values('product_id__name').annotate(
+            gross_profits = Sum(
+                (F("quantity_export") * F("unit_price")) - F("total_order_value")
+            )
+        )
+        for product in products_gross_profits:
+            total_gross_profits += product['gross_profits']
+            gross_profits_arr.append([product['product_id__name'], product['gross_profits'], "#01257D"])
+    
+    # If no records are found
+    if products_gross_profits.count() == 0:
+        context["non_period_found_msg"] = "Không có dữ liệu"
+        return render(request, "major_features/reports/gross_profits.html", context)
+
+    # For rendering reports import section table
+    context['products_gross_profits'] = products_gross_profits
+    context['total_gross_profits'] = total_gross_profits
+    
+    # For google chart
+    context['gross_profits_arr'] = gross_profits_arr
+
+    return render(request, "major_features/reports/gross_profits.html", context)
+        
 def reports_import_section(request):
     """
     Dislaying each product's import inventory & import quantity 

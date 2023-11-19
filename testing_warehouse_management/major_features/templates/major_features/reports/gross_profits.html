@@ -72,7 +72,7 @@
 {% endblock %}
 
 {% block title %}
-<h3 style="margin-top: 10px; text-align: center;">Thống kê doanh thu</h3>
+<h3 style="margin-top: 10px; text-align: center;">Thống kê lợi nhuận</h3>
 {% endblock %}
 
 {% block body %}
@@ -91,7 +91,7 @@
     </ul>
   </div>
 
-  <form action="{% url 'reports_revenue' %}" class="inline-form" method="GET">
+  <form action="{% url 'reports_gross_profits' %}" class="inline-form" method="GET">
     <input type="hidden" name="period_type" value="{{ chosen_period_type }}">
     {% if chosen_period_type == 'accounting_period' %}
     <label for="{{ chosen_period_type }}" class="col-form-label inline-margin">{{ chosen_period_name }}: </label>
@@ -178,25 +178,25 @@
 {% if not non_period_found_msg %}
 <div class="d-flex justify-content-center" style="margin-top: 20px !important;">
   <table class="table table-bordered table-striped table-dark w-auto" style="margin: auto;">
-    <caption>Thống kê doanh thu từng sản phẩm</caption>
+    <caption>Thống kê lợi nhuận từng sản phẩm</caption>
     <thead>
       <tr>
         <th scope="col">Sản phẩm</th>
-        <th scope="col">Doanh thu</th>
+        <th scope="col">Lợi nhuận</th>
       </tr>
     </thead>
     <tbody>
-      {% for product_revenue in products_revenue %}
+      {% for product_gross_profits in products_gross_profits %}
       <tr>
-        <td>{{ product_revenue.product_id__name }}</td>
-        <td style="text-align: right;">{{product_revenue.revenue|intcomma }}</td>
+        <td>{{ product_gross_profits.product_id__name }}</td>
+        <td style="text-align: right;">{{ product_gross_profits.gross_profits|intcomma }}</td>
       </tr>
       {% endfor %}
     </tbody>
     <tfoot>
       <tr>
         <td style="color: #00FFFF"><strong>Tổng</strong></td>
-        <td style="color: #00FFFF; text-align: right;">{{ total_revenue|intcomma }}</td>
+        <td style="color: #00FFFF; text-align: right;">{{ total_gross_profits|intcomma }}</td>
       </tr>
     </tfoot>
   </table>
@@ -204,7 +204,7 @@
 
 <!-- Google chart -->
 <div class="d-flex justify-content-around">
-  <div id="revenue_columnchart"></div>
+  <div id="gross_profits_columnchart"></div>
 </div>
 
 {% else %}
@@ -222,19 +222,19 @@
 
 {% if not non_period_found_msg %}
 
-{{ revenue_arr|json_script:"revenue_arr" }}
+{{ gross_profits_arr|json_script:"gross_profits_arr" }}
 
 <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 <script type="text/javascript">
     google.charts.load("current", {packages:['corechart']});
     google.charts.setOnLoadCallback(drawChart);
 
-    const REVENUE_ARR = JSON.parse(document.getElementById('revenue_arr').textContent);
+    const GROSS_PROFITS = JSON.parse(document.getElementById('gross_profits_arr').textContent);
 
     function drawChart() {
-      var revenue_data = google.visualization.arrayToDataTable(REVENUE_ARR)
+      var gross_profits_data = google.visualization.arrayToDataTable(GROSS_PROFITS)
 
-      var revenue_view = new google.visualization.DataView(revenue_data);
+      var gross_profits_view = new google.visualization.DataView(gross_profits_data);
 
       var default_settings = [0, 1,
                        { calc: "stringify",
@@ -243,7 +243,7 @@
                          role: "annotation" },
                        2]
 
-      revenue_view.setColumns(default_settings);
+      gross_profits_view.setColumns(default_settings);
 
       var default_options = {
         title: "",
@@ -253,11 +253,11 @@
         legend: { position: "none" },
       };
 
-      var revenue_options = default_options;
-      revenue_options["title"] = "Doanh thu của từng sản phẩm trong kỳ";
+      var gross_profits_options = default_options;
+      gross_profits_options["title"] = "Lợi nhuận của từng sản phẩm trong kỳ";
 
-      var revenue_chart = new google.visualization.ColumnChart(document.getElementById("revenue_columnchart"));
-      revenue_chart.draw(revenue_view, revenue_options);
+      var gross_profits_chart = new google.visualization.ColumnChart(document.getElementById("gross_profits_columnchart"));
+      gross_profits_chart.draw(gross_profits_view, gross_profits_options);
   }
 </script>
 
