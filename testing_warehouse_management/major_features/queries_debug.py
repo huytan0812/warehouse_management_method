@@ -1015,3 +1015,274 @@ def check_day_product_revenue(day):
     print(f"Day: {day_format}")
     for product in products_revenue:
         print(f"Product {product['product_id__name']}: revenue {product['revenue']}")
+
+@query_debugger
+def check_year_product_gross_profits(product_id):
+    current_year = 2023
+    first_day_of_the_year = datetime(current_year, 1, 1).date()
+    last_day_of_the_year = datetime(current_year, 12, 31).date()
+    periods_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').filter(
+        accounting_period_id__date_applied__gte = first_day_of_the_year,
+        accounting_period_id__date_end__lte = last_day_of_the_year,
+        product_id = product_id
+    )
+    products_gross_profits = periods_inventory.values('product_id__name').annotate(
+        gross_profits = Sum(F("total_revenue") - F("total_cogs"))
+    )
+
+    product_export_orders = ExportOrder.objects.select_related('export_shipment_id', 'product_id').filter(
+        export_shipment_id__date__gte = first_day_of_the_year,
+        export_shipment_id__date__lte = last_day_of_the_year,
+        product_id = product_id
+    )
+    export_profits_on_product = product_export_orders.values('product_id__name').annotate(
+        gross_profits = Sum(
+            (F("quantity_export") * F("unit_price")) - F("total_order_value")
+        )
+    )
+
+    for connection_query in connection.queries:
+        print(connection_query)
+    
+    print(f"Product gross profits: {products_gross_profits[0]['gross_profits']}, Export profits: {export_profits_on_product[0]['gross_profits']}")
+    if products_gross_profits[0]['gross_profits'] != export_profits_on_product[0]['gross_profits']:
+        return False
+    return True
+
+@query_debugger
+def check_accounting_period_product_gross_profits(accounting_period_id):
+    periods_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').filter(
+        accounting_period_id = accounting_period_id
+    )
+    products_gross_profits = periods_inventory.values('product_id__name').annotate(
+        gross_profits = F("total_revenue") - F("total_cogs")
+    )
+
+    inventory_gross_profits = {}
+    for product in products_gross_profits:
+        inventory_gross_profits[product['product_id__name']] = {
+            'gross_profits': product['gross_profits']
+        }
+
+    if products_gross_profits.count() == 0:
+        print("Không có dữ liệu")
+        return
+
+    product_export_orders = ExportOrder.objects.select_related('export_shipment_id', 'product_id').filter(
+        export_shipment_id__current_accounting_period = accounting_period_id
+    )
+    export_profits_on_product = product_export_orders.values('product_id__name').annotate(
+        gross_profits = Sum(
+            (F("quantity_export") * F("unit_price")) - F("total_order_value")
+        )
+    )
+    export_order_gross_profits = {}
+    for product in export_profits_on_product:
+        export_order_gross_profits[product['product_id__name']] = {
+            'gross_profits': product['gross_profits']
+        }
+
+    no_bug = 0
+    
+    for product, value in inventory_gross_profits.items():
+        print("+++++++++++++++++++++++++")
+        print(product)
+        print(f"Inventory gross profits: {value['gross_profits']}, Export order profits: {export_order_gross_profits[product]['gross_profits']}")
+        if value['gross_profits'] != export_order_gross_profits[product]['gross_profits']:
+            no_bug = 1
+    
+    for connection_query in connection.queries:
+        print(connection_query)
+
+    if no_bug != 0:
+        return False
+    return True
+
+@query_debugger
+def check_quarter_products_gross_profits(quarter):
+    current_year = 2023
+    quarters = get_quarters()
+    quarter_obj = quarters[quarter]
+    quarter_months = quarter_obj['months']
+    first_day_of_quarter = datetime(current_year, quarter_months[0], 1).date()
+    get_last_day_of_quarter = calendar.monthrange(current_year, quarter_months[2])[1]
+    last_day_of_quarter = datetime(current_year, quarter_months[2], get_last_day_of_quarter).date()
+
+    product_export_orders = ExportOrder.objects.select_related('export_shipment_id', 'product_id').filter(
+        export_shipment_id__date__gte = first_day_of_quarter,
+        export_shipment_id__date__lte = last_day_of_quarter,
+    )
+    product_gross_profits = product_export_orders.values('product_id__name').annotate(
+        gross_profits = Sum(
+            (F("quantity_export") * F("unit_price")) - F("total_order_value")
+        )
+    )
+    group_by_profits = {}
+    for product in product_gross_profits:
+        group_by_profits[product['product_id__name']] = {
+            'gross_profits': product['gross_profits']
+        }
+    
+    iterable_gross_profits = {}
+    for product in product_export_orders:
+        if product.product_id.name not in iterable_gross_profits:
+            iterable_gross_profits[product.product_id.name] = {
+                'gross_profits': (product.quantity_export * product.unit_price) - product.total_order_value
+            }
+        else:
+            iterable_gross_profits[product.product_id.name]['gross_profits'] += (product.quantity_export * product.unit_price) - product.total_order_value
+    
+    no_bug = 0
+    print(f"Quarter: {quarter}")
+    for product, value in group_by_profits.items():
+        print("++++++++++++++++++++++++++++")
+        if value['gross_profits'] != iterable_gross_profits[product]['gross_profits']:
+            no_bug = 1
+        print(product)
+        print(f"Group by profits: {value['gross_profits']}, Iterable profits: {iterable_gross_profits[product]['gross_profits']}")
+    
+    for connection_query in connection.queries:
+        print(connection_query)
+    
+    if no_bug != 0:
+        return False
+    return True
+
+@query_debugger
+def check_month_product_gross_profits(month):
+    current_year = 2023
+    first_day_of_month = datetime(current_year, month, 1).date()
+    get_last_day_of_month = calendar.monthrange(current_year, month)[1]
+    last_day_of_month = datetime(current_year, month, get_last_day_of_month).date()
+
+    product_export_orders = ExportOrder.objects.select_related('export_shipment_id', 'product_id').filter(
+        export_shipment_id__date__gte = first_day_of_month,
+        export_shipment_id__date__lte = last_day_of_month,
+    )
+    product_gross_profits = product_export_orders.values('product_id__name').annotate(
+        gross_profits = Sum(
+            (F("quantity_export") * F("unit_price")) - F("total_order_value")
+        )
+    )
+    group_by_profits = {}
+    for product in product_gross_profits:
+        group_by_profits[product['product_id__name']] = {
+            'gross_profits': product['gross_profits']
+        }
+    
+    iterable_gross_profits = {}
+    for product in product_export_orders:
+        if product.product_id.name not in iterable_gross_profits:
+            iterable_gross_profits[product.product_id.name] = {
+                'gross_profits': (product.quantity_export * product.unit_price) - product.total_order_value
+            }
+        else:
+            iterable_gross_profits[product.product_id.name]['gross_profits'] += (product.quantity_export * product.unit_price) - product.total_order_value
+    
+    no_bug = 0
+    print(f"Month: {month}")
+    for product, value in group_by_profits.items():
+        print("++++++++++++++++++++++++++++")
+        if value['gross_profits'] != iterable_gross_profits[product]['gross_profits']:
+            no_bug = 1
+        print(product)
+        print(f"Group by profits: {value['gross_profits']}, Iterable profits: {iterable_gross_profits[product]['gross_profits']}")
+    
+    for connection_query in connection.queries:
+        print(connection_query)
+    
+    if no_bug != 0:
+        return False
+    return True
+
+@query_debugger
+def check_day_product_gross_profits(day):
+    current_year = 2023
+    month = 10
+    chosen_date = datetime(current_year, month, day).date()
+
+    product_export_orders = ExportOrder.objects.select_related('export_shipment_id', 'product_id').filter(
+        export_shipment_id__date = chosen_date
+    )
+    product_gross_profits = product_export_orders.values('product_id__name').annotate(
+        gross_profits = Sum(
+            (F("quantity_export") * F("unit_price")) - F("total_order_value")
+        )
+    )
+    group_by_profits = {}
+    for product in product_gross_profits:
+        group_by_profits[product['product_id__name']] = {
+            'gross_profits': product['gross_profits']
+        }
+
+    iterable_gross_profits = {}
+    for product in product_export_orders:
+        if product.product_id.name not in iterable_gross_profits:
+            iterable_gross_profits[product.product_id.name] = {
+                'gross_profits': (product.quantity_export * product.unit_price) - product.total_order_value
+            }
+        else:
+            iterable_gross_profits[product.product_id.name]['gross_profits'] += (product.quantity_export * product.unit_price) - product.total_order_value
+
+    no_bug = 0
+
+    day_format = datetime.strftime(chosen_date, "%d/%m/%Y")
+    print(f"Day: {day_format}")
+    for product, value in group_by_profits.items():
+        print("++++++++++++++++++++++++++++")
+        if value['gross_profits'] != iterable_gross_profits[product]['gross_profits']:
+            no_bug = 1
+        print(product)
+        print(f"Group by profits: {value['gross_profits']}, Iterable profits: {iterable_gross_profits[product]['gross_profits']}")
+    
+    for connection_query in connection.queries:
+        print(connection_query)
+
+    if no_bug != 0:
+        return False
+    return True
+
+@query_debugger
+def check_gross_profits(day):
+    current_year = 2023
+    month = 10
+    chosen_date = datetime(current_year, month, day).date()
+
+    product_export_orders = ExportOrder.objects.select_related('export_shipment_id', 'product_id').filter(
+        export_shipment_id__date = chosen_date
+    )
+    product_gross_profits = product_export_orders.values('product_id__name').annotate(
+        gross_profits = Sum(
+            (F("quantity_export") * F("unit_price")) - F("total_order_value")
+        )
+    )
+    products_gross_profits = {}
+    for product in product_gross_profits:
+        products_gross_profits[product['product_id__name']] = {
+            'gross_profits': product['gross_profits']
+        }
+
+    for connection_query in connection.queries:
+        print(connection_query)
+
+    return products_gross_profits
+
+@query_debugger
+def total_product_day_gross_profits():
+    products_gross_profits = {
+        'Avarino': 0,
+        'Creon': 0,
+        'Cebraton': 0,
+    }
+    total_products_profits = 0
+
+    for day in range(1, 32):
+        check_products_gross_profits = check_gross_profits(day)
+        if len(check_products_gross_profits) != 0:
+            products_gross_profits['Avarino'] += check_products_gross_profits['Avarino']['gross_profits']
+            products_gross_profits['Creon'] += check_products_gross_profits['Creon']['gross_profits']
+            products_gross_profits['Cebraton'] += check_products_gross_profits['Cebraton']['gross_profits']
+    
+    total_products_profits += products_gross_profits['Avarino'] + products_gross_profits['Creon'] + products_gross_profits['Cebraton']
+    print(products_gross_profits)
+    print(total_products_profits)
