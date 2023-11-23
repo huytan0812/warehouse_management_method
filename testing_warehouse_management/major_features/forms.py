@@ -8,7 +8,6 @@ from . models import *
 class KeepMethodForm(forms.Form):
     is_keep = forms.BooleanField(widget=forms.CheckboxInput(attrs={}), required=False, label="Có") 
 
-
 class DatePickerForm(forms.Form):
     date_field = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}))
 
@@ -391,6 +390,9 @@ class ActualMethodInventory(forms.Form):
 
         return quantity_take
         
-
+class ProductForm(ModelForm):
+    class Meta:
+        model = Product
+        fields = ["sku", "name", "minimum_quantity"]
 
 
