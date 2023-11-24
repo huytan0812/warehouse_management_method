@@ -44,6 +44,51 @@ def index(request):
 
     return render(request, "major_features/index.html", context)
 
+def products(request):
+    current_accounting_period = AccoutingPeriod.objects.latest('id')
+    products_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').filter(
+        accounting_period_id = current_accounting_period
+    )
+    context = {
+        'products_inventory': products_inventory
+    }
+    return render(request, "major_features/products/products.html", context)
+
+def add_product(request):
+    add_product_form = AddProductForm()
+
+    if request.method == "POST":
+        add_product_form = AddProductForm(request.POST)
+        if add_product_form.is_valid():
+            add_product_form.save()
+            return HttpResponseRedirect(reverse('products'))
+        return HttpResponse("Invalid form", content_type="text/plain")
+    
+    context = {
+        'add_product_form': add_product_form
+    }
+    return render(request, "major_features/products/add_product.html", context)
+
+def edit_product(request, product_id):
+    try:
+        product = Product.objects.get(pk=product_id)
+    except Product.DoesNotExist:
+        raise Exception("Mã sản phẩm không hợp lệ")
+    edit_product_form = EditProductForm(instance=product)
+
+    if request.method == "POST":
+        edit_product_form = EditProductForm(request.POST, instance=product)
+        if edit_product_form.is_valid():
+            edit_product_form.save()
+            return HttpResponseRedirect(reverse('products'))
+        return HttpResponse("Invalid form", content_type="text/plain")
+    
+    context = {
+        'product': product,
+        'edit_product_form': edit_product_form
+    }
+    return render(request, "major_features/products/edit_product.html", context)
+
 def get_lastday_of_month(date_obj):
 
     """

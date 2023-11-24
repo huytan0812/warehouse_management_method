@@ -1,0 +1,20 @@
+{% extends "major_features/layout.html" %}
+
+{% block title %}
+<h3 style="margin-top: 10px; text-align: center;">Thêm sản phẩm mới</h3>
+{% endblock %}
+
+{% block body %}
+<form action="{% url 'add_product' %}" method="post">
+    {% csrf_token %}
+    <div class="form-group">
+        <fieldset>
+            <legend>
+                <strong>Thêm sản phẩm:</strong>
+            </legend>
+            {{ add_product_form.as_p }}
+        </fieldset>
+    </div>
+    <button type="submit" class="submit-button">Xác nhận</i></button>
+</form>
+{% endblock %}

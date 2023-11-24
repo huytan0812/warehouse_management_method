@@ -1,0 +1,38 @@
+{% extends "major_features/layout.html" %}
+
+{% load humanize %}
+
+{% block title %}
+<h3 style="margin-top: 10px; text-align: center;">Sản phẩm</h3>
+{% endblock %}
+
+{% block body %}
+<div id="products-container">
+    <table class="table table-bordered table-striped table-dark">
+      <caption>Bảng thống kê giá trị tồn kho hiện tại của từng sản phẩm</caption>
+        <thead>
+          <tr>
+            <th scope="col" style="text-align: left;">Mã sản phẩm</th>
+            <th scope="col" style="text-align: left;">Tên sản phẩm</th>
+            <th scope="col" style="text-align: left;">SL tồn kho tối thiểu</th>
+            <th scope="col" style="text-align: left;">Thực hiện</th>
+            <th scope="col" style="text-align: right;">Số lượng tồn kho</th>
+            <th scope="col" style="text-align: right;">Tổng giá trị tồn kho</th>
+          </tr>
+        </thead>
+        <tbody>
+            {% for product in products_inventory %}
+            <tr>
+                <td scope="col">{{ product.product_id.sku }}</td>
+                <td scope="col">{{ product.product_id.name }}</td>
+                <td scope="col">{{ product.product_id.minimum_quantity }}</td>
+                <td scope="col"><a href="{% url 'edit_product' product.product_id.sku %}">Sửa</a></td>
+                <td scope="col" style="text-align: right;">{{ product.ending_quantity|intcomma }}</td>
+                <td scope="col" style="text-align: right;">{{ product.ending_inventory|intcomma }}</td>
+              </tr>
+            {% endfor %}
+        </tbody>
+      </table>
+</div>
+<a href="{% url 'add_product' %}">Thêm sản phẩm khác</a>
+{% endblock %}

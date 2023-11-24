@@ -26,6 +26,13 @@
           <a class="nav-link" style="color: white;" href="{% url 'index' %}">Trang chủ</a>
           {% endif %}
         </li>
+        <li class="nav-item" style="padding: 2.5px 5px 2.5px 5px;">
+          {% if 'products' in request.resolver_match.url_name %}
+          <a class="nav-link" style="color: #00FFFF; border-bottom: 2px solid #00FFFF;" href="{% url 'products' %}">Sản phẩm</a>
+          {% else %}
+          <a class="nav-link" style="color: white;" href="{% url 'products' %}">Sản phẩm</a>
+          {% endif %}
+        </li>
         <li class="nav-item dropdown-trigger" style="padding: 2.5px 5px 2.5px 5px;">
           {% if 'import' in request.resolver_match.url_name and 'reports' not in request.resolver_match.url_name %}
           <a class="nav-link" style="color: #00FFFF; border-bottom: 2px solid #00FFFF;" href="{% url 'import_shipments' %}">Nhập kho</a>

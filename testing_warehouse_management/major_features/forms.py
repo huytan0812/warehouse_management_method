@@ -390,9 +390,30 @@ class ActualMethodInventory(forms.Form):
 
         return quantity_take
         
-class ProductForm(ModelForm):
+class AddProductForm(ModelForm):
     class Meta:
         model = Product
         fields = ["sku", "name", "minimum_quantity"]
+        widgets = {
+            'sku': forms.TextInput(attrs={'class': 'form-control', 'required': True, 'placeholder': "Mã sản phẩm"}),
+            'name': forms.TextInput(attrs={'class': 'form-control', 'required': True, 'placeholder': "Tên sản phẩm"}),
+            'minimum_quantity': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': "SL tồn kho tối thiểu"})
+        }
+        labels = {
+            'sku': "Mã sản phẩm",
+            'name': "Tên sản phẩm",
+            'minimum_quantity': "Số lượng tồn kho tối thiểu"
+        }
 
-
+class EditProductForm(ModelForm):
+    class Meta:
+        model = Product
+        fields = ["name", "minimum_quantity"]
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': "Tên sản phẩm"}),
+            'minimum_quantity': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': "SL tồn kho tối thiểu"})
+        }
+        labels = {
+            'name': "Tên sản phẩm",
+            'minimum_quantity': "Số lượng tồn kho tối thiểu"
+        }

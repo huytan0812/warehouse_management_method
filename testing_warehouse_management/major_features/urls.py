@@ -11,6 +11,11 @@ urlpatterns = [
      path("apply_warehouse_management", views.apply_warehouse_management, name="apply_warehouse_management"),
      path("keep_current_method", views.keep_current_method, name="keep_current_method"),
 
+     # Products Section
+     path("products", views.products, name="products"),
+     path("products/add_product", views.add_product, name="add_product"),
+     path("products/edit_product/product_id=<str:product_id>", views.edit_product, name="edit_product"),
+
      # Import Section
      path("import_shipments", views.import_shipments, name="import_shipments"),
      path("import_shipment_details/<str:import_shipment_code>", views.import_shipment_details, name="import_shipment_details"),
