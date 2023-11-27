@@ -1,0 +1,32 @@
+{% extends "major_features/layout.html" %}
+
+{% block title %}
+<h3 style="margin-top: 10px; text-align: center;">Trang đăng ký tài khoản admin</h3>
+{% endblock %}
+
+{% block body %}
+
+{% if message %}
+    <p>{{ message }}</p>
+{% endif %}
+
+<div class="container d-flex justify-content-center">
+    <div class="form-container">
+        <form action="{% url 'register' %}" method="post" class="registration-form">
+            {% csrf_token %}
+            <div class="form-group">
+                <fieldset>
+
+                    <legend>Cấp tài khoản cho nhân viên:</legend>
+                
+                    <input class="form-control registration-input" autofocus type="text" name="username" placeholder="Tên đăng nhập">
+                    <input class="form-control registration-input" type="password" name="password" placeholder="Mật khẩu">
+                    <input class="form-control registration-input" type="password" name="confirmation" placeholder="Xác nhận mật khẩu">
+
+                </fieldset>
+            </div>
+            <button type="submit" class="submit-button">Đăng ký</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

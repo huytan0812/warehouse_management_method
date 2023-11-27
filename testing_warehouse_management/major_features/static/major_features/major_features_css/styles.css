@@ -163,3 +163,17 @@ input {
     margin-left: 10px;
     margin-right: 10px;
 }
+
+#navbarNav {
+    justify-content: space-between
+}
+
+.registration-form {
+    width: 350px;
+    margin-top: 15px;
+    margin-bottom: 15px;
+}
+
+.registration-input {
+    margin-top: 10px;
+}

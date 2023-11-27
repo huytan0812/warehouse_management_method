@@ -1,0 +1,29 @@
+{% extends "major_features/layout.html" %}
+
+{% block title %}
+<h3 style="margin-left: 10px; text-align: center;">Trang đăng nhập</h3>
+{% endblock %}
+
+{% block body %}
+
+{% if message %}
+    <p style="color: red; text-align: center;">{{ message }}</p>
+{% endif %}
+
+<div class="container d-flex justify-content-center">
+    <div class="form-container">
+      <form action="{% url 'login' %}" method="post" class="registration-form">
+          {% csrf_token %}
+        <div class="form-group">
+            <fieldset>
+                <legend>Đăng nhập vào hệ thống: </legend>
+            </fieldset>
+            <input autofocus class="form-control registration-input" type="text" name="username" placeholder="Username">
+            <input class="form-control registration-input" type="password" name="password" placeholder="Password">
+        </div>
+        <button type="submit" class="submit-button">Đăng nhập</button>
+      </form>
+    </div>
+</div>
+
+{% endblock %}

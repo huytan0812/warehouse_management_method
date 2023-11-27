@@ -1,4 +1,3 @@
-import json
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render
 from datetime import date, datetime, timedelta
@@ -10,13 +9,15 @@ from django.urls import reverse
 from django.db import transaction, IntegrityError
 from django.views.decorators.cache import cache_control
 from django.core.paginator import Paginator
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
 from . models import *
 from . forms import *
 from . decorators import is_activating_accounting_period
-from . queries_debug import query_debugger
 from . warehouse_management_methods import *
 
 # Create your views here.
+@login_required
 def index(request):
     current_accounting_period = AccoutingPeriod.objects.select_related('warehouse_management_method').latest('id')
 
@@ -43,6 +44,57 @@ def index(request):
             """
 
     return render(request, "major_features/index.html", context)
+
+def login_view(request):
+    if request.method == "POST":
+
+        # Attempt to sign user in
+        username = request.POST["username"]
+        password = request.POST["password"]
+        user = authenticate(request, username=username, password=password)
+
+        # Check if authentication successful
+        if user is not None:
+            login(request, user)
+            return HttpResponseRedirect(reverse("index"))
+        
+        return render(request, "major_features/registration/login.html", {
+            "message": "Tên đăng nhập hoặc tài khoản sai"
+        })
+    
+    return render(request, "major_features/registration/login.html")
+
+
+def logout_view(request):
+    logout(request)
+    return HttpResponseRedirect(reverse("index"))
+
+
+def register(request):
+    if request.method == "POST":
+        username = request.POST["username"]
+
+        # Ensure password matches confirmation
+        password = request.POST["password"]
+        confirmation = request.POST["confirmation"]
+        if password != confirmation:
+            return render(request, "major_features/registration/register.html", {
+                "message": "Mật khẩu không trùng khớp"
+            })
+
+        # Attempt to create new user
+        try:
+            user = User.objects.create_user(username=username, password=password)
+            user.save()
+        except IntegrityError:
+            return render(request, "major_features/registration/register.html", {
+                "message": "Tên đăng nhập đã tồn tại"
+            })
+        
+        login(request, user)
+        return HttpResponseRedirect(reverse("index"))
+    
+    return render(request, "major_features/registration/register.html")
 
 def products(request):
     current_accounting_period = AccoutingPeriod.objects.latest('id')
