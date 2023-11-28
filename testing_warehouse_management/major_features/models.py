@@ -157,4 +157,11 @@ class AccountingPeriodInventory(models.Model):
             Ending Inventory: {self.ending_inventory} | Ending Quantity: {self.ending_quantity}
         """
 
-
+class UserActivity(models.Model):
+    user_id = models.ForeignKey(User, on_delete=models.PROTECT, null=False, blank=False, related_name="%(class)s_activities")
+    login_time = models.DateTimeField(null=True, blank=True)
+    logout_time = models.DateTimeField(null=True, blank=True)
+    session_key = models.CharField(null=True, blank=True)
+    
+    def __str__(self):
+        return f"Admin {self.user_id.username}: login time: {self.login_time}, logout time: {self.logout_time}"

@@ -10,6 +10,8 @@ urlpatterns = [
      path("login", views.login_view, name="login"),
      path("logout", views.logout_view, name="logout"),
      path("register", views.register, name="register"),
+     path("user_activities", views.user_activities, name="user_activities"),
+
      path("date_handling", views.date_handling, name="date_handling"),
      path("apply_warehouse_management", views.apply_warehouse_management, name="apply_warehouse_management"),
      path("keep_current_method", views.keep_current_method, name="keep_current_method"),

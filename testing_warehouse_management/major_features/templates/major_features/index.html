@@ -7,6 +7,16 @@
 {% endblock %}
 
 {% block body %}
+<p>
+  Session key: {{ session_key }}
+</p>
+<p>
+  Serialized session data: {{ current_session_data }}
+</p>
+<p> 
+  Decoded session data: {{ decoded_session_data }}
+</p>
+
 <div id="products-container">
     <table class="table table-bordered table-striped table-dark">
       <caption>Bảng thống kê giá trị tồn kho hiện tại của từng sản phẩm</caption>

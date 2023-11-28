@@ -1,0 +1,28 @@
+{% extends "major_features/layout.html" %}
+
+{% block title %}
+<h3 style="margin-top: 10px; text-align: center;">Theo dõi các phiên hoạt động của nhân viên</h3>
+{% endblock %}
+
+{% block body %}
+<div class="container d-flex justify-content-center">
+    <table class="table table-dark">
+        <thead>
+        <tr>
+            <th scope="col">Nhân viên</th>
+            <th scope="col">Thời gian online</th>
+            <th scope="col">Thời gian offline</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for user in user_activities %}
+        <tr>
+            <th scope="row">{{ user.user_id.username }}</th>
+            <td>{{ user.login_time|date:"d/m/Y - H:i:s" }}</td>
+            <td>{{ user.logout_time|date:"d/m/Y - H:i:s" }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

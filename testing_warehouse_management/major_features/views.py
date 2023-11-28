@@ -1,9 +1,10 @@
+import calendar
+import pytz
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render
 from datetime import date, datetime, timedelta
 from django.core.exceptions import ObjectDoesNotExist
-import calendar
-import pytz
+from django.utils import timezone
 from django.db.models import Max
 from django.urls import reverse
 from django.db import transaction, IntegrityError
@@ -11,6 +12,7 @@ from django.views.decorators.cache import cache_control
 from django.core.paginator import Paginator
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.contrib.sessions.models import Session
 from . models import *
 from . forms import *
 from . decorators import is_activating_accounting_period
@@ -19,6 +21,16 @@ from . warehouse_management_methods import *
 # Create your views here.
 @login_required
 def index(request):
+    # Create user activity
+    # to track the current session of the user
+    current_session_key = request.session.session_key
+    if not UserActivity.objects.filter(session_key = current_session_key).exists():
+        user_activity = UserActivity.objects.create(
+            user_id = request.user,
+            login_time = vntz_to_utc(),
+            session_key = current_session_key
+        )
+         
     current_accounting_period = AccoutingPeriod.objects.select_related('warehouse_management_method').latest('id')
 
     product_period_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').filter(
@@ -26,9 +38,17 @@ def index(request):
     )
     date_picker_form = DatePickerForm()
 
+    session_key = request.session.session_key
+    current_session = Session.objects.get(session_key = session_key)
+    current_session_data = current_session.session_data
+    decoded_session_data = current_session.get_decoded()
+
     context = {
         'product_period_inventory': product_period_inventory,
-        'date_picker_form': date_picker_form
+        'date_picker_form': date_picker_form,
+        'session_key': session_key,
+        'current_session_data': current_session_data,
+        'decoded_session_data': decoded_session_data
     }
 
     # Handling if the current method is currently applied
@@ -44,6 +64,15 @@ def index(request):
             """
 
     return render(request, "major_features/index.html", context)
+
+def vntz_to_utc():
+    """
+    Converting current local time to UTC
+    """
+    current_time = datetime.now()
+    UTC = pytz.utc
+    current_time_utc = UTC.localize(current_time)
+    return current_time_utc
 
 def login_view(request):
     if request.method == "POST":
@@ -66,6 +95,16 @@ def login_view(request):
 
 
 def logout_view(request):
+    current_session_key = request.session.session_key
+    try:
+        user_activity = UserActivity.objects.get(session_key=current_session_key)
+        # Update the user_activity object
+        # with logout_time field by now
+        user_activity.logout_time = vntz_to_utc()
+        user_activity.save(update_fields=["logout_time"])
+    except UserActivity.DoesNotExist:
+        pass
+
     logout(request)
     return HttpResponseRedirect(reverse("index"))
 
@@ -95,6 +134,13 @@ def register(request):
         return HttpResponseRedirect(reverse("index"))
     
     return render(request, "major_features/registration/register.html")
+
+def user_activities(request):
+    user_activities = UserActivity.objects.select_related('user_id').all()
+    context = {
+        'user_activities': user_activities
+    }
+    return render(request, "major_features/registration/user_activities.html", context)
 
 def products(request):
     current_accounting_period = AccoutingPeriod.objects.latest('id')
