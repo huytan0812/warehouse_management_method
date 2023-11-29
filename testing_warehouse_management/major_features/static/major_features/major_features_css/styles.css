@@ -177,3 +177,35 @@ input {
 .registration-input {
     margin-top: 10px;
 }
+
+#admin-management {
+    display: flex;
+    flex-direction: right;
+    justify-content: flex-start;
+}
+
+#register {
+    padding: 10px;
+    border-right: 2px #01257D solid;
+}
+
+#register:hover a{
+    color: #01257D;
+    font-weight: 600;
+    transition: 0.3s;
+}
+
+#user-activities {
+    padding: 10px;
+}
+
+#user-activities:hover a{
+    color: #01257D;
+    font-weight: 600;
+    transition: 0.3s;
+}
+
+.active-a {
+    color: #01257D;
+    font-weight: 600;
+}
