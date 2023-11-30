@@ -1286,3 +1286,12 @@ def total_product_day_gross_profits():
     total_products_profits += products_gross_profits['Avarino'] + products_gross_profits['Creon'] + products_gross_profits['Cebraton']
     print(products_gross_profits)
     print(total_products_profits)
+
+@query_debugger
+def get_diff_login_logout_time():
+    user_activities = UserActivity.objects.select_related('user_id').all()
+    for user_activity in user_activities:
+        print(f"Activity id {user_activity.pk}, diff time: {user_activity.get_diff_str_login_logout_time()}")
+    
+    for connection_query in connection.queries:
+        print(connection_query)

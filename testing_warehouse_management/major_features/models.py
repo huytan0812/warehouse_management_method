@@ -1,6 +1,7 @@
 from django.db import models
 from django.db.models import Q
 from django.contrib.auth.models import User
+from datetime import datetime, timedelta
 
 # Create your models here.
 class WarehouseManagementMethod(models.Model):
@@ -162,6 +163,29 @@ class UserActivity(models.Model):
     login_time = models.DateTimeField(null=True, blank=True)
     logout_time = models.DateTimeField(null=True, blank=True)
     session_key = models.CharField(null=True, blank=True)
+
+    def get_diff_str_login_logout_time(self):
+        if self.logout_time is None:
+            return ""
+
+        MINUTES_PER_HOUR = 60
+        SECONDS_PER_MINUTES = 60
+
+        diff_str = ""
+
+        dt = self.logout_time - self.login_time
+        dt_total_seconds = dt.total_seconds()
+        dt_total_minutes = round(dt_total_seconds / SECONDS_PER_MINUTES)
+
+        get_diff_minutes = dt_total_minutes if dt_total_minutes > 0 else 1
+        dt_hours = round(get_diff_minutes / MINUTES_PER_HOUR)
+        dt_minutes = get_diff_minutes % MINUTES_PER_HOUR
+
+        if dt_hours > 0:
+            diff_str += f"{dt_hours} giờ "  
+        diff_str += f"{dt_minutes} phút"
+
+        return diff_str
     
     def __str__(self):
         return f"Admin {self.user_id.username}: login time: {self.login_time}, logout time: {self.logout_time}"

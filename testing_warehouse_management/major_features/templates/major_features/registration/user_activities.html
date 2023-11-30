@@ -35,8 +35,9 @@
         <thead>
         <tr>
             <th scope="col">Nhân viên</th>
-            <th scope="col">Thời gian online</th>
-            <th scope="col">Thời gian offline</th>
+            <th scope="col">Thời gian đăng nhập</th>
+            <th scope="col">Thời gian đăng xuất</th>
+            <th scope="col">Thời gian hoạt động</th>
         </tr>
         </thead>
         <tbody>
@@ -45,6 +46,7 @@
             <th scope="row">{{ user.user_id.username }}</th>
             <td>{{ user.login_time|date:"d/m/Y - H:i:s" }}</td>
             <td>{{ user.logout_time|date:"d/m/Y - H:i:s" }}</td>
+            <td>{{ user.get_diff_str_login_logout_time }}</td>
         </tr>
         {% endfor %}
         </tbody>
