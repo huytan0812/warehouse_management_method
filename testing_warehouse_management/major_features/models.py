@@ -149,6 +149,14 @@ class AccountingPeriodInventory(models.Model):
 
     total_revenue = models.IntegerField(null=True, blank=True, default=0)
 
+    def is_below_minimum_quantity(self):
+        product_minimum_quantity = self.product_id.minimum_quantity
+        current_product_quantity = self.ending_quantity
+
+        if current_product_quantity > product_minimum_quantity:
+            return False
+        return True
+
     def __str__(self):
         return f"""
             Accouting Period: {self.accounting_period_id.id} | Product: {self.product_id.name}

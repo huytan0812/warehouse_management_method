@@ -41,15 +41,57 @@
         </tr>
         </thead>
         <tbody>
-        {% for user in user_activities %}
-        <tr>
-            <th scope="row">{{ user.user_id.username }}</th>
-            <td>{{ user.login_time|date:"d/m/Y - H:i:s" }}</td>
-            <td>{{ user.logout_time|date:"d/m/Y - H:i:s" }}</td>
-            <td>{{ user.get_diff_str_login_logout_time }}</td>
-        </tr>
-        {% endfor %}
+            {% for user_activity in page_obj %}
+            <tr>
+                <th scope="row">{{ user_activity.user_id.username }}</th>
+                <td>{{ user_activity.login_time|date:"d/m/Y - H:i:s" }}</td>
+                <td>{{ user_activity.logout_time|date:"d/m/Y - H:i:s" }}</td>
+                <td>{{ user_activity.get_diff_str_login_logout_time }}</td>
+            </tr>
+            {% endfor %}
         </tbody>
+        <tfoot>
+            <tr>
+                <td  style="color: #0d6efd; background-color: white !important;"><strong>Kết quả: </strong>
+                {{ results_count }} dòng
+                </td>
+                <td colspan="5" style="text-align: right; background-color: white !important;">
+
+                <nav aria-label="Page navigation example" style="display: inline-block; position: static;">
+                <ul class="pagination" style="margin-top: 15px;">
+
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                    <a class="page-link" href="?page={{page_obj.previous_page_number}}" aria-label="Previous">
+                    {% else %}
+                    <li class="page-item disabled">
+                    <a class="page-link" href="#" aria-label="Previous">
+                    {% endif %}
+                        <span aria-hidden="true">&laquo;</span>
+                        <span class="sr-only">Trước</span>
+                    </a>
+                    </li>
+
+                    <li class="page-item">
+                    <span class="page-link">Trang {{ page_obj.number }} trong {{ page_obj.paginator.num_pages }}</span>
+                    </li>
+
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                    <a class="page-link" href="?page={{page_obj.next_page_number}}" aria-label="Next">
+                    {% else %}
+                    <li class="page-item disabled">
+                    <a class="page-link" href="#" aria-label="Next">
+                    {% endif %}
+                        <span aria-hidden="true">&raquo;</span>
+                        <span class="sr-only">Sau</span>
+                    </a>
+                    </li>
+                </ul>
+                </nav>
+                </td>
+            </tr>
+        </tfoot>
     </table>
 </div>
 {% endblock %}

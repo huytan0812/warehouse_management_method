@@ -12,24 +12,37 @@
       <caption>Bảng thống kê giá trị tồn kho hiện tại của từng sản phẩm</caption>
         <thead>
           <tr>
-            <th scope="col" style="text-align: left;">Mã sản phẩm</th>
-            <th scope="col" style="text-align: left;">Tên sản phẩm</th>
+            <th scope="col" style="text-align: left;">Mã SP</th>
+            <th scope="col" style="text-align: left;">Tên SP</th>
             <th scope="col" style="text-align: left;">SL tồn kho tối thiểu</th>
             <th scope="col" style="text-align: left;">Thực hiện</th>
             <th scope="col" style="text-align: right;">Số lượng tồn kho</th>
-            <th scope="col" style="text-align: right;">Tổng giá trị tồn kho</th>
+            <th scope="col" style="text-align: right;">Giá trị tồn kho</th>
+            <th scope="col" style="text-align: right; max-width: 300px;">Ghi chú</th>
           </tr>
         </thead>
         <tbody>
             {% for product in products_inventory %}
-            <tr>
-                <td scope="col">{{ product.product_id.sku }}</td>
-                <td scope="col">{{ product.product_id.name }}</td>
-                <td scope="col">{{ product.product_id.minimum_quantity }}</td>
-                <td scope="col"><a href="{% url 'edit_product' product.product_id.sku %}">Sửa</a></td>
-                <td scope="col" style="text-align: right;">{{ product.ending_quantity|intcomma }}</td>
-                <td scope="col" style="text-align: right;">{{ product.ending_inventory|intcomma }}</td>
-              </tr>
+            {% if product.is_below_minimum_quantity %}
+            <tr style="color: rgb(252, 32, 32);">
+            {% else %}
+            <tr style="color: #31e05a">
+            {% endif %}
+              <td scope="col">{{ product.product_id.sku }}</td>
+              <td scope="col">{{ product.product_id.name }}</td>
+              <td scope="col">{{ product.product_id.minimum_quantity }}</td>
+              <td scope="col"><a href="{% url 'edit_product' product.product_id.sku %}">Sửa</a></td>
+              <td scope="col" style="text-align: right;">{{ product.ending_quantity|intcomma }}</td>
+              <td scope="col" style="text-align: right;">{{ product.ending_inventory|intcomma }}</td>
+              {% if product.is_below_minimum_quantity %}
+              <td scope="col" style="text-align: right; max-width: 300px;">
+                SL sản phẩm tồn kho thấp hơn mức tối thiểu.
+                Cần lưu ý đặt thêm hàng
+              </td>
+              {% else %}
+              <td scope="col" style="text-align: right; max-width: 300px;"></td>
+              {% endif %}
+            </tr>
             {% endfor %}
         </tbody>
       </table>

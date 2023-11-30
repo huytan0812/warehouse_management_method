@@ -136,9 +136,17 @@ def register(request):
     return render(request, "major_features/registration/register.html")
 
 def user_activities(request):
-    user_activities = UserActivity.objects.select_related('user_id').all()
+    user_activities = UserActivity.objects.select_related('user_id').order_by('-login_time')
+    user_activities_paginator = Paginator(user_activities, 10)
+
+    page_number = request.GET.get('page')
+    page_obj = user_activities_paginator.get_page(page_number)
+
+    results_count = page_obj.end_index() - page_obj.start_index() + 1
+
     context = {
-        'user_activities': user_activities
+        'page_obj': page_obj,
+        'results_count': results_count
     }
     return render(request, "major_features/registration/user_activities.html", context)
 
