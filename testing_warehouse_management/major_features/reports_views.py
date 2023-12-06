@@ -237,6 +237,9 @@ def reports_revenue(request):
         context["non_period_found_msg"] = "Không có dữ liệu"
         return render(request, "major_features/reports/revenue.html", context)
 
+    # Append total_revenue_arr as a column in the revenue chart
+    revenue_arr.append(["Tổng doanh thu", total_revenue, "#01257D"])
+
     # For rendering reports import section table
     context['products_revenue'] = products_revenue
     context['total_revenue'] = total_revenue
@@ -438,6 +441,9 @@ def reports_gross_profits(request):
     if products_gross_profits.count() == 0:
         context["non_period_found_msg"] = "Không có dữ liệu"
         return render(request, "major_features/reports/gross_profits.html", context)
+
+    # Append total_gross_profits to gross_profits_arr for the gross_profits chart
+    gross_profits_arr.append(["Tổng lợi nhuận", total_gross_profits, "#01257D"])
 
     # For rendering reports import section table
     context['products_gross_profits'] = products_gross_profits
@@ -662,6 +668,11 @@ def reports_import_section(request):
     if products_inventory.count() == 0:
         context["non_period_found_msg"] = "Không có dữ liệu"
         return render(request, "major_features/reports/import_section.html", context)
+
+    # Append import_inventory & import quantity 
+    # for the import_inventory & import quantity chart
+    import_inventory_data_arr.append(["Tổng giá trị nhập kho", total_import_inventory, "#01257D"])
+    import_quantity_data_arr.append(["Tổng SL nhập kho", total_import_quantity, "#01257D"])
 
     # For rendering reports import section table
     context['products_inventory'] = products_inventory
@@ -888,6 +899,11 @@ def reports_export_section(request):
     if products_inventory.count() == 0:
         context["non_period_found_msg"] = "Không có dữ liệu"
         return render(request, "major_features/reports/export_section.html", context)
+
+    # Append import_inventory & import quantity 
+    # for the import_inventory & import quantity chart
+    export_value_data_arr.append(["Tổng giá trị xuất kho", total_export_value, "#01257D"])
+    export_quantity_data_arr.append(["Tổng SL xuất kho", total_export_quantity, "#01257D"])
 
     # For rendering reports import section table
     context['products_inventory'] = products_inventory

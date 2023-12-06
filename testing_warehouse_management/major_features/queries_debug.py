@@ -5,6 +5,7 @@ import pytz
 import calendar
 from datetime import date, datetime, timedelta
 from django.db.models import Sum, F, Max
+from django.core.paginator import Paginator
 from . models import *
 
 
@@ -1293,5 +1294,511 @@ def get_diff_login_logout_time():
     for user_activity in user_activities:
         print(f"Activity id {user_activity.pk}, diff time: {user_activity.get_diff_str_login_logout_time()}")
     
+    for connection_query in connection.queries:
+        print(connection_query)
+
+@query_debugger
+def import_inventory_pagination_on_per_accounting_period(accounting_period_id, page_number):
+    accounting_period_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').filter(
+        accounting_period_id = accounting_period_id
+    )
+    total_products_inventory = accounting_period_inventory.annotate(
+        total_import_inventory = F("import_inventory"),
+        total_import_quantity = F("import_quantity")
+    ).aggregate(Sum("total_import_inventory"), Sum("total_import_quantity"))
+    print(f"Total import inventory: {total_products_inventory['total_import_inventory__sum']}")
+    print(f"Total import quantity: {total_products_inventory['total_import_quantity__sum']}")
+
+    each_products_inventory = accounting_period_inventory.values('product_id__name').annotate(
+        import_inventory = F("import_inventory"),
+        import_quantity = F("import_quantity")
+    ).order_by('-import_inventory')
+
+    pagination = Paginator(each_products_inventory, 3)
+    page_obj = pagination.get_page(page_number)
+
+    for product in page_obj:
+        print("-------------------")
+        print(f"Product {product['product_id__name']}")
+        print(f"Import Inventory: {product['import_inventory']}")
+        print(f"Import quantity: {product['import_quantity']}")
+
+    for connection_query in connection.queries:
+        print(connection_query)
+
+@query_debugger
+def import_inventory_pagination_on_year(page_number):
+    current_year = 2023
+    first_day_of_the_year = datetime(current_year, 1, 1).date()
+    last_day_of_the_year = datetime(current_year, 12, 31).date()
+    accounting_period_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').filter(
+        accounting_period_id__date_applied__gte = first_day_of_the_year,
+        accounting_period_id__date_end__lte = last_day_of_the_year
+    )
+    total_products_inventory = accounting_period_inventory.aggregate(Sum("import_inventory"), Sum("import_quantity"))
+    print(f"Total product inventory: {total_products_inventory['import_inventory__sum']}")
+    print(f"Total product quantity: {total_products_inventory['import_quantity__sum']}")
+
+    each_product_inventory = accounting_period_inventory.values('product_id__name').annotate(
+        total_import_inventory = Sum("import_inventory"),
+        total_import_quantity = Sum("import_quantity")
+    ).order_by('-total_import_inventory')
+    pagination = Paginator(each_product_inventory, 3)
+    page_obj = pagination.get_page(page_number)
+
+    for product in page_obj:
+        print("-------------------")
+        print(f"Product {product['product_id__name']}")
+        print(f"Import Inventory: {product['total_import_inventory']}")
+        print(f"Import quantity: {product['total_import_quantity']}")
+
+    for connection_query in connection.queries:
+        print(connection_query)
+
+@query_debugger
+def import_inventory_pagination_on_quarter(page_number, quarter):
+    quarters = get_quarters()
+    current_year = 2023
+    quarter_months = quarters[quarter]['months']
+    first_day_of_quarter = datetime(current_year, quarter_months[0], 1).date()
+    get_last_day_of_quarter = calendar.monthrange(current_year, quarter_months[2])[1]
+    last_day_of_quarter = datetime(current_year, quarter_months[2], get_last_day_of_quarter).date()
+
+    import_purchases_inventory = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').filter(
+        import_shipment_id__date__gte = first_day_of_quarter,
+        import_shipment_id__date__lte = last_day_of_quarter,
+    )
+    total_products_inventory = import_purchases_inventory.aggregate(
+        Sum("value_import"), Sum("quantity_import")
+    )
+
+    print(f"Quý: {quarter}")
+    print(datetime.strftime(first_day_of_quarter, "%d/%m/%Y"), " - ", datetime.strftime(last_day_of_quarter, "%d/%m/%Y"))
+
+    print(f"Total import inventory: {total_products_inventory['value_import__sum']}")
+    print(f"Total import quantity: {total_products_inventory['quantity_import__sum']}")
+
+    each_product_inventory = import_purchases_inventory.values('product_id__name').annotate(
+        total_value_import = Sum("value_import"),
+        total_quantity_import = Sum("quantity_import")
+    ).order_by('-total_value_import')
+
+    pagination = Paginator(each_product_inventory, 3)
+    page_obj = pagination.get_page(page_number)
+
+    for product in page_obj:
+        print("-------------------")
+        print(f"Product {product['product_id__name']}")
+        print(f"Import Inventory: {product['total_value_import']}")
+        print(f"Import quantity: {product['total_quantity_import']}")
+ 
+    for connection_query in connection.queries:
+        print(connection_query)
+
+@query_debugger
+def import_inventory_pagination_on_month(month, page_number):
+    current_year = 2023
+    first_day_of_the_month = datetime(current_year, month, 1).date()
+    get_last_day_of_the_month = calendar.monthrange(current_year, month)[1]
+    last_day_of_the_month = datetime(current_year, month, get_last_day_of_the_month)
+
+    import_purchases_inventory = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').filter(
+        import_shipment_id__date__gte = first_day_of_the_month,
+        import_shipment_id__date__lte = last_day_of_the_month,
+    )
+    products_inventory = import_purchases_inventory.aggregate(
+        Sum("value_import"),
+        Sum("quantity_import")
+    )
+    print(f"Tháng {month}")
+
+    print(f"Total import inventory: {products_inventory['value_import__sum']}")
+    print(f"Total import quantity: {products_inventory['quantity_import__sum']}")
+
+    each_product_inventory = import_purchases_inventory.values('product_id__name').annotate(
+        total_value_import = Sum("value_import"),
+        total_quantity_import = Sum("quantity_import")
+    ).order_by('-total_value_import')
+
+    pagination = Paginator(each_product_inventory, 3)
+    page_obj = pagination.get_page(page_number)
+
+    for product in page_obj:
+        print("-------------------")
+        print(f"Product {product['product_id__name']}")
+        print(f"Import Inventory: {product['total_value_import']}")
+        print(f"Import quantity: {product['total_quantity_import']}")
+ 
+    for connection_query in connection.queries:
+        print(connection_query)
+
+@query_debugger
+def export_pagination_on_accounting_period(period_id, page_number):
+    accounting_period_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id',' product_id').filter(
+        accounting_period_id = period_id
+    )
+    products_export_value = accounting_period_inventory.aggregate(
+        Sum("total_cogs"),
+        Sum("total_quantity_export")
+    )
+    print(f"Total COGS: {products_export_value['total_cogs__sum']}")
+    print(f"Total quantity export: {products_export_value['total_quantity_export__sum']}")
+
+    each_product_export_value = accounting_period_inventory.values('product_id__name').annotate(
+        total_cogs = F("total_cogs"),
+        total_quantity_export = F("total_quantity_export")
+    ).order_by('-total_cogs')
+    pagination = Paginator(each_product_export_value, 3)
+    page_obj = pagination.get_page(page_number)
+
+    for product in page_obj:
+        print("--------------------------------")
+        print(f"Product: {product['product_id__name']}")
+        print(f"Product COGS: {product['total_cogs']}")
+        print(f"Product quantity export: {product['total_quantity_export']}")
+
+    for connection_query in connection.queries:
+        print(connection_query)
+
+@query_debugger
+def export_pagination_on_year(page_number):
+    current_year = 2023
+    first_day_of_the_year = datetime(current_year, 1, 1).date()
+    last_day_of_the_year = datetime(current_year, 12, 31).date()
+    accounting_period_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').filter(
+        accounting_period_id__date_applied__gte = first_day_of_the_year,
+        accounting_period_id__date_end__lte = last_day_of_the_year,
+    )
+    products_export_value = accounting_period_inventory.aggregate(
+        Sum("total_cogs"),
+        Sum("total_quantity_export")
+    )
+    print(f"Year: {current_year}")
+    print(f"Year total cogs: {products_export_value['total_cogs__sum']}")
+    print(f"Year total quantity export: {products_export_value['total_quantity_export__sum']}")
+
+    each_product_export_value = accounting_period_inventory.values('product_id__name').annotate(
+        product_total_cogs = Sum("total_cogs"),
+        product_total_quantity_export = Sum("total_quantity_export")
+    ).order_by('-product_total_cogs')
+
+    pagination = Paginator(each_product_export_value, 3)
+    page_obj = pagination.get_page(page_number)
+
+    for product in page_obj:
+        print("--------------------------------")
+        print(f"Product: {product['product_id__name']}")
+        print(f"Product COGS: {product['product_total_cogs']}")
+        print(f"Product quantity export: {product['product_total_quantity_export']}")
+
+    for connection_query in connection.queries:
+        print(connection_query)
+
+@query_debugger
+def export_pagination_on_quarter(page_number):
+    current_year = 2023
+    first_day_of_the_quarter = datetime(current_year, 10, 1).date()
+    last_day_of_the_quarter = datetime(current_year, 12, 31).date()
+    product_export_orders = ExportOrder.objects.select_related('export_shipment_id', 'product_id').filter(
+        export_shipment_id__date__gte = first_day_of_the_quarter,
+        export_shipment_id__date__lte = last_day_of_the_quarter
+    )
+    products_export_value = product_export_orders.aggregate(
+        Sum("total_order_value"),
+        Sum("quantity_export")
+    )
+    print(f"Quarter Total cogs: {products_export_value['total_order_value__sum']}")
+    print(f"Quarter Total quantity export: {products_export_value['quantity_export__sum']}")
+
+    each_product_export_value = product_export_orders.values('product_id__name').annotate(
+        product_total_cogs = Sum("total_order_value"),
+        product_total_quantity_export = Sum("quantity_export")
+    ).order_by('-product_total_cogs')
+
+    pagination = Paginator(each_product_export_value, 3)
+    page_obj = pagination.get_page(page_number)
+
+    for product in page_obj:
+        print("--------------------------------")
+        print(f"Product: {product['product_id__name']}")
+        print(f"Product COGS: {product['product_total_cogs']}")
+        print(f"Product quantity export: {product['product_total_quantity_export']}")
+
+    for connection_query in connection.queries:
+        print(connection_query)
+
+@query_debugger
+def export_pagination_on_month(page_number):
+    current_year = 2023
+    first_day_of_the_month = datetime(current_year, 10, 1).date()
+    last_day_of_the_month = datetime(current_year, 10, 31).date()
+    product_export_orders = ExportOrder.objects.select_related('export_shipment_id', 'product_id').filter(
+        export_shipment_id__date__gte = first_day_of_the_month,
+        export_shipment_id__date__lte = last_day_of_the_month
+    )
+    products_export_value = product_export_orders.aggregate(
+        Sum("total_order_value"),
+        Sum("quantity_export")
+    )
+    print(f"Quarter Total cogs: {products_export_value['total_order_value__sum']}")
+    print(f"Quarter Total quantity export: {products_export_value['quantity_export__sum']}")
+
+    each_product_export_value = product_export_orders.values('product_id__name').annotate(
+        product_total_cogs = Sum("total_order_value"),
+        product_total_quantity_export = Sum("quantity_export")
+    ).order_by('-product_total_cogs')
+
+    pagination = Paginator(each_product_export_value, 3)
+    page_obj = pagination.get_page(page_number)
+
+    for product in page_obj:
+        print("--------------------------------")
+        print(f"Product: {product['product_id__name']}")
+        print(f"Product COGS: {product['product_total_cogs']}")
+        print(f"Product quantity export: {product['product_total_quantity_export']}")
+
+    for connection_query in connection.queries:
+        print(connection_query)
+
+@query_debugger
+def revenue_pagination_on_accounting_period(period_id, page_number):
+    accounting_period_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').filter(
+        accounting_period_id = period_id
+    )
+    products_revenue = accounting_period_inventory.aggregate(
+        Sum("total_revenue")
+    )
+    print(f"Total revenue: {products_revenue['total_revenue__sum']}")
+
+    each_product_revenue = accounting_period_inventory.values('product_id__name').annotate(
+        product_revenue = F("total_revenue")
+    ).order_by('-product_revenue')
+
+    pagination = Paginator(each_product_revenue, 3)
+    page_obj = pagination.get_page(page_number)
+
+    for product in page_obj:
+        print("------------------------")
+        print(f"Product: {product['product_id__name']}")
+        print(f"Product revenue: {product['product_revenue']}")
+
+    for connection_query in connection.queries:
+        print(connection_query)
+
+@query_debugger
+def revenue_pagination_on_year(page_number):
+    current_year = 2023
+    first_day_of_the_year = datetime(current_year, 1, 1).date()
+    last_day_of_the_year = datetime(current_year, 12, 31).date()
+
+    accounting_period_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').filter(
+        accounting_period_id__date_applied__gte = first_day_of_the_year,
+        accounting_period_id__date_end__lte = last_day_of_the_year
+    )
+    products_revenue = accounting_period_inventory.aggregate(
+        Sum("total_revenue")
+    )
+    print(f"Year: {current_year}")
+    print(f"Total products revenue: {products_revenue['total_revenue__sum']}")
+
+    each_product_revenue = accounting_period_inventory.values('product_id__name').annotate(
+        product_revenue = Sum("total_revenue")
+    ).order_by('-product_revenue')
+
+    pagination = Paginator(each_product_revenue, 3)
+    page_obj = pagination.get_page(page_number)
+
+    for product in page_obj:
+        print("------------------------")
+        print(f"Product: {product['product_id__name']}")
+        print(f"Product revenue: {product['product_revenue']}")
+
+    for connection_query in connection.queries:
+        print(connection_query)
+
+@query_debugger
+def revenue_pagination_on_quarter(page_number):
+    current_year = 2023
+    first_day_of_the_quarter = datetime(current_year, 10, 1).date()
+    last_day_of_the_quarter = datetime(current_year, 12, 31).date()
+
+    products_export_orders = ExportOrder.objects.select_related('export_shipment_id', 'product_id').filter(
+        export_shipment_id__date__gte = first_day_of_the_quarter,
+        export_shipment_id__date__lte = last_day_of_the_quarter,
+    )
+    products_revenue = products_export_orders.aggregate(
+        total_quarter_revenue = Sum(F("quantity_export") * F("unit_price"))
+    )
+    print(f"Total quarter revenue: {products_revenue['total_quarter_revenue']}")
+
+    each_product_revenue = products_export_orders.values('product_id__name').annotate(
+        product_revenue = Sum(
+            F("quantity_export") * F("unit_price")
+        )
+    ).order_by('-product_revenue')
+
+    pagination = Paginator(each_product_revenue, 3)
+    page_obj = pagination.get_page(page_number)
+
+    for product in page_obj:
+        print("------------------------")
+        print(f"Product: {product['product_id__name']}")
+        print(f"Product revenue: {product['product_revenue']}")
+
+    for connection_query in connection.queries:
+        print(connection_query)
+
+@query_debugger
+def revenue_pagination_on_month(page_number):
+    current_year = 2023
+    first_day_of_the_month = datetime(current_year, 10, 1).date()
+    last_day_of_the_month = datetime(current_year, 10, 31).date()
+
+    products_export_orders = ExportOrder.objects.select_related('export_shipment_id', 'product_id').filter(
+        export_shipment_id__date__gte = first_day_of_the_month,
+        export_shipment_id__date__lte = last_day_of_the_month,
+    )
+    products_revenue = products_export_orders.aggregate(
+        total_month_revenue = Sum(F("quantity_export") * F("unit_price"))
+    )
+    print(f"Total month revenue: {products_revenue['total_month_revenue']}")
+
+    each_product_revenue = products_export_orders.values('product_id__name').annotate(
+        product_revenue = Sum(
+            F("quantity_export") * F("unit_price")
+        )
+    ).order_by('-product_revenue')
+
+    pagination = Paginator(each_product_revenue, 3)
+    page_obj = pagination.get_page(page_number)
+
+    for product in page_obj:
+        print("------------------------")
+        print(f"Product: {product['product_id__name']}")
+        print(f"Product revenue: {product['product_revenue']}")
+
+    for connection_query in connection.queries:
+        print(connection_query)
+
+@query_debugger
+def profits_pagination_on_accounting_period(period_id, page_number):
+    accounting_period_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').filter(
+        accounting_period_id = period_id
+    )
+    products_profits = accounting_period_inventory.aggregate(
+        total_products_profits = (Sum("total_revenue") - Sum("total_cogs"))
+    )
+    print(f"Total products profits: {products_profits['total_products_profits']}")
+
+    each_product_profits = accounting_period_inventory.values('product_id__name').annotate(
+        product_profits = F("total_revenue") - F("total_cogs")
+    ).order_by('-product_profits')
+
+    pagination = Paginator(each_product_profits, 6)
+    page_obj = pagination.get_page(page_number)
+
+    for product in page_obj:
+        print("------------------------------")
+        print(f"Product: {product['product_id__name']}")
+        print(f"Product profits: {product['product_profits']}")
+
+    for connection_query in connection.queries:
+        print(connection_query)
+
+@query_debugger
+def profits_pagination_on_year(page_number):
+    current_year = 2023
+    first_day_of_the_year = datetime(current_year, 1, 1).date()
+    last_day_of_the_year = datetime(current_year, 12, 31).date()
+
+    accounting_period_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').filter(
+        accounting_period_id__date_applied__gte = first_day_of_the_year,
+        accounting_period_id__date_end__lte = last_day_of_the_year
+    )
+    products_profits = accounting_period_inventory.aggregate(
+        total_products_profits = Sum("total_revenue") - Sum("total_cogs")
+    )
+    print(f"Total products profits: {products_profits['total_products_profits']}")
+
+    each_product_profits = accounting_period_inventory.values('product_id__name').annotate(
+        product_profits = Sum("total_revenue") - Sum("total_cogs")
+    ).order_by('-product_profits')
+
+    pagination = Paginator(each_product_profits, 6)
+    page_obj = pagination.get_page(page_number)
+
+    for product in page_obj:
+        print("------------------------------")
+        print(f"Product: {product['product_id__name']}")
+        print(f"Product profits: {product['product_profits']}")
+
+    for connection_query in connection.queries:
+        print(connection_query)
+
+@query_debugger
+def profits_pagination_on_quarter(page_number):
+    current_year = 2023
+    first_day_of_the_quarter = datetime(current_year, 10, 1).date()
+    last_day_of_the_quarter = datetime(current_year, 12, 31).date()
+
+    products_export_orders = ExportOrder.objects.select_related('export_shipment_id', 'product_id').filter(
+        export_shipment_id__date__gte = first_day_of_the_quarter,
+        export_shipment_id__date__lte = last_day_of_the_quarter,
+    )
+    products_profits = products_export_orders.aggregate(
+        total_products_profits = Sum(
+            (F("quantity_export") * F("unit_price")) - F("total_order_value")
+        )
+    )
+    print(f"Total products profits: {products_profits['total_products_profits']}")
+
+    each_product_profits = products_export_orders.values('product_id__name').annotate(
+        product_profits = Sum(
+            (F("quantity_export") * F("unit_price")) - F("total_order_value")
+        )
+    ).order_by('-product_profits')
+
+    pagination = Paginator(each_product_profits, 6)
+    page_obj = pagination.get_page(page_number)
+
+    for product in page_obj:
+        print("------------------------------")
+        print(f"Product: {product['product_id__name']}")
+        print(f"Product profits: {product['product_profits']}")
+
+    for connection_query in connection.queries:
+        print(connection_query)
+
+@query_debugger
+def profits_pagination_on_month(page_number):
+    current_year = 2023
+    first_day_of_the_month = datetime(current_year, 10, 1).date()
+    last_day_of_the_month = datetime(current_year, 10, 31).date()
+
+    products_export_orders = ExportOrder.objects.select_related('export_shipment_id', 'product_id').filter(
+        export_shipment_id__date__gte = first_day_of_the_month,
+        export_shipment_id__date__lte = last_day_of_the_month,
+    )
+    products_profits = products_export_orders.aggregate(
+        total_products_profits = Sum(
+            (F("quantity_export") * F("unit_price")) - F("total_order_value")
+        )
+    )
+    print(f"Total products profits: {products_profits['total_products_profits']}")
+
+    each_product_profits = products_export_orders.values('product_id__name').annotate(
+        product_profits = Sum(
+            (F("quantity_export") * F("unit_price")) - F("total_order_value")
+        )
+    ).order_by('-product_profits')
+
+    pagination = Paginator(each_product_profits, 6)
+    page_obj = pagination.get_page(page_number)
+
+    for product in page_obj:
+        print("------------------------------")
+        print(f"Product: {product['product_id__name']}")
+        print(f"Product profits: {product['product_profits']}")
+
     for connection_query in connection.queries:
         print(connection_query)
