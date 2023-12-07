@@ -209,3 +209,9 @@ input {
     color: #01257D;
     font-weight: 600;
 }
+
+.filter-bar-submit-btn {
+    font-size: 1rem;
+    height: fit-content;
+    padding: 7.5px;
+}

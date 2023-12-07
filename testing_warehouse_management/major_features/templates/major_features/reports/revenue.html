@@ -9,102 +9,141 @@
 {% endblock %}
 
 {% block body %}
-<div class="d-flex flex-row">
-  <div class="dropdown">
-    <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
-      {{ chosen_period_name }}
-    </button>
-    <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1" id="period-type">
+<div class="d-flex flex-row justify-content-between">
+  <div id="filter-bar" class="d-flex flex-row">
+    <div class="dropdown">
+      <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+        {{ chosen_period_name }}
+      </button>
+      <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1" id="period-type">
 
-      {% for key, item in unchosen_period_types.items %}
-      <li><a class="dropdown-item" href="?period_type={{ key }}">{{ item }}</a></li>
-      {% endfor %}
-      
-    </ul>
+        {% for key, item in unchosen_period_types.items %}
+        <li><a class="dropdown-item" href="?period_type={{ key }}">{{ item }}</a></li>
+        {% endfor %}
+        
+      </ul>
+    </div>
+
+    <form action="{% url 'reports_revenue' %}" class="inline-form" method="GET">
+      <input type="hidden" name="period_type" value="{{ chosen_period_type }}">
+      {% if chosen_period_type == 'accounting_period' %}
+      <label for="{{ chosen_period_type }}" class="col-form-label inline-margin">{{ chosen_period_name }}: </label>
+      <div>
+        <select name="{{ chosen_period_type }}" class="form-select select form-select-md" id="{{ chosen_period_type }}">
+          {% for period in all_accounting_period %}
+
+          {% if period.id == chosen_accounting_period_id %}
+          <option value="{{ period.id }}" selected>
+            {{ period.warehouse_management_method }} từ {{ period.date_applied|date:"d/m/Y" }} đến {{ period.date_end|date:"d/m/Y" }}
+          </option>
+          {% else %}
+          <option value="{{ period.id }}">
+            {{ period.warehouse_management_method }} từ {{ period.date_applied|date:"d/m/Y" }} đến {{ period.date_end|date:"d/m/Y" }}
+          </option>
+          {% endif %}
+
+          {% endfor %}
+        </select>
+      </div>
+      <button type="submit" class="btn btn-secondary btn-sm inline-margin filter-bar-submit-btn">Xác nhận</button>
+      {% endif %}
+
+      {% if chosen_period_type == 'year' %}
+      <label for="{{ chosen_period_type }}"  class="col-form-label inline-margin">{{ chosen_period_name }}: </label>
+      <div class="d-flex flex-row" style="height: fit-content;">
+        <input type="number" name="{{ chosen_period_type }}" value="{{ chosen_year }}" class="form-select select form-select-md inline-margin" id="{{ chosen_period_type }}">
+      </div>
+      <button type="submit" class="btn btn-secondary btn-sm filter-bar-submit-btn">Xác nhận</button>
+      {% endif %}
+
+      {% if chosen_period_type == 'quarter' %}
+      <label for="{{ chosen_period_type }}" class="col-form-label inline-margin">{{ chosen_period_name }}: </label>
+      <div class="d-flex flex-row" style="height: fit-content;">
+        <select name="{{ chosen_period_type }}" class="form-select select form-select-md inline-margin" id="{{ chosen_period_type }}">
+          {% for quarter, value in quarters.items %}
+          {% if quarter == chosen_quarter %}
+          <option value="{{ quarter }}" selected>{{ value.quarter_name }}</option>
+          {% else %}
+          <option value="{{ quarter }}">{{ value.quarter_name }}</option>
+          {% endif %}
+          {% endfor %}
+        </select>
+        <label for="quarter_year" class="col-form-label inline-margin">Năm: </label>
+        <input type="number" class="form-control inline-margin" name="quarter_year" required id="quarter_year" placeholder="yyyy" value="{{ chosen_year }}" min="0">
+      </div>
+      <button type="submit" class="btn btn-secondary btn-sm filter-bar-submit-btn">Xác nhận</button>
+      {% endif %}
+
+      {% if chosen_period_type == 'month' %}
+      <label for="{{ chosen_period_type }}" class="col-form-label inline-margin">{{ chosen_period_name }}: </label>
+      <div class="d-flex flex-row" style="height: fit-content;">
+        <select name="{{ chosen_period_type }}" class="form-select select form-select-md" id="{{ chosen_period_type }} required">
+          {% for month, value in months.items %}
+            {% if month == chosen_month %}
+            <option value="{{ month }}" selected>{{ value }}</option>
+            {% else %}
+            <option value="{{ month }}">{{ value }}</option>
+            {% endif %}
+          {% endfor %}
+        </select>
+        <label for="month_year" class="col-form-label inline-margin">Năm: </label>
+        <input type="number" class="form-control inline-margin" name="month_year" required id="month_year" placeholder="yyyy" value="{{ chosen_month_year }}" min="0">
+      </div>
+      <button type="submit" class="btn btn-secondary btn-sm filter-bar-submit-btn">Xác nhận</button>
+      {% endif %}
+
+      {% if chosen_period_type == 'day' %}
+
+      {% if chosen_date %}
+      <p>{{ chosen_date|date:"d/m/Y" }}</p>
+      {% endif %}
+
+      <label for="{{ chosen_period_type }}" class="col-form-label inline-margin">{{ chosen_period_name }}: </label>
+      <div class="d-flex flex-row" style="height: fit-content;">
+        <input type="date" name="{{ chosen_period_type }}" class="form-control inline-margin" value='{{ chosen_date|date:"m/d/Y" }}' id="{{ chosen_period_type }}">
+      </div>
+      <button type="submit" class="btn btn-secondary btn-sm filter-bar-submit-btn">Xác nhận</button>
+
+      {% endif %}
+    </form>
   </div>
 
-  <form action="{% url 'reports_revenue' %}" class="inline-form" method="GET">
-    <input type="hidden" name="period_type" value="{{ chosen_period_type }}">
-    {% if chosen_period_type == 'accounting_period' %}
-    <label for="{{ chosen_period_type }}" class="col-form-label inline-margin">{{ chosen_period_name }}: </label>
-    <div>
-      <select name="{{ chosen_period_type }}" class="form-select select form-select-md" id="{{ chosen_period_type }}">
-        {% for period in all_accounting_period %}
+  {% if page_obj %}
+  <nav aria-label="pagination" style="display: inline-block; position: static;">
+    <ul class="pagination">
 
-        {% if period.id == chosen_accounting_period_id %}
-        <option value="{{ period.id }}" selected>
-          {{ period.warehouse_management_method }} từ {{ period.date_applied|date:"d/m/Y" }} đến {{ period.date_end|date:"d/m/Y" }}
-        </option>
-        {% else %}
-        <option value="{{ period.id }}">
-          {{ period.warehouse_management_method }} từ {{ period.date_applied|date:"d/m/Y" }} đến {{ period.date_end|date:"d/m/Y" }}
-        </option>
-        {% endif %}
+      {% if page_obj.has_previous %}
+      <li class="page-item">
+      <a class="page-link" href="{{ modified_path }}&page={{page_obj.previous_page_number}}" aria-label="Previous">
+      {% else %}
+      <li class="page-item disabled">
+      <a class="page-link" href="#" aria-label="Previous">
+      {% endif %}
+          <span aria-hidden="true">&laquo;</span>
+          <span class="sr-only">Trước</span>
+      </a>
+      </li>
 
-        {% endfor %}
-      </select>
-    </div>
-    <button type="submit" class="btn btn-secondary btn-sm inline-margin" style="font-size: 1rem;">Xác nhận</button>
-    {% endif %}
+      <li class="page-item">
+      <span class="page-link">Trang {{ page_obj.number }} trong {{ page_obj.paginator.num_pages }}</span>
+      </li>
 
-    {% if chosen_period_type == 'year' %}
-    <label for="{{ chosen_period_type }}"  class="col-form-label inline-margin">{{ chosen_period_name }}: </label>
-    <div class="d-flex flex-row">
-      <input type="number" name="{{ chosen_period_type }}" value="{{ chosen_year }}" class="form-select select form-select-md inline-margin" id="{{ chosen_period_type }}">
-    </div>
-    <button type="submit" class="btn btn-secondary btn-sm" style="font-size: 1rem;">Xác nhận</button>
-    {% endif %}
+      {% if page_obj.has_next %}
+      <li class="page-item">
+      <a class="page-link" href="{{ modified_path }}&page={{page_obj.next_page_number}}" aria-label="Next">
+      {% else %}
+      <li class="page-item disabled">
+      <a class="page-link" href="#" aria-label="Next">
+      {% endif %}
+          <span aria-hidden="true">&raquo;</span>
+          <span class="sr-only">Sau</span>
+      </a>
+      </li>
 
-    {% if chosen_period_type == 'quarter' %}
-    <label for="{{ chosen_period_type }}" class="col-form-label inline-margin">{{ chosen_period_name }}: </label>
-    <div class="d-flex flex-row">
-      <select name="{{ chosen_period_type }}" class="form-select select form-select-md inline-margin" id="{{ chosen_period_type }}">
-        {% for quarter, value in quarters.items %}
-        {% if quarter == chosen_quarter %}
-        <option value="{{ quarter }}" selected>{{ value.quarter_name }}</option>
-        {% else %}
-        <option value="{{ quarter }}">{{ value.quarter_name }}</option>
-        {% endif %}
-        {% endfor %}
-      </select>
-      <label for="quarter_year" class="col-form-label inline-margin">Năm: </label>
-      <input type="number" class="form-control inline-margin" name="quarter_year" required id="quarter_year" placeholder="yyyy" value="{{ chosen_year }}" min="0">
-    </div>
-    <button type="submit" class="btn btn-secondary btn-sm" style="font-size: 1rem;">Xác nhận</button>
-    {% endif %}
+    </ul>
+  </nav>
+  {% endif %}
 
-    {% if chosen_period_type == 'month' %}
-    <label for="{{ chosen_period_type }}" class="col-form-label inline-margin">{{ chosen_period_name }}: </label>
-    <div class="d-flex flex-row">
-      <select name="{{ chosen_period_type }}" class="form-select select form-select-md" id="{{ chosen_period_type }} required">
-        {% for month, value in months.items %}
-          {% if month == chosen_month %}
-          <option value="{{ month }}" selected>{{ value }}</option>
-          {% else %}
-          <option value="{{ month }}">{{ value }}</option>
-          {% endif %}
-        {% endfor %}
-      </select>
-      <label for="month_year" class="col-form-label inline-margin">Năm: </label>
-      <input type="number" class="form-control inline-margin" name="month_year" required id="month_year" placeholder="yyyy" value="{{ chosen_month_year }}" min="0">
-    </div>
-    <button type="submit" class="btn btn-secondary btn-sm" style="font-size: 1rem;">Xác nhận</button>
-    {% endif %}
-
-    {% if chosen_period_type == 'day' %}
-
-    {% if chosen_date %}
-    <p>{{ chosen_date|date:"d/m/Y" }}</p>
-    {% endif %}
-
-    <label for="{{ chosen_period_type }}" class="col-form-label inline-margin">{{ chosen_period_name }}: </label>
-    <div class="d-flex flex-row">
-      <input type="date" name="{{ chosen_period_type }}" class="form-control inline-margin" value='{{ chosen_date|date:"m/d/Y" }}' id="{{ chosen_period_type }}">
-    </div>
-    <button type="submit" class="btn btn-secondary btn-sm" style="font-size: 1rem;">Xác nhận</button>
-
-    {% endif %}
-  </form>
 </div>
 
 {% if not non_period_found_msg %}
@@ -118,17 +157,17 @@
       </tr>
     </thead>
     <tbody>
-      {% for product_revenue in products_revenue %}
+      {% for product in page_obj %}
       <tr>
-        <td>{{ product_revenue.product_id__name }}</td>
-        <td style="text-align: right;">{{product_revenue.revenue|intcomma }}</td>
+        <td>{{ product.product_id__name }}</td>
+        <td style="text-align: right;">{{product.product_revenue|intcomma }}</td>
       </tr>
       {% endfor %}
     </tbody>
     <tfoot>
       <tr>
         <td style="color: #00FFFF"><strong>Tổng</strong></td>
-        <td style="color: #00FFFF; text-align: right;">{{ total_revenue|intcomma }}</td>
+        <td style="color: #00FFFF; text-align: right;">{{ total_products_revenue|intcomma }}</td>
       </tr>
     </tfoot>
   </table>
@@ -179,9 +218,9 @@
 
       var default_options = {
         title: "",
-        width: 500,
+        width: 600,
         height: 400,
-        bar: {groupWidth: "95%"},
+        bar: {groupWidth: "80%"},
         legend: { position: "none" },
       };
 

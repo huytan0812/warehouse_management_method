@@ -1,4 +1,5 @@
 from . views import *
+from urllib.parse import urlencode
 
 def default_accounting_period_id():
     default_accounting_period = AccoutingPeriod.objects.select_related('warehouse_management_method').latest('id')
@@ -51,6 +52,18 @@ def get_months():
     }
     return months
 
+def get_modified_path(request, GET_requests_params):
+    # path handling
+    path = request.path
+    modified_path = path
+
+    if 'period_type' in GET_requests_params:
+        modified_path += f"?period_type={GET_requests_params['period_type']}"
+    if 'chosen_period_type_param' in GET_requests_params:
+        modified_path += f"&{GET_requests_params['period_type']}={GET_requests_params['chosen_period_type_param']}"
+
+    return modified_path
+
 def reports_revenue(request):
     """
     Dislaying each product's revenue 
@@ -76,13 +89,12 @@ def reports_revenue(request):
     except KeyError:
         print("Key not found")
 
+    GET_requests_params = {}
+
     # Attach these three keys to context for filter-bar
     context['unchosen_period_types'] = unchosen_period_types
     context['chosen_period_type'] = chosen_period_type
     context['chosen_period_name'] = chosen_period_name
-
-    # Displaying total_revenue in the reports revenue table
-    total_revenue = 0
 
     # JSON string for google chart
     role = {'role': "style"}
@@ -102,6 +114,9 @@ def reports_revenue(request):
         # in the select input
         context["chosen_accounting_period_id"] = chosen_accounting_period_id
 
+        GET_requests_params['period_type'] = chosen_period_type
+        GET_requests_params['chosen_period_type_param'] = chosen_accounting_period_id
+
         # Get all accounting period in template
         # for user to choose
         all_accounting_period = AccoutingPeriod.objects.select_related('warehouse_management_method').all()
@@ -110,13 +125,12 @@ def reports_revenue(request):
         periods_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').filter(
             accounting_period_id = chosen_accounting_period_id
         )
-        products_revenue = periods_inventory.values('product_id__name').annotate(
-            revenue = F("total_revenue")
+        total_products_revenue = periods_inventory.aggregate(
+            total_products_revenue = Sum("total_revenue")
         )
-        for product in products_revenue:
-            total_revenue += product['revenue']
-            # Append JSON string to google chart array
-            revenue_arr.append([product['product_id__name'], product['revenue'], "#01257D"])
+        each_product_revenue = periods_inventory.values('product_id__name').annotate(
+            product_revenue = F("total_revenue")
+        ).order_by('-product_revenue')
     
     if chosen_period_type == 'year':
         # Get the current year as an int
@@ -130,6 +144,9 @@ def reports_revenue(request):
         # in the reports/import_section.html template
         context['chosen_year'] = chosen_year
 
+        GET_requests_params['period_type'] = chosen_period_type
+        GET_requests_params['chosen_period_type_param'] = chosen_year
+
         first_day_of_the_year = datetime(chosen_year, 1, 1).date()
         last_day_of_the_year = datetime(chosen_year, 12, 31).date()
 
@@ -137,12 +154,12 @@ def reports_revenue(request):
             accounting_period_id__date_applied__gte = first_day_of_the_year,
             accounting_period_id__date_end__lte = last_day_of_the_year
         )
-        products_revenue = periods_inventory.values('product_id__name').annotate(
-            revenue = Sum("total_revenue")
+        total_products_revenue = periods_inventory.aggregate(
+            total_products_revenue = Sum("total_revenue")
         )
-        for product in products_revenue:
-            total_revenue += product['revenue']
-            revenue_arr.append([product['product_id__name'], product['revenue'], "#01257D"])
+        each_product_revenue = periods_inventory.values('product_id__name').annotate(
+            product_revenue = Sum("total_revenue")
+        ).order_by('-product_revenue')
     
     if chosen_period_type == 'quarter':
         quarters = get_quarters()
@@ -163,6 +180,9 @@ def reports_revenue(request):
         context['chosen_quarter'] = chosen_quarter
         context['chosen_year'] = chosen_year
 
+        GET_requests_params['period_type'] = chosen_period_type
+        GET_requests_params['chosen_period_type_param'] = f"{chosen_quarter}&quarter_year={chosen_year}"
+
         chosen_quarter_months = quarters[chosen_quarter]['months']
         first_month_of_quarter = chosen_quarter_months[0]
         last_month_of_quarter = chosen_quarter_months[2]
@@ -173,12 +193,14 @@ def reports_revenue(request):
             export_shipment_id__date__gte = first_day_of_quarter,
             export_shipment_id__date__lte = last_day_of_quarter
         )
-        products_revenue = export_orders.values('product_id__name').annotate(
-            revenue = Sum(F("quantity_export") * F("unit_price"))
+        total_products_revenue = export_orders.aggregate(
+            total_products_revenue = Sum(
+                F("quantity_export") * F("unit_price")
+            )
         )
-        for product in products_revenue:
-            total_revenue += product['revenue']
-            revenue_arr.append([product['product_id__name'], product['revenue'], "#01257D"])
+        each_product_revenue = export_orders.values('product_id__name').annotate(
+            product_revenue = Sum(F("quantity_export") * F("unit_price"))
+        ).order_by('-product_revenue')
 
     if chosen_period_type == 'month':
         months = get_months()
@@ -199,6 +221,9 @@ def reports_revenue(request):
         context['chosen_month'] = chosen_month
         context['chosen_month_year'] = chosen_month_year
 
+        GET_requests_params['period_type'] = chosen_period_type
+        GET_requests_params['chosen_period_type_param'] = f"{chosen_month}&chosen_month_year={chosen_month_year}"
+
         first_day_of_the_month = datetime(chosen_month_year, chosen_month, 1).date()
         last_day_of_the_month = get_lastday_of_month(first_day_of_the_month)
 
@@ -206,12 +231,14 @@ def reports_revenue(request):
             export_shipment_id__date__gte = first_day_of_the_month,
             export_shipment_id__date__lte = last_day_of_the_month
         )
-        products_revenue = export_orders.values('product_id__name').annotate(
-            revenue = Sum(F("quantity_export") * F("unit_price"))
+        total_products_revenue = export_orders.aggregate(
+            total_products_revenue = Sum(
+                F("quantity_export") * F("unit_price")
+            )
         )
-        for product in products_revenue:
-            total_revenue += product['revenue']
-            revenue_arr.append([product['product_id__name'], product['revenue'], "#01257D"])
+        each_product_revenue = export_orders.values('product_id__name').annotate(
+            product_revenue = Sum(F("quantity_export") * F("unit_price"))
+        ).order_by('-product_revenue')
 
     if chosen_period_type == 'day':
         chosen_date = default_day()
@@ -222,27 +249,44 @@ def reports_revenue(request):
 
         context['chosen_date'] = chosen_date
 
+        GET_requests_params['period_type'] = chosen_period_type
+        GET_requests_params['chosen_period_type_param'] = chosen_date
+
         export_orders = ExportOrder.objects.select_related('export_shipment_id', 'product_id').filter(
             export_shipment_id__date = chosen_date
         )
-        products_revenue = export_orders.values('product_id__name').annotate(
-            revenue = Sum(F("quantity_export") * F("unit_price"))
+        total_products_revenue = export_orders.aggregate(
+            total_products_revenue = Sum(
+                F("quantity_export") * F("unit_price")
+            )
         )
-        for product in products_revenue:
-            total_revenue += product['revenue']
-            revenue_arr.append([product['product_id__name'], product['revenue'], "#01257D"])
+        each_product_revenue = export_orders.values('product_id__name').annotate(
+            product_revenue = Sum(F("quantity_export") * F("unit_price"))
+        ).order_by('-product_revenue')
 
     # If no records are found
-    if products_revenue.count() == 0:
+    if each_product_revenue.count() == 0:
         context["non_period_found_msg"] = "Không có dữ liệu"
         return render(request, "major_features/reports/revenue.html", context)
 
+    # path handling
+    context['modified_path'] = get_modified_path(request, GET_requests_params)
+
+    # pagination
+    page_number = request.GET.get("page")
+    pagination = Paginator(each_product_revenue, 5)
+    page_obj = pagination.get_page(page_number)
+
+    for product in page_obj:
+        # Append JSON string to google chart array
+        revenue_arr.append([product['product_id__name'], product['product_revenue'], "#01257D"])
+
     # Append total_revenue_arr as a column in the revenue chart
-    revenue_arr.append(["Tổng doanh thu", total_revenue, "#01257D"])
+    revenue_arr.append(["Tổng doanh thu", total_products_revenue['total_products_revenue'], "#01257D"])
 
     # For rendering reports import section table
-    context['products_revenue'] = products_revenue
-    context['total_revenue'] = total_revenue
+    context['page_obj'] = page_obj
+    context['total_products_revenue'] = total_products_revenue['total_products_revenue']
     
     # For google chart
     context['revenue_arr'] = revenue_arr
@@ -274,13 +318,12 @@ def reports_gross_profits(request):
     except KeyError:
         print("Key not found")
 
+    GET_requests_params = {}
+
     # Attach these three keys to context for filter-bar
     context['unchosen_period_types'] = unchosen_period_types
     context['chosen_period_type'] = chosen_period_type
     context['chosen_period_name'] = chosen_period_name
-
-    # Displaying total_revenue in the reports revenue table
-    total_gross_profits = 0
 
     # JSON string for google chart
     role = {'role': "style"}
@@ -300,6 +343,9 @@ def reports_gross_profits(request):
         # in the select input
         context["chosen_accounting_period_id"] = chosen_accounting_period_id
 
+        GET_requests_params['period_type'] = chosen_period_type
+        GET_requests_params['chosen_period_type_param'] = chosen_accounting_period_id
+
         # Get all accounting period in template
         # for user to choose
         all_accounting_period = AccoutingPeriod.objects.select_related('warehouse_management_method').all()
@@ -308,13 +354,12 @@ def reports_gross_profits(request):
         periods_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').filter(
             accounting_period_id = chosen_accounting_period_id
         )
-        products_gross_profits = periods_inventory.values('product_id__name').annotate(
-            gross_profits = F("total_revenue") - F("total_cogs")
+        total_products_gross_profits = periods_inventory.aggregate(
+            total_products_gross_profits = Sum("total_revenue") - Sum("total_cogs")
         )
-        for product in products_gross_profits:
-            total_gross_profits += product['gross_profits']
-            # Append JSON string to google chart array
-            gross_profits_arr.append([product['product_id__name'], product['gross_profits'], "#01257D"])
+        each_product_gross_profits = periods_inventory.values('product_id__name').annotate(
+            product_gross_profits = F("total_revenue") - F("total_cogs")
+        ).order_by('-product_gross_profits')
 
     if chosen_period_type == 'year':
         # Get the current year as an int
@@ -328,19 +373,22 @@ def reports_gross_profits(request):
         # in the reports/import_section.html template
         context['chosen_year'] = chosen_year
 
+        GET_requests_params['period_type'] = chosen_period_type
+        GET_requests_params['chosen_period_type_param']= chosen_year
+
         first_day_of_the_year = datetime(chosen_year, 1, 1).date()
         last_day_of_the_year = datetime(chosen_year, 12, 31).date()
 
         accounting_periods_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').filter(
             accounting_period_id__date_applied__gte = first_day_of_the_year,
             accounting_period_id__date_end__lte = last_day_of_the_year
-        )           
-        products_gross_profits = accounting_periods_inventory.values('product_id__name').annotate(
-            gross_profits = Sum(F("total_revenue") - F("total_cogs"))
         )
-        for product in products_gross_profits:
-            total_gross_profits += product['gross_profits']
-            gross_profits_arr.append([product['product_id__name'], product['gross_profits'], "#01257D"])
+        total_products_gross_profits = accounting_periods_inventory.aggregate(
+            total_products_gross_profits = Sum("total_revenue") - Sum("total_cogs")
+        )           
+        each_product_gross_profits = accounting_periods_inventory.values('product_id__name').annotate(
+            product_gross_profits = Sum(F("total_revenue") - F("total_cogs"))
+        ).order_by('-product_gross_profits')
     
     if chosen_period_type == 'quarter':
         quarters = get_quarters()
@@ -361,6 +409,9 @@ def reports_gross_profits(request):
         context['chosen_quarter'] = chosen_quarter
         context['chosen_year'] = chosen_year
 
+        GET_requests_params['period_type'] = chosen_period_type
+        GET_requests_params['chosen_period_type_param'] = f"{chosen_quarter}&quarter_year={chosen_year}"
+
         chosen_quarter_months = quarters[chosen_quarter]['months']
         first_month_of_quarter = chosen_quarter_months[0]
         last_month_of_quarter = chosen_quarter_months[2]
@@ -371,14 +422,16 @@ def reports_gross_profits(request):
             export_shipment_id__date__gte = first_day_of_quarter,
             export_shipment_id__date__lte = last_day_of_quarter
         )
-        products_gross_profits = products_export_orders.values('product_id__name').annotate(
-            gross_profits = Sum(
+        total_products_gross_profits = products_export_orders.aggregate(
+            total_products_gross_profits = Sum(
+                (F("quantity_export") * F("unit_price")) - F("total_order_value")
+            )
+        )
+        each_product_gross_profits = products_export_orders.values('product_id__name').annotate(
+            product_gross_profits = Sum(
                     (F("quantity_export") * F("unit_price")) - F("total_order_value")
                 )
-        )
-        for product in products_gross_profits:
-            total_gross_profits += product['gross_profits']
-            gross_profits_arr.append([product['product_id__name'], product['gross_profits'], "#01257D"])
+        ).order_by('-product_gross_profits')
 
     if chosen_period_type == 'month':
         months = get_months()
@@ -399,6 +452,9 @@ def reports_gross_profits(request):
         context['chosen_month'] = chosen_month
         context['chosen_month_year'] = chosen_month_year
 
+        GET_requests_params['period_type'] = chosen_period_type
+        GET_requests_params['chosen_period_type_param'] = f"{chosen_month}&chosen_month_year={chosen_month_year}"
+
         first_day_of_the_month = datetime(chosen_month_year, chosen_month, 1).date()
         last_day_of_the_month = get_lastday_of_month(first_day_of_the_month)
 
@@ -406,14 +462,16 @@ def reports_gross_profits(request):
             export_shipment_id__date__gte = first_day_of_the_month,
             export_shipment_id__date__lte = last_day_of_the_month,
         )
-        products_gross_profits = product_export_orders.values('product_id__name').annotate(
-            gross_profits = Sum(
+        total_products_gross_profits = product_export_orders.aggregate(
+            total_products_gross_profits = Sum(
                 (F("quantity_export") * F("unit_price")) - F("total_order_value")
             )
         )
-        for product in products_gross_profits:
-            total_gross_profits += product['gross_profits']
-            gross_profits_arr.append([product['product_id__name'], product['gross_profits'], "#01257D"])
+        each_product_gross_profits = product_export_orders.values('product_id__name').annotate(
+            product_gross_profits = Sum(
+                (F("quantity_export") * F("unit_price")) - F("total_order_value")
+            )
+        ).order_by('-product_gross_profits')
 
     if chosen_period_type == 'day':
         # Set default day for filter-bar to the current day
@@ -425,29 +483,45 @@ def reports_gross_profits(request):
 
         context['chosen_date'] = chosen_date
 
+        GET_requests_params['period_type'] = chosen_period_type
+        GET_requests_params['chosen_period_type_param'] = chosen_date
+
         product_export_orders = ExportOrder.objects.select_related('export_shipment_id', 'product_id').filter(
             export_shipment_id__date = chosen_date
         )
-        products_gross_profits = product_export_orders.values('product_id__name').annotate(
-            gross_profits = Sum(
+        total_products_gross_profits = product_export_orders.aggregate(
+            total_products_gross_profits = Sum(
                 (F("quantity_export") * F("unit_price")) - F("total_order_value")
             )
         )
-        for product in products_gross_profits:
-            total_gross_profits += product['gross_profits']
-            gross_profits_arr.append([product['product_id__name'], product['gross_profits'], "#01257D"])
+        each_product_gross_profits = product_export_orders.values('product_id__name').annotate(
+            product_gross_profits = Sum(
+                (F("quantity_export") * F("unit_price")) - F("total_order_value")
+            )
+        ).order_by('-product_gross_profits')
     
     # If no records are found
-    if products_gross_profits.count() == 0:
+    if each_product_gross_profits.count() == 0:
         context["non_period_found_msg"] = "Không có dữ liệu"
         return render(request, "major_features/reports/gross_profits.html", context)
 
+    # path handling
+    context['modified_path'] = get_modified_path(request, GET_requests_params)
+
+    # pagination
+    page_number = request.GET.get("page")
+    pagination = Paginator(each_product_gross_profits, 5)
+    page_obj = pagination.get_page(page_number)
+
+    for product in page_obj:
+        gross_profits_arr.append([product['product_id__name'], product['product_gross_profits'], "#01257D"])
+
     # Append total_gross_profits to gross_profits_arr for the gross_profits chart
-    gross_profits_arr.append(["Tổng lợi nhuận", total_gross_profits, "#01257D"])
+    gross_profits_arr.append(["Tổng lợi nhuận", total_products_gross_profits['total_products_gross_profits'], "#01257D"])
 
     # For rendering reports import section table
-    context['products_gross_profits'] = products_gross_profits
-    context['total_gross_profits'] = total_gross_profits
+    context['page_obj'] = page_obj
+    context['total_gross_profits'] = total_products_gross_profits['total_products_gross_profits']
     
     # For google chart
     context['gross_profits_arr'] = gross_profits_arr
@@ -479,15 +553,12 @@ def reports_import_section(request):
     except KeyError:
         print("Key not found")
 
+    GET_requests_params = {}
+
     # Attach these three keys to context for filter-bar
     context['unchosen_period_types'] = unchosen_period_types
     context['chosen_period_type'] = chosen_period_type
     context['chosen_period_name'] = chosen_period_name
-
-    # Displaying total_import_quantity & total_import_inventory
-    # in the reports import section table
-    total_import_quantity = 0
-    total_import_inventory = 0
 
     # JSON string for google chart
     role = {'role': "style"}
@@ -506,30 +577,29 @@ def reports_import_section(request):
         if accounting_period_id_param:
             chosen_accounting_period_id = validating_period_id(accounting_period_id_param)
 
+        # Rendering chosen_accounting_period_id for getting selected accounting period
+        # in the select input
+        context["chosen_accounting_period_id"] = chosen_accounting_period_id
+
+        GET_requests_params['period_type'] = chosen_period_type
+        GET_requests_params['chosen_period_type_param'] = chosen_accounting_period_id
+
         # Get all accounting period in template
         # for user to choose
         all_accounting_period = AccoutingPeriod.objects.select_related('warehouse_management_method').all()
         context["all_accounting_period"] = all_accounting_period
 
-        # Rendering chosen_accounting_period_id for getting selected accounting period
-        # in the select input
-        context["chosen_accounting_period_id"] = chosen_accounting_period_id
-
-        # Get all product's period inventory
-        chosen_accounting_period_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').filter(
+        periods_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').filter(
             accounting_period_id = chosen_accounting_period_id
         )
-        products_inventory = chosen_accounting_period_inventory.values('product_id__name').annotate(
-            total_quantity = F("import_quantity"),
-            total_inventory = F("import_inventory")
+        total_products_import = periods_inventory.aggregate(
+            total_import_quantity = Sum("import_quantity"),
+            total_import_inventory = Sum("import_inventory")
         )
-        for product in products_inventory:
-            total_import_quantity += product['total_quantity']
-            total_import_inventory += product['total_inventory']
-
-            # Append JSON string to google chart array
-            import_quantity_data_arr.append([product['product_id__name'], product['total_quantity'], "#01257D"])
-            import_inventory_data_arr.append([product['product_id__name'], product['total_inventory'], "#01257D"])
+        each_product_import = periods_inventory.values('product_id__name').annotate(
+            product_quantity_import = Sum("import_quantity"),
+            product_inventory_import = Sum("import_inventory")
+        ).order_by('-product_inventory_import')
 
     if chosen_period_type == 'year':
         # Get the current year as an int
@@ -543,23 +613,25 @@ def reports_import_section(request):
         # in the reports/import_section.html template
         context['chosen_year'] = chosen_year
 
+        GET_requests_params['period_type'] = chosen_period_type
+        GET_requests_params['chosen_period_type_param']= chosen_year
+
         first_day_of_the_year = datetime(chosen_year, 1, 1).date()
         last_day_of_the_year = datetime(chosen_year, 12, 31).date()
 
         accounting_periods_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').filter(
             accounting_period_id__date_applied__gte = first_day_of_the_year,
             accounting_period_id__date_end__lte = last_day_of_the_year
-        )           
-        products_inventory = accounting_periods_inventory.values('product_id__name').annotate(
-            total_quantity = Sum('import_quantity'),
-            total_inventory = Sum('import_inventory')
         )
-        for product in products_inventory:
-            total_import_quantity += product['total_quantity']
-            total_import_inventory += product['total_inventory']
-            import_quantity_data_arr.append([product['product_id__name'], product['total_quantity'], "#01257D"])
-            import_inventory_data_arr.append([product['product_id__name'], product['total_inventory'], "#01257D"])
-
+        total_products_import = accounting_periods_inventory.aggregate(
+            total_import_quantity = Sum("import_quantity"),
+            total_import_inventory = Sum("import_inventory")
+        )
+        each_product_import = accounting_periods_inventory.values('product_id__name').annotate(
+            product_quantity_import = Sum("import_quantity"),
+            product_inventory_import = Sum("import_inventory")
+        ).order_by('-product_inventory_import')
+    
     if chosen_period_type == 'quarter':
         quarters = get_quarters()
         context['quarters'] = quarters
@@ -579,6 +651,9 @@ def reports_import_section(request):
         context['chosen_quarter'] = chosen_quarter
         context['chosen_year'] = chosen_year
 
+        GET_requests_params['period_type'] = chosen_period_type
+        GET_requests_params['chosen_period_type_param'] = f"{chosen_quarter}&quarter_year={chosen_year}"
+
         chosen_quarter_months = quarters[chosen_quarter]['months']
         first_month_of_quarter = chosen_quarter_months[0]
         last_month_of_quarter = chosen_quarter_months[2]
@@ -589,18 +664,15 @@ def reports_import_section(request):
             import_shipment_id__date__gte = first_day_of_quarter,
             import_shipment_id__date__lte = last_day_of_quarter
         )
-        products_inventory = products_import_purchases.values('product_id__name').annotate(
-            total_quantity = Sum('quantity_import'),
-            total_inventory = Sum('value_import')
+        total_products_import = products_import_purchases.aggregate(
+            total_import_quantity = Sum("quantity_import"),
+            total_import_inventory = Sum("value_import")
         )
-        for product in products_inventory:
-            total_import_quantity += product['total_quantity']
-            total_import_inventory += product['total_inventory']
+        each_product_import = products_import_purchases.values('product_id__name').annotate(
+            product_quantity_import = Sum("quantity_import"),
+            product_inventory_import = Sum("value_import")
+        ).order_by('-product_inventory_import')
 
-            # Append JSON string to google chart array
-            import_quantity_data_arr.append([product['product_id__name'], product['total_quantity'], "#01257D"])
-            import_inventory_data_arr.append([product['product_id__name'], product['total_inventory'], "#01257D"])
-        
     if chosen_period_type == 'month':
         months = get_months()
         context['months'] = months
@@ -620,6 +692,9 @@ def reports_import_section(request):
         context['chosen_month'] = chosen_month
         context['chosen_month_year'] = chosen_month_year
 
+        GET_requests_params['period_type'] = chosen_period_type
+        GET_requests_params['chosen_period_type_param'] = f"{chosen_month}&chosen_month_year={chosen_month_year}"
+
         first_day_of_the_month = datetime(chosen_month_year, chosen_month, 1).date()
         last_day_of_the_month = get_lastday_of_month(first_day_of_the_month)
 
@@ -627,18 +702,15 @@ def reports_import_section(request):
             import_shipment_id__date__gte = first_day_of_the_month,
             import_shipment_id__date__lte = last_day_of_the_month
         )
-        products_inventory = products_import_purchases.values('product_id__name').annotate(
-            total_quantity = Sum('quantity_import'),
-            total_inventory = Sum('value_import')
-        )        
-        for product in products_inventory:
-            total_import_quantity += product['total_quantity']
-            total_import_inventory += product['total_inventory']
+        total_products_import = products_import_purchases.aggregate(
+            total_import_quantity = Sum("quantity_import"),
+            total_import_inventory = Sum("value_import")
+        )
+        each_product_import = products_import_purchases.values('product_id__name').annotate(
+            product_quantity_import = Sum("quantity_import"),
+            product_inventory_import = Sum("value_import")
+        ).order_by('-product_inventory_import')
 
-            # Append JSON string to google chart array
-            import_quantity_data_arr.append([product['product_id__name'], product['total_quantity'], "#01257D"])
-            import_inventory_data_arr.append([product['product_id__name'], product['total_inventory'], "#01257D"])
-        
     if chosen_period_type == 'day':
         # Set default day for filter-bar to the current day
         chosen_date = default_day()
@@ -649,35 +721,46 @@ def reports_import_section(request):
 
         context['chosen_date'] = chosen_date
 
+        GET_requests_params['period_type'] = chosen_period_type
+        GET_requests_params['chosen_period_type_param'] = chosen_date
+
         products_import_purchases = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').filter(
             import_shipment_id__date = chosen_date
         )
-        products_inventory = products_import_purchases.values('product_id__name').annotate(
-            total_quantity = Sum('quantity_import'),
-            total_inventory = Sum('value_import')
+        total_products_import = products_import_purchases.aggregate(
+            total_import_quantity = Sum("quantity_import"),
+            total_import_inventory = Sum("value_import")
         )
-        for product in products_inventory:
-            total_import_quantity += product['total_quantity']
-            total_import_inventory += product['total_inventory']
-
-            # Append JSON string to google chart array
-            import_quantity_data_arr.append([product['product_id__name'], product['total_quantity'], "#01257D"])
-            import_inventory_data_arr.append([product['product_id__name'], product['total_inventory'], "#01257D"])
-
+        each_product_import = products_import_purchases.values('product_id__name').annotate(
+            product_quantity_import = Sum("quantity_import"),
+            product_inventory_import = Sum("value_import")
+        ).order_by('-product_inventory_import')
+    
     # If no records are found
-    if products_inventory.count() == 0:
+    if each_product_import.count() == 0:
         context["non_period_found_msg"] = "Không có dữ liệu"
         return render(request, "major_features/reports/import_section.html", context)
 
-    # Append import_inventory & import quantity 
-    # for the import_inventory & import quantity chart
-    import_inventory_data_arr.append(["Tổng giá trị nhập kho", total_import_inventory, "#01257D"])
-    import_quantity_data_arr.append(["Tổng SL nhập kho", total_import_quantity, "#01257D"])
+    # path handling
+    context['modified_path'] = get_modified_path(request, GET_requests_params)
+
+    # pagination
+    page_number = request.GET.get("page")
+    pagination = Paginator(each_product_import, 5)
+    page_obj = pagination.get_page(page_number)
+
+    for product in page_obj:
+        import_inventory_data_arr.append([product['product_id__name'], product['product_inventory_import'], "#01257D"])
+        import_quantity_data_arr.append([product['product_id__name'], product['product_quantity_import'], "#01257D"])
+
+    # Append total_gross_profits to gross_profits_arr for the gross_profits chart
+    import_inventory_data_arr.append(["Tổng giá trị nhập kho", total_products_import['total_import_inventory'], "#01257D"])
+    import_quantity_data_arr.append(["Tổng SL nhập kho", total_products_import['total_import_quantity'], "#01257D"])
 
     # For rendering reports import section table
-    context['products_inventory'] = products_inventory
-    context['total_import_quantity'] = total_import_quantity
-    context['total_import_inventory'] = total_import_inventory
+    context['page_obj'] = page_obj
+    context['total_import_quantity'] = total_products_import['total_import_quantity']
+    context['total_import_inventory'] = total_products_import['total_import_inventory']
     
     # For google chart
     context['import_inventory_data_arr'] = import_inventory_data_arr
@@ -710,15 +793,12 @@ def reports_export_section(request):
     except KeyError:
         print("Key not found")
 
+    GET_requests_params = {}
+
     # Attach these three keys to context for filter-bar
     context['unchosen_period_types'] = unchosen_period_types
     context['chosen_period_type'] = chosen_period_type
     context['chosen_period_name'] = chosen_period_name
-
-    # Displaying total_import_quantity & total_import_inventory
-    # in the reports export section table
-    total_export_quantity = 0
-    total_export_value = 0
 
     # JSON string for google chart
     role = {'role': "style"}
@@ -737,29 +817,29 @@ def reports_export_section(request):
         if accounting_period_id_param:
             chosen_accounting_period_id = validating_period_id(accounting_period_id_param)
 
+        # Rendering chosen_accounting_period_id for getting selected accounting period
+        # in the select input
+        context["chosen_accounting_period_id"] = chosen_accounting_period_id
+
+        GET_requests_params['period_type'] = chosen_period_type
+        GET_requests_params['chosen_period_type_param'] = chosen_accounting_period_id
+
         # Get all accounting period in template
         # for user to choose
         all_accounting_period = AccoutingPeriod.objects.select_related('warehouse_management_method').all()
         context["all_accounting_period"] = all_accounting_period
 
-        # Rendering chosen_accounting_period_id for getting selected accounting period
-        # in the select input
-        context["chosen_accounting_period_id"] = chosen_accounting_period_id
-
-        # Get all product's period inventory
-        chosen_accounting_period_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').filter(
+        periods_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').filter(
             accounting_period_id = chosen_accounting_period_id
         )
-        products_inventory = chosen_accounting_period_inventory.values('product_id__name').annotate(
-            total_quantity_export = Sum('total_quantity_export'),
-            total_cogs = Sum('total_cogs')
+        total_products_export = periods_inventory.aggregate(
+            total_export_quantity = Sum("total_quantity_export"),
+            total_export_value = Sum("total_cogs")
         )
-        for product in products_inventory:
-            total_export_quantity += product['total_quantity_export']
-            total_export_value += product['total_cogs']
-            # Append JSON string to google chart array
-            export_quantity_data_arr.append([product['product_id__name'], product['total_quantity_export'], "#01257D"])
-            export_value_data_arr.append([product['product_id__name'], product['total_cogs'], "#01257D"])
+        each_product_export = periods_inventory.values('product_id__name').annotate(
+            product_quantity_export = Sum("total_quantity_export"),
+            product_cogs = Sum("total_cogs")
+        ).order_by('-product_cogs')
 
     if chosen_period_type == 'year':
         # Get the current year as an int
@@ -773,23 +853,25 @@ def reports_export_section(request):
         # in the reports/import_section.html template
         context['chosen_year'] = chosen_year
 
+        GET_requests_params['period_type'] = chosen_period_type
+        GET_requests_params['chosen_period_type_param']= chosen_year
+
         first_day_of_the_year = datetime(chosen_year, 1, 1).date()
         last_day_of_the_year = datetime(chosen_year, 12, 31).date()
 
         accounting_periods_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').filter(
             accounting_period_id__date_applied__gte = first_day_of_the_year,
             accounting_period_id__date_end__lte = last_day_of_the_year
-        )           
-        products_inventory = accounting_periods_inventory.values('product_id__name').annotate(
-            total_quantity_export = Sum('total_quantity_export'),
-            total_cogs = Sum('total_cogs')
         )
-        for product in products_inventory:
-            total_export_quantity += product['total_quantity_export']
-            total_export_value += product['total_cogs']
-            export_quantity_data_arr.append([product['product_id__name'], product['total_quantity_export'], "#01257D"])
-            export_value_data_arr.append([product['product_id__name'], product['total_cogs'], "#01257D"])
-
+        total_products_export = accounting_periods_inventory.aggregate(
+            total_export_quantity = Sum("total_quantity_export"),
+            total_export_value = Sum("total_cogs")
+        )
+        each_product_export = accounting_periods_inventory.values('product_id__name').annotate(
+            product_quantity_export = Sum("total_quantity_export"),
+            product_cogs = Sum("total_cogs")
+        ).order_by('-product_cogs')
+    
     if chosen_period_type == 'quarter':
         quarters = get_quarters()
         context['quarters'] = quarters
@@ -809,6 +891,9 @@ def reports_export_section(request):
         context['chosen_quarter'] = chosen_quarter
         context['chosen_year'] = chosen_year
 
+        GET_requests_params['period_type'] = chosen_period_type
+        GET_requests_params['chosen_period_type_param'] = f"{chosen_quarter}&quarter_year={chosen_year}"
+
         chosen_quarter_months = quarters[chosen_quarter]['months']
         first_month_of_quarter = chosen_quarter_months[0]
         last_month_of_quarter = chosen_quarter_months[2]
@@ -819,18 +904,15 @@ def reports_export_section(request):
             export_shipment_id__date__gte = first_day_of_quarter,
             export_shipment_id__date__lte = last_day_of_quarter
         )
-        products_inventory = products_export_orders.values('product_id__name').annotate(
-            total_quantity_export = Sum('quantity_export'),
-            total_cogs = Sum('total_order_value')
+        total_products_export = products_export_orders.aggregate(
+            total_export_quantity = Sum("quantity_export"),
+            total_export_value = Sum("total_order_value")
         )
-        for product in products_inventory:
-            total_export_quantity += product['total_quantity_export']
-            total_export_value += product['total_cogs']
+        each_product_export = products_export_orders.values('product_id__name').annotate(
+            product_quantity_export = Sum("quantity_export"),
+            product_cogs = Sum("total_order_value")
+        ).order_by('-product_cogs')
 
-            # Append JSON string to google chart array
-            export_quantity_data_arr.append([product['product_id__name'], product['total_quantity_export'], "#01257D"])
-            export_value_data_arr.append([product['product_id__name'], product['total_cogs'], "#01257D"])
-        
     if chosen_period_type == 'month':
         months = get_months()
         context['months'] = months
@@ -850,69 +932,80 @@ def reports_export_section(request):
         context['chosen_month'] = chosen_month
         context['chosen_month_year'] = chosen_month_year
 
+        GET_requests_params['period_type'] = chosen_period_type
+        GET_requests_params['chosen_period_type_param'] = f"{chosen_month}&chosen_month_year={chosen_month_year}"
+
         first_day_of_the_month = datetime(chosen_month_year, chosen_month, 1).date()
         last_day_of_the_month = get_lastday_of_month(first_day_of_the_month)
 
         products_export_orders = ExportOrder.objects.select_related('export_shipment_id', 'product_id').filter(
             export_shipment_id__date__gte = first_day_of_the_month,
-            export_shipment_id__date__lte = last_day_of_the_month
+            export_shipment_id__date__lte = last_day_of_the_month,
         )
-        products_inventory = products_export_orders.values('product_id__name').annotate(
-            total_quantity_export = Sum('quantity_export'),
-            total_cogs = Sum('total_order_value')
-        )        
-        for product in products_inventory:
-            total_export_quantity += product['total_quantity_export']
-            total_export_value += product['total_cogs']
+        total_products_export = products_export_orders.aggregate(
+            total_export_quantity = Sum("quantity_export"),
+            total_export_value = Sum("total_order_value")
+        )
+        each_product_export = products_export_orders.values('product_id__name').annotate(
+            product_quantity_export = Sum("quantity_export"),
+            product_cogs = Sum("total_order_value")
+        ).order_by('-product_cogs')
 
-            # Append JSON string to google chart array
-            export_quantity_data_arr.append([product['product_id__name'], product['total_quantity_export'], "#01257D"])
-            export_value_data_arr.append([product['product_id__name'], product['total_cogs'], "#01257D"])
-        
     if chosen_period_type == 'day':
         # Set default day for filter-bar to the current day
         chosen_date = default_day()
 
         date_param = request.GET.get("day", None)
-
         if date_param:
             chosen_date = validating_date(date_param)
 
         context['chosen_date'] = chosen_date
 
+        GET_requests_params['period_type'] = chosen_period_type
+        GET_requests_params['chosen_period_type_param'] = chosen_date
+
         products_export_orders = ExportOrder.objects.select_related('export_shipment_id', 'product_id').filter(
             export_shipment_id__date = chosen_date
         )
-        products_inventory = products_export_orders.values('product_id__name').annotate(
-            total_quantity_export = Sum('quantity_export'),
-            total_cogs= Sum('total_order_value')
+        total_products_export = products_export_orders.aggregate(
+            total_export_quantity = Sum("quantity_export"),
+            total_export_value = Sum("total_order_value")
         )
-        for product in products_inventory:
-            total_export_quantity += product['total_quantity_export']
-            total_export_value += product['total_cogs']
-
-            # Append JSON string to google chart array
-            export_quantity_data_arr.append([product['product_id__name'], product['total_quantity_export'], "#01257D"])
-            export_value_data_arr.append([product['product_id__name'], product['total_cogs'], "#01257D"])
-
+        each_product_export = products_export_orders.values('product_id__name').annotate(
+            product_quantity_export = Sum("quantity_export"),
+            product_cogs = Sum("total_order_value")
+        ).order_by('-product_cogs')
+    
     # If no records are found
-    if products_inventory.count() == 0:
+    if each_product_export.count() == 0:
         context["non_period_found_msg"] = "Không có dữ liệu"
         return render(request, "major_features/reports/export_section.html", context)
 
-    # Append import_inventory & import quantity 
-    # for the import_inventory & import quantity chart
-    export_value_data_arr.append(["Tổng giá trị xuất kho", total_export_value, "#01257D"])
-    export_quantity_data_arr.append(["Tổng SL xuất kho", total_export_quantity, "#01257D"])
+    # path handling
+    context['modified_path'] = get_modified_path(request, GET_requests_params)
+
+    # pagination
+    page_number = request.GET.get("page")
+    pagination = Paginator(each_product_export, 5)
+    page_obj = pagination.get_page(page_number)
+
+    for product in page_obj:
+        export_value_data_arr.append([product['product_id__name'], product['product_cogs'], "#01257D"])
+        export_quantity_data_arr.append([product['product_id__name'], product['product_quantity_export'], "#01257D"])
+
+    # Append total_gross_profits to gross_profits_arr for the gross_profits chart
+    export_value_data_arr.append(["Tổng giá trị xuất kho", total_products_export['total_export_value'], "#01257D"])
+    export_quantity_data_arr.append(["Tổng SL xuất kho", total_products_export['total_export_quantity'], "#01257D"])
 
     # For rendering reports import section table
-    context['products_inventory'] = products_inventory
-    context['total_export_quantity'] = total_export_quantity
-    context['total_export_value'] = total_export_value
+    context['page_obj'] = page_obj
+    context['total_export_quantity'] = total_products_export['total_export_quantity']
+    context['total_export_value'] = total_products_export['total_export_value']
     
     # For google chart
-    context['export_quantity_data_arr'] = export_quantity_data_arr
     context['export_value_data_arr'] = export_value_data_arr
+    context['export_quantity_data_arr'] = export_quantity_data_arr
+
     return render(request, "major_features/reports/export_section.html", context)
 
 # Validating functions for reports filter bar
