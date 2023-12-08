@@ -1802,3 +1802,43 @@ def profits_pagination_on_month(page_number):
 
     for connection_query in connection.queries:
         print(connection_query)
+
+@query_debugger
+def check_product_current_quantity():
+    current_year = 2023
+    first_day_of_project = datetime(current_year, 4, 1).date()
+    last_day_of_project = datetime(current_year, 12, 31).date()
+
+    products_import_purchases = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').filter(
+        import_shipment_id__date__gte = first_day_of_project,
+        import_shipment_id__date__lte = last_day_of_project,
+    )
+    products_import_quantity = products_import_purchases.values('product_id__name').annotate(
+        import_quantity = Sum("quantity_import")
+    )
+    
+    products_current_quantity = {}
+    for product in products_import_quantity:
+        products_current_quantity[product['product_id__name']] = {
+            'import_quantity': product['import_quantity'],
+            'export_quantity': 0
+        }
+
+    products_export_orders = ExportOrder.objects.select_related('export_shipment_id', 'product_id').filter(
+        export_shipment_id__date__gte = first_day_of_project,
+        export_shipment_id__date__lte = last_day_of_project,
+    )
+    products_export_quantity = products_export_orders.values('product_id__name').annotate(
+        export_quantity = Sum("quantity_export")
+    )
+
+    for product in products_export_quantity:
+        products_current_quantity[product['product_id__name']]['export_quantity'] = product['export_quantity']
+
+    for product, current_quantity in products_current_quantity.items():
+        print("------------------")
+        print(product)
+        print(f"Import quantity: {current_quantity['import_quantity']}, Export quantity: {current_quantity['export_quantity']}")
+
+    for connection_query in connection.queries:
+        print(connection_query)
