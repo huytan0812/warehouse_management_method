@@ -7,19 +7,9 @@
 {% endblock %}
 
 {% block body %}
-<p>
-  Session key: {{ session_key }}
-</p>
-<p>
-  Serialized session data: {{ current_session_data }}
-</p>
-<p> 
-  Decoded session data: {{ decoded_session_data }}
-</p>
-
 <div id="products-container">
     <table class="table table-bordered table-striped table-dark">
-      <caption>Bảng thống kê giá trị tồn kho hiện tại của từng sản phẩm</caption>
+      <caption>Bảng thống kê giá trị tồn kho hiện tại của Top 5 sản phẩm về giá trị HTK</caption>
         <thead>
           <tr>
             <th scope="col" style="text-align: left;">Mã sản phẩm</th>
@@ -40,6 +30,7 @@
         </tbody>
       </table>
 </div>
+<p><a href="{% url 'products' %}">Xem tất cả sản phẩm</a></p>
 
 {% if method %}
 <p>Phương pháp xác định giá trị hàng tồn kho đang được chọn: <strong>{{ method.name }}</strong></p>

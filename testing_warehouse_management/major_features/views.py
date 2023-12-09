@@ -33,9 +33,10 @@ def index(request):
          
     current_accounting_period = AccoutingPeriod.objects.select_related('warehouse_management_method').latest('id')
 
+    # Get top 5 product's current inventory
     product_period_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').filter(
         accounting_period_id = current_accounting_period
-    )
+    ).order_by('-ending_inventory')[:5]
     date_picker_form = DatePickerForm()
 
     session_key = request.session.session_key

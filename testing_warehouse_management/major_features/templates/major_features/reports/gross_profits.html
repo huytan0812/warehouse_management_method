@@ -148,8 +148,8 @@
 
 {% if not non_period_found_msg %}
 <div class="d-flex justify-content-center" style="margin-top: 20px !important;">
-  <table class="table table-bordered table-striped table-dark w-auto" style="margin: auto;">
-    <caption>Thống kê lợi nhuận từng sản phẩm</caption>
+  <table class="table table-bordered table-striped table-dark h-auto" style="width: 400px; margin: auto;">
+    <caption>Thống kê lợi nhuận sản phẩm</caption>
     <thead>
       <tr>
         <th scope="col">Sản phẩm</th>
@@ -166,7 +166,7 @@
     </tbody>
     <tfoot>
       <tr>
-        <td style="color: #00FFFF"><strong>Tổng</strong></td>
+        <td style="color: #00FFFF"><strong>Tổng lợi nhuận</strong></td>
         <td style="color: #00FFFF; text-align: right;">{{ total_gross_profits|intcomma }}</td>
       </tr>
     </tfoot>
