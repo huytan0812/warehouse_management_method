@@ -1,4 +1,5 @@
 from django.db import models
+from mptt.models import MPTTModel, TreeForeignKey
 from django.db.models import Q
 from django.contrib.auth.models import User
 from datetime import datetime, timedelta
@@ -27,6 +28,13 @@ class AccoutingPeriod(models.Model):
     def __str__(self):
         return f"Accounting period starts on {self.date_applied} & end on {self.date_end} in the usage of {self.warehouse_management_method.name}"
 
+class Category(MPTTModel):
+    name = models.CharField(max_length=100, unique=True)
+    parent = TreeForeignKey('self', on_delete=models.PROTECT, null=True, blank=True, related_name="%(class)s_children")
+
+    class MPTTMeta:
+        order_insertion_by = ['name']
+
 class Supplier(models.Model):
     name = models.CharField(max_length=200, blank=False, null=False, default="")
     address = models.TextField(max_length=1500, blank=True, null=True, default="")
@@ -40,15 +48,16 @@ class Agency(models.Model):
 
     def __str__(self):
         return f"{self.name}"
-    
+
 class Product(models.Model):
     sku = models.CharField(primary_key=True, default="000000", max_length=14)
     name = models.CharField(null=False, blank=False, default="", unique=True, max_length=500)
     minimum_quantity = models.IntegerField(null=True, blank=True, default=1)
+    category_name = models.ForeignKey(Category, on_delete=models.CASCADE, null=True, blank=True, related_name="%(class)s_category_name")
 
     def __str__(self):
         return f"{self.name}"
-    
+      
 class ImportShipment(models.Model):
     import_shipment_code = models.CharField(max_length=20, unique=True, null=False, blank=False, default="")
     supplier_id = models.ForeignKey(Supplier, on_delete=models.CASCADE, null=False, blank=False, related_name="%(class)s_sent_import_shipments")
