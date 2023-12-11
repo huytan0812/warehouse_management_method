@@ -35,6 +35,9 @@ class Category(MPTTModel):
     class MPTTMeta:
         order_insertion_by = ['name']
 
+    def __str__(self):
+        return f"{self.name}"
+
 class Supplier(models.Model):
     name = models.CharField(max_length=200, blank=False, null=False, default="")
     address = models.TextField(max_length=1500, blank=True, null=True, default="")

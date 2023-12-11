@@ -16,6 +16,10 @@ urlpatterns = [
      path("apply_warehouse_management", views.apply_warehouse_management, name="apply_warehouse_management"),
      path("keep_current_method", views.keep_current_method, name="keep_current_method"),
 
+     # Categories Section
+     path("categories", views.categories, name="categories"),
+     path("categories/add_category", views.add_category, name="add_category"),
+
      # Products Section
      path("products", views.products, name="products"),
      path("products/add_product", views.add_product, name="add_product"),

@@ -417,3 +417,16 @@ class EditProductForm(ModelForm):
             'name': "Tên sản phẩm",
             'minimum_quantity': "Số lượng tồn kho tối thiểu"
         }
+
+class AddCategoryForm(ModelForm):
+    class Meta:
+        model = Category
+        fields = ["name", "parent"]
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control', 'required': True, 'placeholder': "Tên danh mục"}),
+            'parent': forms.Select(attrs={'class': 'form-control select'})
+        }
+        labels = {
+            'name': "Tên danh mục",
+            'parent': "Danh mục gốc"
+        }

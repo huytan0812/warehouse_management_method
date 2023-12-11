@@ -66,6 +66,28 @@ def index(request):
 
     return render(request, "major_features/index.html", context)
 
+@login_required
+def categories(request):
+    context = {}
+    return render(request, "major_features/categories/categories.html", context)
+
+@login_required
+def add_category(request):
+    add_category_form = AddCategoryForm()
+
+    if request.method == "POST":
+        add_category_form = AddCategoryForm(request.POST)
+        if add_category_form.is_valid():
+            add_category_form.save()
+            return HttpResponseRedirect(reverse('categories'))
+        
+        return HttpResponse("Invalid Form", content_type="text/plain")
+    
+    context = {
+        'add_category_form': add_category_form
+    }
+    return render(request, "major_features/categories/add_category.html", context)
+
 def vntz_to_utc():
     """
     Converting current local time to UTC
