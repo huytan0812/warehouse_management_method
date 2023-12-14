@@ -2,35 +2,13 @@
 
 {% load humanize %}
 
+{% load custom_filters %}
+
 {% block title %}
 <h2>Trang chủ</h2>
 {% endblock %}
 
 {% block body %}
-<div id="products-container">
-    <table class="table table-bordered table-striped table-dark">
-      <caption>Bảng thống kê giá trị tồn kho hiện tại của Top 5 sản phẩm về giá trị HTK</caption>
-        <thead>
-          <tr>
-            <th scope="col" style="text-align: left;">Mã sản phẩm</th>
-            <th scope="col" style="text-align: left;">Tên sản phẩm</th>
-            <th scope="col" style="text-align: right;">Số lượng tồn kho</th>
-            <th scope="col" style="text-align: right;">Tổng giá trị tồn kho</th>
-          </tr>
-        </thead>
-        <tbody>
-            {% for product in product_period_inventory %}
-            <tr>
-                <td scope="col">{{ product.product_id.sku }}</td>
-                <td scope="col">{{ product.product_id.name }}</td>
-                <td scope="col" style="text-align: right;">{{ product.ending_quantity|intcomma }}</td>
-                <td scope="col" style="text-align: right;">{{ product.ending_inventory|intcomma }}</td>
-              </tr>
-            {% endfor %}
-        </tbody>
-      </table>
-</div>
-<p><a href="{% url 'products' %}">Xem tất cả sản phẩm</a></p>
 
 {% if method %}
 <p>Phương pháp xác định giá trị hàng tồn kho đang được chọn: <strong>{{ method.name }}</strong></p>
@@ -61,4 +39,97 @@
 </div>
 {% endif %}
 
+<div id="today-transactions" class="container d-flex justify-content-around">
+  <div id="today-import-shipments" class="border-div">
+    <h6><strong>SL lô hàng nhập kho trong ngày:</strong></h6> 
+    <p style="text-align: center;">{{ today_import_shipments_count }}</p>
+  </div>
+  <div id="today-export-shipments" class="border-div">
+    <h6><strong>SL lô hàng xuất kho trong ngày:</strong></h6>
+    <p style="text-align: center;">{{ today_export_shipments_count }}</p>
+  </div>
+  <div id="today-revenue" class="border-div">
+    <h6><strong>Doanh thu trong ngày:</strong></h6>
+    <p style="text-align: center;">{{ today_revenue }}</p>
+  </div>
+</div>
+
+<div id="products-container">
+  <table class="table table-bordered table-striped table-dark">
+    <caption>Bảng thống kê giá trị tồn kho hiện tại của Top 5 sản phẩm về giá trị HTK</caption>
+      <thead>
+        <tr>
+          <th scope="col" style="text-align: left;">Mã sản phẩm</th>
+          <th scope="col" style="text-align: left;">Tên sản phẩm</th>
+          <th scope="col" style="text-align: right;">Số lượng tồn kho</th>
+          <th scope="col" style="text-align: right;">Tổng giá trị tồn kho</th>
+          <th scope="col" style="text-align: right;">Tỷ lệ (%) giá trị HTK so với tổng giá trị HTK</th>
+        </tr>
+      </thead>
+      <tbody>
+          {% for product in products_period_inventory %}
+          <tr>
+              <td scope="col">{{ product.product_id.sku }}</td>
+              <td scope="col">{{ product.product_id.name }}</td>
+              <td scope="col" style="text-align: right;">{{ product.ending_quantity|intcomma }}</td>
+              <td scope="col" style="text-align: right;">{{ product.ending_inventory|intcomma }}</td>
+              <td scope="col" style="text-align: right;">{{ product.ending_inventory|to_percentage:total_inventory_value|round_float:2 }}%</td>
+            </tr>
+          {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr>
+          <td scope="col">...</td>
+          <td scope="col">...</td>
+          <td scope="col" style="text-align: right;">...</td>
+          <td scope="col" style="text-align: right;">...</td>
+          <td scope="col" style="text-align: right;">...</td>
+        </tr>
+        <tr>
+          <td scope="col" colspan="3" style="text-align: right; color: #00FFFF;"><strong>Tổng giá trị HTK hiện tại của tất cả sản phẩm</strong></td>
+          <td scope="col" style="text-align: right; color: #00FFFF;">{{ total_inventory_value|intcomma }}</td>
+          <td scope="col" style="text-align: right; color: #00FFFF;">100%</td>
+        </tr>
+      </tfoot>
+    </table>
+</div>
+<p><a href="{% url 'products' %}">Xem tất cả sản phẩm</a></p>
+
+<div class="container d-flex justify-content-between">
+  <div id="revenue-piechart" class="index-chart"></div>
+  <div id="inventory-piechart" class="index-chart"></div>
+</div>
+
+{% endblock %}
+
+{% block script %}
+{{ category_revenue_pie_chart_arr|json_script:"category_revenue_pie_chart_arr" }}
+{{ category_inventory_pie_chart_arr|json_script:"category_inventory_pie_chart_arr" }}
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script type="text/javascript">
+  google.charts.load('current', {'packages':['corechart']});
+  google.charts.setOnLoadCallback(indexPieChart);
+
+  function indexPieChart(){
+    var categoryRevenueData = JSON.parse(document.getElementById('category_revenue_pie_chart_arr').textContent);
+    drawChart(categoryRevenueData, "Tỷ lệ phẩn trăm doanh thu của các doanh mục sản phẩm trong kỳ kế toán hiện tại", "revenue-piechart");
+
+    var categoryInventoryData = JSON.parse(document.getElementById('category_inventory_pie_chart_arr').textContent);
+    drawChart(categoryInventoryData, "Tỷ lệ phần trăm giá trị HTK của các doanh mục sản phẩm trong kỳ kế toán hiện tại", "inventory-piechart");
+  }
+
+  function drawChart(data, title, idChart) {
+
+    var data = google.visualization.arrayToDataTable(data);
+
+    var options = {
+      title: title,
+      pieSliceText: 'percentage',
+    };
+
+    var chart = new google.visualization.PieChart(document.getElementById(idChart));
+
+    chart.draw(data, options);
+  }
+</script>
 {% endblock %}

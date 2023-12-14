@@ -33,31 +33,71 @@ def index(request):
          
     current_accounting_period = AccoutingPeriod.objects.select_related('warehouse_management_method').latest('id')
 
-    # Get top 5 product's current inventory
-    product_period_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').filter(
+    # Get total products inventory value
+    products_period_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').filter(
         accounting_period_id = current_accounting_period
-    ).order_by('-ending_inventory')[:5]
+    ).order_by('-ending_inventory')
+    total_inventory = products_period_inventory.aggregate(
+        total_inventory_value = Sum("ending_inventory")
+    )
+    # Get top 5 products inventory value
+    top_five_products_inventory = products_period_inventory[:5]
+
     date_picker_form = DatePickerForm()
 
+    # Get session data
     session_key = request.session.session_key
     current_session = Session.objects.get(session_key = session_key)
     current_session_data = current_session.session_data
     decoded_session_data = current_session.get_decoded()
 
+    today = datetime.today().date()
+
+    # Number of Import Shipments today
+    today_import_shipments_count = ImportShipment.objects.filter(
+        date = today
+    ).count()
+
+    # Number of Export Shipments today
+    today_export_shipments_count = ExportShipment.objects.filter(
+        date = today
+    ).count()
+
+    # Total revenue today
+    today_export_orders = ExportOrder.objects.select_related('export_shipment_id', 'product_id').filter(
+        export_shipment_id__date = today
+    )
+    today_revenue = today_export_orders.aggregate(
+        today_total_revenue = Sum(
+            F("quantity_export") * F("unit_price")
+        )
+    ).get("today_total_revenue")
+    if not today_revenue:
+        today_revenue = 0
+
+    # Pie chart
+    category_revenue_pie_chart_arr = index_category_revenue_pie_chart(current_accounting_period)
+    category_inventory_pie_chart_arr = index_category_inventory_pie_chart(current_accounting_period)
+
     context = {
-        'product_period_inventory': product_period_inventory,
+        'products_period_inventory': top_five_products_inventory,
+        'total_inventory_value': total_inventory['total_inventory_value'],
         'date_picker_form': date_picker_form,
         'session_key': session_key,
         'current_session_data': current_session_data,
-        'decoded_session_data': decoded_session_data
+        'decoded_session_data': decoded_session_data,
+        'today_import_shipments_count': today_import_shipments_count,
+        'today_export_shipments_count': today_export_shipments_count,
+        'today_revenue': today_revenue,
+        'category_revenue_pie_chart_arr': category_revenue_pie_chart_arr,
+        'category_inventory_pie_chart_arr': category_inventory_pie_chart_arr
     }
 
-    # Handling if the current method is currently applied
+    # Handling if exists warehouse management method
     if  current_accounting_period.warehouse_management_method.is_currently_applied:
         context['method'] = current_accounting_period.warehouse_management_method
         context['accounting_period'] = current_accounting_period
 
-        today = datetime.today().date()
         if current_accounting_period.date_end < today:
             context['alert_message'] = """
             Cảnh báo phương pháp quản lý hàng tồn kho chưa được cập nhật lại hoặc thay đổi sang phương pháp khác.
@@ -65,6 +105,37 @@ def index(request):
             """
 
     return render(request, "major_features/index.html", context)
+
+def index_category_revenue_pie_chart(current_accounting_period):
+    category_revenue_pie_chart_arr = [
+        ["Danh mục", "Doanh thu"]
+    ]
+    products_period_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').filter(
+        accounting_period_id = current_accounting_period
+    )
+    category_revenue = products_period_inventory.values('product_id__category_name__name').annotate(
+        category_revenue = Sum("total_revenue")
+    )
+    for category in category_revenue:
+        category_revenue_pie_chart_arr.append([category['product_id__category_name__name'], category['category_revenue']])
+
+    return category_revenue_pie_chart_arr
+
+
+def index_category_inventory_pie_chart(current_accounting_period):
+    category_inventory_pie_chart_arr = [
+        ["Danh mục", "Giá trị HTK"]
+    ]
+    products_period_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').filter(
+        accounting_period_id = current_accounting_period
+    )
+    category_inventory = products_period_inventory.values('product_id__category_name__name').annotate(
+        category_inventory = Sum("ending_inventory")
+    )
+    for category in category_inventory:
+        category_inventory_pie_chart_arr.append([category['product_id__category_name__name'], category['category_inventory']])
+    
+    return category_inventory_pie_chart_arr
 
 @login_required
 def categories(request):
