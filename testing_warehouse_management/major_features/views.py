@@ -38,7 +38,8 @@ def index(request):
         accounting_period_id = current_accounting_period
     ).order_by('-ending_inventory')
     total_inventory = products_period_inventory.aggregate(
-        total_inventory_value = Sum("ending_inventory")
+        total_inventory_value = Sum("ending_inventory"),
+        total_revenue_value = Sum("total_revenue")
     )
     # Get top 5 products inventory value
     top_five_products_inventory = products_period_inventory[:5]
@@ -76,12 +77,18 @@ def index(request):
         today_revenue = 0
 
     # Pie chart
-    category_revenue_pie_chart_arr = index_category_revenue_pie_chart(current_accounting_period)
-    category_inventory_pie_chart_arr = index_category_inventory_pie_chart(current_accounting_period)
+    category_revenue_dict = index_category_revenue_pie_chart(current_accounting_period)
+    category_revenue = category_revenue_dict['category_revenue']
+    category_revenue_pie_chart_arr = category_revenue_dict['category_revenue_pie_chart_arr']
+
+    category_inventory_dict = index_category_inventory_pie_chart(current_accounting_period)
+    category_inventory = category_inventory_dict['category_inventory']
+    category_inventory_pie_chart_arr = category_inventory_dict['category_inventory_pie_chart_arr']
 
     context = {
         'products_period_inventory': top_five_products_inventory,
         'total_inventory_value': total_inventory['total_inventory_value'],
+        'total_revenue_value': total_inventory['total_revenue_value'],
         'date_picker_form': date_picker_form,
         'session_key': session_key,
         'current_session_data': current_session_data,
@@ -89,6 +96,8 @@ def index(request):
         'today_import_shipments_count': today_import_shipments_count,
         'today_export_shipments_count': today_export_shipments_count,
         'today_revenue': today_revenue,
+        'category_revenue': category_revenue,
+        'category_inventory': category_inventory,
         'category_revenue_pie_chart_arr': category_revenue_pie_chart_arr,
         'category_inventory_pie_chart_arr': category_inventory_pie_chart_arr
     }
@@ -106,7 +115,13 @@ def index(request):
 
     return render(request, "major_features/index.html", context)
 
+# Index support function
 def index_category_revenue_pie_chart(current_accounting_period):
+    """
+    Return category revenue dictionary for index
+    which contains two keys:
+    category_revenue & 'category_revenue_pie_chart_arr
+    """
     category_revenue_pie_chart_arr = [
         ["Danh mục", "Doanh thu"]
     ]
@@ -119,10 +134,20 @@ def index_category_revenue_pie_chart(current_accounting_period):
     for category in category_revenue:
         category_revenue_pie_chart_arr.append([category['product_id__category_name__name'], category['category_revenue']])
 
-    return category_revenue_pie_chart_arr
+    category_revenue_dict = {
+        'category_revenue': category_revenue,
+        'category_revenue_pie_chart_arr': category_revenue_pie_chart_arr
+    }
 
+    return category_revenue_dict
 
+# Index support function
 def index_category_inventory_pie_chart(current_accounting_period):
+    """
+    Return category inventory dictionary for index
+    which contains two keys:
+    category_inventory & 'category_inventory_pie_chart_arr
+    """
     category_inventory_pie_chart_arr = [
         ["Danh mục", "Giá trị HTK"]
     ]
@@ -135,7 +160,13 @@ def index_category_inventory_pie_chart(current_accounting_period):
     for category in category_inventory:
         category_inventory_pie_chart_arr.append([category['product_id__category_name__name'], category['category_inventory']])
     
-    return category_inventory_pie_chart_arr
+    category_inventory_dict = {
+        'category_inventory': category_inventory,
+        'category_inventory_pie_chart_arr': category_inventory_pie_chart_arr
+
+    }
+
+    return category_inventory_dict
 
 @login_required
 def categories(request):

@@ -96,9 +96,68 @@
 <p><a href="{% url 'products' %}">Xem tất cả sản phẩm</a></p>
 
 <div class="container d-flex justify-content-between">
-  <div id="revenue-piechart" class="index-chart"></div>
-  <div id="inventory-piechart" class="index-chart"></div>
+
+  <div id="revenue-container">
+    <table class="table table-bordered table-striped table-dark">
+      <caption>Bảng thống kê doanh thu của từng danh mục sản phẩm</caption>
+      <thead>
+        <tr>
+          <th scope="col" style="text-align: left;">Danh mục sản phẩm</th>
+          <th scope="col" style="text-align: right;">Tỷ lệ (%)</th>
+          <th scope="col" style="text-align: right;">Doanh thu</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for category in category_revenue %}
+        <tr>
+          <td scope="col" style="text-align: left;">{{ category.product_id__category_name__name }}</td>
+          <td scope="col" style="text-align: right;">{{ category.category_revenue|to_percentage:total_revenue_value|round_float:2 }}%</td>
+          <td scope="col" style="text-align: right;">{{ category.category_revenue|intcomma }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr>
+          <td scope="col" style="text-align: right; color:#00FFFF;"><strong>Tổng</strong></td>
+          <td scope="col" style="text-align: right; color:#00FFFF;">100%</td>
+          <td scope="col" style="text-align: right; color:#00FFFF;">{{ total_revenue_value|intcomma }}</td>
+        </tr>
+      </tfoot>
+    </table>
+    <div id="revenue-piechart" class="index-chart"></div>
+  </div>
+
+  <div id="inventory-container">
+    <table class="table table-bordered table-striped table-dark">
+      <caption>Bảng thống kê giá trị HTK của từng doanh mục sản phẩm</caption>
+      <thead>
+        <tr>
+          <th scope="col" style="text-align: left;">Danh mục sản phẩm</th>
+          <th scope="col" style="text-align: right;">Tỷ lệ (%)</th>
+          <th scope="col" style="text-align: right;">Giá trị HTK</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for category in category_inventory %}
+        <tr>
+          <td scope="col" style="text-align: left;">{{ category.product_id__category_name__name }}</td>
+          <td scope="col" style="text-align: right;">{{ category.category_inventory|to_percentage:total_inventory_value|round_float:2 }}%</td>
+          <td scope="col" style="text-align: right;">{{ category.category_inventory|intcomma }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr>
+          <td scope="col" style="text-align: right; color:#00FFFF;"><strong>Tổng</strong></td>
+          <td scope="col" style="text-align: right; color:#00FFFF;">100%</td>
+          <td scope="col" style="text-align: right; color:#00FFFF;">{{ total_inventory_value|intcomma }}</td>
+        </tr>
+      </tfoot>
+    </table>
+    <div id="inventory-piechart" class="index-chart"></div>
+  </div>
 </div>
+
 
 {% endblock %}
 
