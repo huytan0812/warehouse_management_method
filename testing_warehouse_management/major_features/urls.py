@@ -1,6 +1,7 @@
 from django.urls import path, register_converter
 from . import views
 from . import reports_views
+from . import inventory_data_views
 from . converters import DateConverter
 
 register_converter(DateConverter, "date")
@@ -68,6 +69,10 @@ urlpatterns = [
      path("reports/gross_profits", reports_views.reports_gross_profits, name="reports_gross_profits"),
      path("reports/import_section", reports_views.reports_import_section, name="reports_import_section"),
      path("reports/export_section", reports_views.reports_export_section, name="reports_export_section"),
+
+     # Inventory Data section
+     path("inventory_data", inventory_data_views.inventory_data, name="inventory_data"),
+     path("inventory_data/export_data_to_excel", inventory_data_views.export_data_to_excel, name="export_data_to_excel"),
 
      # decorators view
      path("activating_accounting_period", views.activating_accounting_period, name="activating_accounting_period"),

@@ -1,0 +1,57 @@
+{% extends "major_features/layout.html" %}
+
+{% load humanize %}
+
+{% load custom_filters %}
+
+{% block title %}
+<h3 style="text-align: center; margin-top: 10px;">Dữ liệu Hàng tồn kho</h3>
+{% endblock %}
+
+{% block body %}
+<div class="container d-flex justify-content-center">
+    <table class="table table-bordered table-striped table-dark">
+        <thead>
+            <tr>
+                <th scope="col" rowspan="2" style="text-align: center; vertical-align: middle;">STT</th>
+                <th scope="col" rowspan="2" style="text-align: left; vertical-align: middle;">Sản phẩm</th>
+                <th scope="col" rowspan="2" style="text-align: left; vertical-align: middle;">Danh mục</th>
+                <th scope="col" rowspan="1" colspan="2" style="text-align: left;">Tồn kho đầu kỳ</th>
+                <th scope="col" rowspan="1" colspan="2" style="text-align: left;">Nhập kho trong kỳ</th>
+                <th scope="col" rowspan="1" colspan="2" style="text-align: center;">Xuất kho trong kỳ</th>
+                <th scope="col" rowspan="1" colspan="2" style="text-align: center;">Tồn kho cuối kỳ</th>
+            </tr>
+            <tr>
+                <th scope="col" rowspan="1" colspan="1" style="text-align: left;">Số lượng</th>
+                <th scope="col" rowspan="1" colspan="1" style="text-align: left;">Giá trị</th>
+                <th scope="col" rowspan="1" colspan="1" style="text-align: left;">Số lượng</th>
+                <th scope="col" rowspan="1" colspan="1" style="text-align: left;">Giá trị</th>
+                <th scope="col" rowspan="1" colspan="1" style="text-align: left;">Số lượng</th>
+                <th scope="col" rowspan="1" colspan="1" style="text-align: left;">Giá trị</th>
+                <th scope="col" rowspan="1" colspan="1" style="text-align: left;">Số lượng</th>
+                <th scope="col" rowspan="1" colspan="1" style="text-align: left;">Giá trị</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for period in accounting_periods_inventory %}
+            <tr>
+                <td scope="col" style="text-align: center;">1</td>
+                <td scope="col" style="text-align: left;">{{ period.product_id.name }}</td>
+                <td scope="col" style="text-align: left;">{{ period.product_id.category_name.name }}</td>
+                <td scope="col" style="text-align: right;">{{ period.starting_quantity|intcomma }}</td>
+                <td scope="col" style="text-align: right;">{{ period.starting_inventory|intcomma }}</td>
+                <td scope="col" style="text-align: right;">{{ period.import_quantity|intcomma }}</td>
+                <td scope="col" style="text-align: right;">{{ period.import_inventory|intcomma }}</td>
+                <td scope="col" style="text-align: right;">{{ period.total_quantity_export|intcomma }}</td>
+                <td scope="col" style="text-align: right;">{{ period.total_cogs|intcomma }}</td>
+                <td scope="col" style="text-align: right;">{{ period.ending_quantity|intcomma }}</td>
+                <td scope="col" style="text-align: right;">{{ period.ending_inventory|intcomma }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<p>
+    <a href="{% url 'export_data_to_excel' %}">Xuất sang file Excel</a>
+</p>
+{% endblock %}
