@@ -9,6 +9,24 @@
 {% endblock %}
 
 {% block body %}
+<form action="{% url 'inventory_data' %}" class="d-flex justify-content-start" style="margin-top: 15px; margin-bottom: 15px;" method="GET">
+    <label for="accounting_period" class="col-form-label inline-margin">Kỳ kế toán: </label>
+    <select name="accounting_period" class="form-select select" style="width: fit-content;">
+        {% for period in accounting_periods %}
+            {% if period.id == chosen_period_id %}
+            <option value="{{ period.id }}" selected>
+                {{ period.warehouse_management_method }} từ {{ period.date_applied|date:"d/m/Y" }} đến {{ period.date_end|date:"d/m/Y" }}
+            </option>
+            {% else %}
+            <option value="{{ period.id }}">
+                {{ period.warehouse_management_method }} từ {{ period.date_applied|date:"d/m/Y" }} đến {{ period.date_end|date:"d/m/Y" }}
+            </option>
+            {% endif %}
+        {% endfor %}
+    </select>
+    <button type="submit" class="btn btn-secondary btn-sm inline-margin filter-bar-submit-btn">Xác nhận</button>
+</form>
+{% if not non_record_msg %}
 <div class="container d-flex justify-content-center">
     <table class="table table-bordered table-striped table-dark">
         <thead>
@@ -35,7 +53,7 @@
         <tbody>
             {% for period in accounting_periods_inventory %}
             <tr>
-                <td scope="col" style="text-align: center;">1</td>
+                <td scope="col" style="text-align: center;">{{ forloop.counter }}</td>
                 <td scope="col" style="text-align: left;">{{ period.product_id.name }}</td>
                 <td scope="col" style="text-align: left;">{{ period.product_id.category_name.name }}</td>
                 <td scope="col" style="text-align: right;">{{ period.starting_quantity|intcomma }}</td>
@@ -49,9 +67,25 @@
             </tr>
             {% endfor %}
         </tbody>
+        <tfoot>
+            <tr>
+                <td scope="col" colspan="3" style="text-align: right; color: #00FFFF;"><strong>Tổng</strong></td>
+                <td scope="col" style="text-align: right; color: #00FFFF;">{{ total_starting_quantity|intcomma }}</td>
+                <td scope="col" style="text-align: right; color: #00FFFF;">{{ total_starting_inventory|intcomma }}</td>
+                <td scope="col" style="text-align: right; color: #00FFFF;">{{ total_import_quantity|intcomma }}</td>
+                <td scope="col" style="text-align: right; color: #00FFFF;">{{ total_import_inventory|intcomma }}</td>
+                <td scope="col" style="text-align: right; color: #00FFFF;">{{ total_export_quantity|intcomma }}</td>
+                <td scope="col" style="text-align: right; color: #00FFFF;">{{ total_products_cogs|intcomma }}</td>
+                <td scope="col" style="text-align: right; color: #00FFFF;">{{ total_ending_quantity|intcomma }}</td>
+                <td scope="col" style="text-align: right; color: #00FFFF;">{{ total_ending_inventory|intcomma }}</td>
+            </tr>
+        </tfoot>
     </table>
 </div>
 <p>
     <a href="{% url 'export_data_to_excel' %}">Xuất sang file Excel</a>
 </p>
+{% else %}
+<p><strong>{{ non_record_msg }}</strong></p>
+{% endif %}
 {% endblock %}

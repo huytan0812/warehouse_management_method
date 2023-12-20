@@ -1,16 +1,55 @@
 import openpyxl
 from io import BytesIO
 from . views import *
+from . reports_views import validating_period_id
 
 def inventory_data(request):
-    current_accounting_period = AccoutingPeriod.objects.select_related('warehouse_management_method').latest('id')
+    chosen_period_id_param = request.GET.get("accounting_period", None)
+
+    if chosen_period_id_param:
+        chosen_period_id = validating_period_id(chosen_period_id_param)
+    else:
+        chosen_period_id = AccoutingPeriod.objects.select_related('warehouse_management_method').latest('id').pk
+
+    # For rendering select input in the form
+    accounting_periods = AccoutingPeriod.objects.select_related('warehouse_management_method').all()
+
+    # For displaying each accounting period in the table
     accounting_periods_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').filter(
-        accounting_period_id = current_accounting_period
+        accounting_period_id = chosen_period_id
+    )
+
+    # For summarizing factors
+    periods_summarizing_factors = accounting_periods_inventory.aggregate(
+        total_starting_quantity = Sum("starting_quantity"),
+        total_starting_inventory = Sum("starting_inventory"),
+        total_import_quantity = Sum("import_quantity"),
+        total_import_inventory = Sum("import_inventory"),
+        total_export_quantity = Sum("total_quantity_export"),
+        total_products_cogs = Sum("total_cogs"),
+        total_ending_quantity = Sum("ending_quantity"),
+        total_ending_inventory = Sum("ending_inventory")
     )
 
     context = {
-        'accounting_periods_inventory': accounting_periods_inventory
+        'accounting_periods': accounting_periods,
+        'chosen_period_id': chosen_period_id,
+        'accounting_periods_inventory': accounting_periods_inventory,
+
+        'total_starting_quantity': periods_summarizing_factors['total_starting_quantity'],
+        'total_starting_inventory': periods_summarizing_factors['total_starting_inventory'],
+        'total_import_quantity': periods_summarizing_factors['total_import_quantity'],
+        'total_import_inventory': periods_summarizing_factors['total_import_inventory'],
+        'total_export_quantity': periods_summarizing_factors['total_export_quantity'],
+        'total_products_cogs': periods_summarizing_factors['total_products_cogs'],
+        'total_ending_quantity': periods_summarizing_factors['total_ending_quantity'],
+        'total_ending_inventory': periods_summarizing_factors['total_ending_inventory']
     }
+
+    if accounting_periods_inventory.count() == 0:
+        non_record_msg = "Không có dữ liệu"
+        context["non_record_msg"] = non_record_msg
+
     return render(request, "major_features/inventory_data/inventory_data.html", context)
 
 def export_data_to_excel(request):
@@ -26,7 +65,12 @@ def export_data_to_excel(request):
     worksheet.title = "HTK kỳ kế toán hiện tại"
 
     # Populating data
+    # Populating header
     worksheet = populating_header(worksheet)
+
+    # Populating body
+
+    # Populating footer
 
     # Create a temporary memory object using BytesIO
     excelfile = BytesIO()
@@ -114,3 +158,9 @@ def populating_header(worksheet):
     cell_K2.value = "Giá trị"
 
     return worksheet
+
+def populating_body(worksheet, accounting_periods):
+    pass
+
+def populating_footer(worksheet, summarize_factors):
+    pass
