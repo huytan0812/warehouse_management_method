@@ -52,11 +52,21 @@ def inventory_data(request):
 
     return render(request, "major_features/inventory_data/inventory_data.html", context)
 
-def export_data_to_excel(request):
-    # Get all current products period inventory
-    current_accounting_period = AccoutingPeriod.objects.select_related('warehouse_management_method').latest('id')
+def export_data_to_excel(request, accounting_period_id):
+    # Get all products period inventory
     accounting_periods_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').filter(
-        accounting_period_id = current_accounting_period
+        accounting_period_id = accounting_period_id
+    )
+    # Summarizing factors
+    periods_summarizing_factors = accounting_periods_inventory.aggregate(
+        total_starting_quantity = Sum("starting_quantity"),
+        total_starting_inventory = Sum("starting_inventory"),
+        total_import_quantity = Sum("import_quantity"),
+        total_import_inventory = Sum("import_inventory"),
+        total_export_quantity = Sum("total_quantity_export"),
+        total_products_cogs = Sum("total_cogs"),
+        total_ending_quantity = Sum("ending_quantity"),
+        total_ending_inventory = Sum("ending_inventory")
     )
 
     # Create a new workbook
@@ -69,8 +79,10 @@ def export_data_to_excel(request):
     worksheet = populating_header(worksheet)
 
     # Populating body
+    worksheet = populating_body(worksheet, accounting_periods_inventory)
 
     # Populating footer
+    worksheet = populating_footer(worksheet, periods_summarizing_factors)
 
     # Create a temporary memory object using BytesIO
     excelfile = BytesIO()
@@ -160,7 +172,47 @@ def populating_header(worksheet):
     return worksheet
 
 def populating_body(worksheet, accounting_periods):
-    pass
+    row_num = 3
+    counter = 1
+    for _, period in enumerate(accounting_periods, 1):
+        row = [
+            counter,
+            period.product_id.name,
+            period.product_id.category_name.name,
+            period.starting_quantity,
+            period.starting_inventory,
+            period.import_quantity,
+            period.import_inventory,
+            period.total_quantity_export,
+            period.total_cogs,
+            period.ending_quantity,
+            period.ending_inventory
+        ]
+        for col_num, value in enumerate(row, 1):
+            cell = worksheet.cell(row=row_num, column=col_num)
+            cell.value = value
+        
+        row_num += 1
+        counter += 1
+    
+    return worksheet
 
 def populating_footer(worksheet, summarize_factors):
-    pass
+    START_FACTOR_VALUE_INDEX = 4
+
+    # Col span the summarize cell
+    max_row = worksheet.max_row
+    footer_row = max_row + 1
+    footer_summarize_cell = worksheet.cell(row=footer_row, column=1)
+    footer_summarize_cell.value = "Tổng"
+    col_span_group = f"A{footer_row}:C{footer_row}"
+    worksheet.merge_cells(col_span_group)
+
+    col_num = START_FACTOR_VALUE_INDEX
+
+    for factor, value in summarize_factors.items():
+        cell = worksheet.cell(row=footer_row, column=col_num)
+        cell.value = value
+        col_num += 1
+
+    return worksheet

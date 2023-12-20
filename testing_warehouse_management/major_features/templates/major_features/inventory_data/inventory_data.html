@@ -83,7 +83,7 @@
     </table>
 </div>
 <p>
-    <a href="{% url 'export_data_to_excel' %}">Xuất sang file Excel</a>
+    <a href="{% url 'export_data_to_excel' chosen_period_id %}">Xuất sang file Excel</a>
 </p>
 {% else %}
 <p><strong>{{ non_record_msg }}</strong></p>

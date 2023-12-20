@@ -72,7 +72,7 @@ urlpatterns = [
 
      # Inventory Data section
      path("inventory_data", inventory_data_views.inventory_data, name="inventory_data"),
-     path("inventory_data/export_data_to_excel", inventory_data_views.export_data_to_excel, name="export_data_to_excel"),
+     path("inventory_data/export_data_to_excel/accounting_period_id=<int:accounting_period_id>", inventory_data_views.export_data_to_excel, name="export_data_to_excel"),
 
      # decorators view
      path("activating_accounting_period", views.activating_accounting_period, name="activating_accounting_period"),
