@@ -82,9 +82,19 @@
         </tfoot>
     </table>
 </div>
-<p>
-    <a href="{% url 'export_data_to_excel' chosen_period_id %}">Xuất sang file Excel</a>
-</p>
+{% if messages %}
+    {% for message in messages %}
+        {% if message.tags == 'error' %}
+            <p style="color: red;">{{ message }}</p>
+        {% endif %}
+    {% endfor %}
+</ul>
+{% endif %}
+<form action="{% url 'export_data_to_excel' chosen_period_id %}" class="d-flex" style="margin-top: 15px; margin-bottom: 15px;" method="get">
+    <label for="filename" class="col-form-label inline-margin">Tên file Excel: </label>
+    <input type="text" name="filename" class="form-control" style="width: fit-content;" placeholder="Ví dụ: hangtonkho">
+    <button type="submit" class="btn btn-secondary btn-sm inline-margin filter-bar-submit-btn" value="Xác nhận">Xác nhận</button>
+</form>
 {% else %}
 <p><strong>{{ non_record_msg }}</strong></p>
 {% endif %}

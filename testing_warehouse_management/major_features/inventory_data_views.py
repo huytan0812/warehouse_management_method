@@ -1,5 +1,7 @@
 import openpyxl
+import re
 from io import BytesIO
+from django.contrib import messages
 from . views import *
 from . reports_views import validating_period_id
 
@@ -90,9 +92,22 @@ def export_data_to_excel(request, accounting_period_id):
     # Save the new one workbook to the excelfile
     workbook.save(excelfile)
 
+    # Default filename
+    filename = "HTK"
+    # Get filename param
+    filename_param = request.GET.get("filename", None)
+    if filename_param:
+        filename = filename_param
+
+    filename += ".xlsx"
+    # Validating filename
+    if re.match(r"^[a-zA-Z0-9_\- ]+\.xlsx$", filename) is None:
+        messages.add_message(request, messages.ERROR, "Tên file không hợp lệ")
+        return HttpResponseRedirect(reverse('inventory_data'))
+
     # Create the HttpResponse object with the appropriate headers
     response = HttpResponse(content_type='application/vnd.ms-excel')
-    response['Content-Disposition'] = 'attachment; filename="headers.xlsx"'
+    response['Content-Disposition'] = f"attachment; filename='{filename}'"
 
     # Write the workbook data as a bytes-like object
     # that was created before using BytesIO
