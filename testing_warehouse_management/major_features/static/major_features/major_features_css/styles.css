@@ -234,3 +234,12 @@ input {
     margin-top: 15px;
     margin-bottom: 15px;
 }
+
+.flex-form {
+    display: flex;
+}
+
+.margin-form {
+    margin-top: 15px;
+    margin-bottom: 15px;
+}

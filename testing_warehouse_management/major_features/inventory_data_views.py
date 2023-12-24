@@ -1,5 +1,6 @@
 import openpyxl
 import re
+import os
 from io import BytesIO
 from django.contrib import messages
 from . views import *
@@ -55,6 +56,12 @@ def inventory_data(request):
     return render(request, "major_features/inventory_data/inventory_data.html", context)
 
 def export_data_to_excel(request, accounting_period_id):
+    filename = filename_handling(request)
+    if filename is None:
+        # Add fail message
+        messages.add_message(request, messages.ERROR, "Tên file không hợp lệ")
+        return HttpResponseRedirect(reverse('inventory_data'))
+
     # Get all products period inventory
     accounting_periods_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').filter(
         accounting_period_id = accounting_period_id
@@ -89,31 +96,10 @@ def export_data_to_excel(request, accounting_period_id):
     # Create a temporary memory object using BytesIO
     excelfile = BytesIO()
 
-    # Save the new one workbook to the excelfile
+    # Save the new created one workbook to the excelfile
     workbook.save(excelfile)
 
-    # Default filename
-    filename = "HTK"
-    # Get filename param
-    filename_param = request.GET.get("filename", None)
-    if filename_param:
-        filename = filename_param
-
-    filename += ".xlsx"
-    # Validating filename
-    if re.match(r"^[a-zA-Z0-9_\- ]+\.xlsx$", filename) is None:
-        messages.add_message(request, messages.ERROR, "Tên file không hợp lệ")
-        return HttpResponseRedirect(reverse('inventory_data'))
-
-    # Create the HttpResponse object with the appropriate headers
-    response = HttpResponse(content_type='application/vnd.ms-excel')
-    response['Content-Disposition'] = f"attachment; filename='{filename}'"
-
-    # Write the workbook data as a bytes-like object
-    # that was created before using BytesIO
-    response.write(excelfile.getvalue())
-
-    return response
+    return download_excelfile(request, excelfile, filename)
 
 def populating_header(worksheet):
     titles = [
@@ -231,3 +217,29 @@ def populating_footer(worksheet, summarize_factors):
         col_num += 1
 
     return worksheet
+
+def filename_handling(request):
+    # Default filename
+    filename = "HTK"
+    # Get filename param
+    filename_param = request.GET.get("filename", None)
+    if filename_param:
+        filename = filename_param
+
+    filename += ".xlsx"
+    # Validating filename
+    if re.match(r"^[a-zA-Z0-9_\- ]+\.xlsx$", filename) is None:
+        return None
+    
+    return filename
+
+def download_excelfile(request, excelfile, filename):
+    # Create the HttpResponse object with the appropriate headers
+    response = HttpResponse(content_type='application/vnd.ms-excel')
+    response['Content-Disposition'] = f"attachment; filename={filename}"
+
+    # Write the workbook data as a bytes-like object
+    # that was created before using BytesIO
+    response.write(excelfile.getvalue())
+    
+    return response

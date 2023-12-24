@@ -1,5 +1,7 @@
 {% extends "major_features/layout.html" %}
 
+{% load static %}
+
 {% load humanize %}
 
 {% load custom_filters %}
@@ -9,7 +11,7 @@
 {% endblock %}
 
 {% block body %}
-<form action="{% url 'inventory_data' %}" class="d-flex justify-content-start" style="margin-top: 15px; margin-bottom: 15px;" method="GET">
+<form action="{% url 'inventory_data' %}" class="d-flex justify-content-start margin-form" method="GET">
     <label for="accounting_period" class="col-form-label inline-margin">Kỳ kế toán: </label>
     <select name="accounting_period" class="form-select select" style="width: fit-content;">
         {% for period in accounting_periods %}
@@ -82,20 +84,30 @@
         </tfoot>
     </table>
 </div>
+
+<button type="button" id="export-to-excel-btn" class="btn btn-primary">Xuất sang file excel</button>
 {% if messages %}
     {% for message in messages %}
         {% if message.tags == 'error' %}
             <p style="color: red;">{{ message }}</p>
+        {% else %}
+            <p style="color: green;">{{ message }}</p>
         {% endif %}
     {% endfor %}
 </ul>
 {% endif %}
-<form action="{% url 'export_data_to_excel' chosen_period_id %}" class="d-flex" style="margin-top: 15px; margin-bottom: 15px;" method="get">
+<form action="{% url 'export_data_to_excel' chosen_period_id %}" id="filename-excel-form" class="flex-form margin-form" style="display: none;">
     <label for="filename" class="col-form-label inline-margin">Tên file Excel: </label>
     <input type="text" name="filename" class="form-control" style="width: fit-content;" placeholder="Ví dụ: hangtonkho">
     <button type="submit" class="btn btn-secondary btn-sm inline-margin filter-bar-submit-btn" value="Xác nhận">Xác nhận</button>
 </form>
+
 {% else %}
 <p><strong>{{ non_record_msg }}</strong></p>
 {% endif %}
+
+{% endblock %}
+
+{% block script %}
+<script src="{% static 'major_features/major_features_js/inventory_data/inventory_data.js' %}"></script>
 {% endblock %}

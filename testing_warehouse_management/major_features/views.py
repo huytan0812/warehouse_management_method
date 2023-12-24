@@ -1,7 +1,7 @@
 import calendar
 import pytz
 from django.http import HttpResponseRedirect, HttpResponse
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from datetime import date, datetime, timedelta
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
