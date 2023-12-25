@@ -95,10 +95,10 @@
       {% if chosen_period_type == 'day' %}
 
       {% if chosen_date %}
-      <p>{{ chosen_date|date:"d/m/Y" }}</p>
+      <label class="col-form-label inline-margin">{{ chosen_date|date:"d/m/Y" }}</label>
       {% endif %}
 
-      <label for="{{ chosen_period_type }}" class="col-form-label inline-margin">{{ chosen_period_name }}: </label>
+      <label for="{{ chosen_period_type }}" class="col-form-label inline-margin">Chọn {{ chosen_period_name|lower }}: </label>
       <div class="d-flex flex-row" style="height: fit-content;">
         <input type="date" name="{{ chosen_period_type }}" class="form-control inline-margin" value='{{ chosen_date|date:"m/d/Y" }}' id="{{ chosen_period_type }}">
       </div>
@@ -148,11 +148,12 @@
 
 {% if not non_period_found_msg %}
 <div class="d-flex justify-content-center" style="margin-top: 20px !important;">
-  <table class="table table-bordered table-striped table-dark w-auto" style="margin: auto;">
+  <table class="table table-bordered table-striped table-dark w-auto" style="width: fit-content;">
     <caption>Thống kê hàng hóa nhập kho</caption>
     <thead>
       <tr>
         <th scope="col">Sản phẩm</th>
+        <th scope="col">Danh mục</th>
         <th scope="col">Số lượng nhập kho</th>
         <th scope="col">Giá trị nhập kho</th>
       </tr>
@@ -160,7 +161,8 @@
     <tbody>
       {% for product in page_obj %}
       <tr>
-        <td>{{ product.product_id__name }}</td>
+        <td><strong>{{ product.product_id__name }}</strong></td>
+        <td>{{ product.product_category }}</td>
         <td style="text-align: right;">{{product.product_quantity_import|intcomma }}</td>
         <td style="text-align: right;">{{product.product_inventory_import|intcomma }}</td>
       </tr>
@@ -168,7 +170,7 @@
     </tbody>
     <tfoot>
       <tr>
-        <td style="color: #00FFFF"><strong>Tổng</strong></td>
+        <td colspan="2" style="color: #00FFFF; text-align: right;"><strong>Tổng</strong></td>
         <td style="color: #00FFFF; text-align: right;">{{ total_import_quantity|intcomma }}</td>
         <td style="color: #00FFFF; text-align: right;">{{ total_import_inventory|intcomma }}</td>
       </tr>

@@ -1,5 +1,7 @@
 {% extends "major_features/layout.html" %}
 
+{% load static %}
+
 {% block title %}
 
     {% if starting_inventory_form %}
@@ -56,8 +58,10 @@
   </tr>
 </table>
 
+<button id="toggle-filter-bar" type="button" class="btn btn-secondary" style="margin-left: 10px; margin-top: 10px; margin-bottom: 10px;">Tắt bộ lọc</button>
+
 <div class="container d-flex justify-content-center">
-  <div class="form-container">
+  <div class="form-container" id="filter-form-container" style="display: block;">
     <form action="{% url 'actual_method_by_name_export_action' export_order_id product type %}" method="get">
       {% csrf_token %}
 
@@ -209,14 +213,14 @@
 </div>
 
 {% if starting_inventory_form %}
-<p>
-  <a href="{% url 'actual_method_by_name_export_action' export_order_id=export_order_id product=product type='current_accounting_period' %}">
+<p style="margin-top: 15px; margin-bottom: 15px;">
+  <a href="{% url 'actual_method_by_name_export_action' export_order_id=export_order_id product=product type='current_accounting_period' %}" style="text-decoration: none;">
     Chọn đơn hàng nhập kho từ Hàng tồn kho phát sinh trong kỳ
   </a>
 </p>
 {% else %}
-<p>
-  <a href="{% url 'actual_method_by_name_export_action' export_order_id=export_order_id product=product type='starting_inventory' %}">
+<p style="margin-top: 15px; margin-bottom: 15px;">
+  <a href="{% url 'actual_method_by_name_export_action' export_order_id=export_order_id product=product type='starting_inventory' %}" style="text-decoration: none;">
     Chọn đơn hàng nhập kho từ Hàng tồn kho đầu kỳ
   </a>
 </p>
@@ -245,4 +249,8 @@
     </div>
 </div>
 
+{% endblock %}
+
+{% block script %}
+<script src="{% static 'major_features/major_features_js/export/export_by_inventory.js' %}"></script>
 {% endblock %}

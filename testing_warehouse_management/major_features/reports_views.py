@@ -640,6 +640,7 @@ def reports_import_section(request):
             total_import_inventory = Sum("import_inventory")
         )
         each_product_import = periods_inventory.values('product_id__name').annotate(
+            product_category = F("product_id__category_name__name"),
             product_quantity_import = Sum("import_quantity"),
             product_inventory_import = Sum("import_inventory")
         ).order_by('-product_inventory_import')
@@ -671,6 +672,7 @@ def reports_import_section(request):
             total_import_inventory = Sum("import_inventory")
         )
         each_product_import = accounting_periods_inventory.values('product_id__name').annotate(
+            product_category = F("product_id__category_name__name"),
             product_quantity_import = Sum("import_quantity"),
             product_inventory_import = Sum("import_inventory")
         ).order_by('-product_inventory_import')
@@ -712,6 +714,7 @@ def reports_import_section(request):
             total_import_inventory = Sum("value_import")
         )
         each_product_import = products_import_purchases.values('product_id__name').annotate(
+            product_category = F("product_id__category_name__name"),
             product_quantity_import = Sum("quantity_import"),
             product_inventory_import = Sum("value_import")
         ).order_by('-product_inventory_import')
@@ -750,6 +753,7 @@ def reports_import_section(request):
             total_import_inventory = Sum("value_import")
         )
         each_product_import = products_import_purchases.values('product_id__name').annotate(
+            product_category = F("product_id__category_name__name"),
             product_quantity_import = Sum("quantity_import"),
             product_inventory_import = Sum("value_import")
         ).order_by('-product_inventory_import')
@@ -775,6 +779,7 @@ def reports_import_section(request):
             total_import_inventory = Sum("value_import")
         )
         each_product_import = products_import_purchases.values('product_id__name').annotate(
+            product_category = F("product_id__category_name__name"),
             product_quantity_import = Sum("quantity_import"),
             product_inventory_import = Sum("value_import")
         ).order_by('-product_inventory_import')
@@ -880,6 +885,7 @@ def reports_export_section(request):
             total_export_value = Sum("total_cogs")
         )
         each_product_export = periods_inventory.values('product_id__name').annotate(
+            product_category = F("product_id__category_name__name"),
             product_quantity_export = Sum("total_quantity_export"),
             product_cogs = Sum("total_cogs")
         ).order_by('-product_cogs')
@@ -911,6 +917,7 @@ def reports_export_section(request):
             total_export_value = Sum("total_cogs")
         )
         each_product_export = accounting_periods_inventory.values('product_id__name').annotate(
+            product_category = F("product_id__category_name__name"),
             product_quantity_export = Sum("total_quantity_export"),
             product_cogs = Sum("total_cogs")
         ).order_by('-product_cogs')
@@ -952,6 +959,7 @@ def reports_export_section(request):
             total_export_value = Sum("total_order_value")
         )
         each_product_export = products_export_orders.values('product_id__name').annotate(
+            product_category = F("product_id__category_name__name"),
             product_quantity_export = Sum("quantity_export"),
             product_cogs = Sum("total_order_value")
         ).order_by('-product_cogs')
@@ -990,6 +998,7 @@ def reports_export_section(request):
             total_export_value = Sum("total_order_value")
         )
         each_product_export = products_export_orders.values('product_id__name').annotate(
+            product_category = F("product_id__category_name__name"),
             product_quantity_export = Sum("quantity_export"),
             product_cogs = Sum("total_order_value")
         ).order_by('-product_cogs')
@@ -1015,6 +1024,7 @@ def reports_export_section(request):
             total_export_value = Sum("total_order_value")
         )
         each_product_export = products_export_orders.values('product_id__name').annotate(
+            product_category = F("product_id__category_name__name"),
             product_quantity_export = Sum("quantity_export"),
             product_cogs = Sum("total_order_value")
         ).order_by('-product_cogs')

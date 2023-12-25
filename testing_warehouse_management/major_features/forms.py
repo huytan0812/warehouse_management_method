@@ -117,7 +117,7 @@ class FilteringInventory(forms.Form):
                                                                                    'placeholder': "SLCL đơn hàng lớn hơn",}),
                                                                                     required=False,
                                                                                     min_value=0,
-                                                                                    label="Chọn SLCL lớn hơn: ",
+                                                                                    label="Chọn SLCL lớn hơn",
                                                                                     error_messages = {
                                                                                         'min_value': "Giá trị này phải lớn hơn 0"
                                                                                     })
@@ -126,7 +126,7 @@ class FilteringInventory(forms.Form):
                                                                                    'placeholder': "SLCL đơn hàng nhỏ hơn",}),
                                                                                     required=False,
                                                                                     min_value=0,       
-                                                                                    label="Chọn SLCL nhỏ hơn: ",
+                                                                                    label="Chọn SLCL nhỏ hơn",
                                                                                     error_messages = {
                                                                                         'min_value': "Giá trị này phải lớn hơn 0"
                                                                                     })
@@ -144,7 +144,7 @@ class FilteringInventory(forms.Form):
                                                                                   'placeholder': "Đơn giá nhập kho nhỏ hơn",}),
                                                                                     required=False,
                                                                                     min_value=0,
-                                                                                    label="Chọn đơn giá nhập kho nhỏ hơn: ",
+                                                                                    label="Chọn đơn giá nhập kho nhỏ hơn",
                                                                                     error_messages = {
                                                                                         'min_value': "Giá trị này phải lớn hơn 0"
                                                                                     })
