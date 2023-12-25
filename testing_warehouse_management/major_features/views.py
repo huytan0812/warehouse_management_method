@@ -743,18 +743,23 @@ def export_action_complete(request, export_shipment_code):
 
     product_export_containers = {}
     total_shipment_value = 0
+    total_shipment_revenue = 0
 
     for export_order in export_orders:
         if export_order.product_id.name not in product_export_containers:
             product_export_containers[export_order.product_id.name] = {
                 'total_quantity_take': export_order.quantity_export,
-                'total_order_value': export_order.total_order_value
+                'total_order_value': export_order.total_order_value,
+                'revenue': export_order.quantity_export * export_order.unit_price
             }
         else:
             product_export_container = product_export_containers[export_order.product_id.name]
             product_export_container['total_quantity_take'] += export_order.quantity_export
             product_export_container['total_order_value'] += export_order.total_order_value
+            product_export_container['revenue'] += export_order.quantity_export * export_order.unit_price
+
         total_shipment_value += export_order.total_order_value
+        total_shipment_revenue += export_order.quantity_export * export_order.unit_price
     
     current_accounting_period = AccoutingPeriod.objects.select_related('warehouse_management_method').latest('id')
 
@@ -769,15 +774,20 @@ def export_action_complete(request, export_shipment_code):
                 accounting_inventory_obj.total_quantity_export += value_container["total_quantity_take"]
                 accounting_inventory_obj.ending_inventory -= value_container["total_order_value"]
                 accounting_inventory_obj.ending_quantity -= value_container["total_quantity_take"]
-                accounting_inventory_obj.save(update_fields=["total_cogs", "total_quantity_export", "ending_inventory", "ending_quantity"])
+                accounting_inventory_obj.total_revenue += value_container["revenue"]
+                accounting_inventory_obj.save(update_fields=["total_cogs", "total_quantity_export", "ending_inventory", "ending_quantity", "total_revenue"])
 
-            export_shipment_obj.update(total_shipment_value=total_shipment_value)
+            export_shipment_obj.update(
+                total_shipment_value=total_shipment_value,
+                shipment_revenue = total_shipment_revenue
+            )
 
     except IntegrityError:
         raise Exception("Integrity Bug")
     
     context = {
         'export_shipment_code': export_shipment_obj[0].export_shipment_code,
+        'export_shipment_obj': export_shipment_obj[0],
         'agency': export_shipment_obj[0].agency_id.name,
         'export_shipment_date': export_shipment_obj[0].date,
         'export_shipment_orders': export_orders,

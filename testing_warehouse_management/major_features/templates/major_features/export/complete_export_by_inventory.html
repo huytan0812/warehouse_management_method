@@ -42,8 +42,10 @@
       <th scope="col">Mã đơn hàng nhập kho</th>
       <th scope="col">Số lượng lấy ra</th>
       <th scope="col">Đơn giá nhập kho</th>
-      <th scope="col">Đơn giá xuất bán</th>
+      <th scope="col">Đơn giá xuất kho</th>
+      <th scope="col">Đơn giá bán</th>
       <th scope="col">GVHB</th>
+      <th scope="col">Doanh thu</th>
     </tr>
   </thead>
   <tbody>
@@ -53,14 +55,17 @@
       <td>{{ export_order_detail.quantity_take }}</td>
       <td>{{ export_order_detail.import_purchase_id.import_cost|intcomma }}</td>
       <td>{{ export_order_detail.export_price|intcomma }}</td>
+      <td>{{ export_order_detail.export_order_id.unit_price|intcomma }}</td>
       <td>{{ export_order_detail.quantity_take|multiply:export_order_detail.export_price|intcomma }}</td>
+      <td>{{ export_order_detail.quantity_take|multiply:export_order_detail.export_order_id.unit_price|intcomma }}</td>
     </tr>
     {% endfor %}
   </tbody>
   <tfoot>
     <tr>
-      <td colspan="4">Tổng giá trị</td>
-      <td>{{ export_order_obj.total_order_value|intcomma }}</td>
+      <td colspan="5" style="color: #00FFFF; text-align: right;"><strong>Tổng</strong></td>
+      <td style="color: #00FFFF; text-align: right;">{{ export_order_obj.total_order_value|intcomma }}</td>
+      <td style="color: #00FFFF; text-align: right;">{{ export_order_obj.quantity_export|multiply:export_order_obj.unit_price|intcomma }}</td>
     </tr>
   </tfoot>
 </table>
@@ -74,6 +79,7 @@
         <th scope="col">Đơn giá bán</th>
         <th scope="col">Số lượng xuất kho</th>
         <th scope="col">GVHB</th>
+        <th scope="col">Doanh thu</th>
         <th scope="col">Theo dõi</th>
       </tr>
     </thead>
@@ -84,7 +90,8 @@
         <td>{{ export_order.unit_price|intcomma }}</td>
         <td>{{ export_order.quantity_export}}</td>
         <td>{{ export_order.total_order_value|intcomma }}</td>
-        <td><a href="{% url 'complete_export_order_by_inventory' export_order.pk %}">Chi tiết đơn hàng</a></td>
+        <td>{{ export_order.quantity_export|multiply:export_order.unit_price|intcomma }}</td>
+        <td><a href="{% url 'complete_export_order_by_inventory' export_order.pk %}" style="text-decoration: none; color: #0d6efd;">Chi tiết đơn hàng</a></td>
       </tr>
       {% endfor %}
     </tbody>

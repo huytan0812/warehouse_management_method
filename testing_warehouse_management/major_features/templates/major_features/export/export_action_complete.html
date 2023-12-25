@@ -1,6 +1,7 @@
 {% extends "major_features/layout.html" %}
 
 {% load humanize %}
+
 {% load custom_filters %}
 
 {% block title %}
@@ -38,7 +39,7 @@
         <td>{{ export_order.unit_price|intcomma }}</td>
         <td>{{ export_order.quantity_export}}</td>
         <td>{{ export_order.total_order_value|intcomma }}</td>
-        <td>{{ export_order.sub_revenue|intcomma }}</td>
+        <td>{{ export_order.quantity_export|multiply:export_order.unit_price|intcomma }}</td>
         <td><a href="{% url 'complete_export_order_by_inventory' export_order.pk %}">Chi tiết đơn hàng</a></td>
       </tr>
       {% endfor %}
