@@ -126,9 +126,12 @@ def reports_revenue(request):
             accounting_period_id = chosen_accounting_period_id
         )
         total_products_revenue = periods_inventory.aggregate(
+            total_products_export = Sum("total_quantity_export"),
             total_products_revenue = Sum("total_revenue")
         )
         each_product_revenue = periods_inventory.values('product_id__name').annotate(
+            product_category = F("product_id__category_name__name"),
+            product_quantity_export = F("total_quantity_export"),
             product_revenue = F("total_revenue")
         ).order_by('-product_revenue')
     
@@ -155,9 +158,12 @@ def reports_revenue(request):
             accounting_period_id__date_end__lte = last_day_of_the_year
         )
         total_products_revenue = periods_inventory.aggregate(
+            total_products_export = Sum("total_quantity_export"),
             total_products_revenue = Sum("total_revenue")
         )
         each_product_revenue = periods_inventory.values('product_id__name').annotate(
+            product_category = F("product_id__category_name__name"),
+            product_quantity_export = Sum("total_quantity_export"),
             product_revenue = Sum("total_revenue")
         ).order_by('-product_revenue')
     
@@ -194,11 +200,14 @@ def reports_revenue(request):
             export_shipment_id__date__lte = last_day_of_quarter
         )
         total_products_revenue = export_orders.aggregate(
+            total_products_export = Sum("quantity_export"),
             total_products_revenue = Sum(
                 F("quantity_export") * F("unit_price")
             )
         )
         each_product_revenue = export_orders.values('product_id__name').annotate(
+            product_category = F("product_id__category_name__name"),
+            product_quantity_export = Sum("quantity_export"),
             product_revenue = Sum(F("quantity_export") * F("unit_price"))
         ).order_by('-product_revenue')
 
@@ -232,11 +241,14 @@ def reports_revenue(request):
             export_shipment_id__date__lte = last_day_of_the_month
         )
         total_products_revenue = export_orders.aggregate(
+            total_products_export = Sum("quantity_export"),
             total_products_revenue = Sum(
                 F("quantity_export") * F("unit_price")
             )
         )
         each_product_revenue = export_orders.values('product_id__name').annotate(
+            product_category = F("product_id__category_name__name"),
+            product_quantity_export = Sum("quantity_export"),
             product_revenue = Sum(F("quantity_export") * F("unit_price"))
         ).order_by('-product_revenue')
 
@@ -256,11 +268,14 @@ def reports_revenue(request):
             export_shipment_id__date = chosen_date
         )
         total_products_revenue = export_orders.aggregate(
+            total_products_export = Sum("quantity_export"),
             total_products_revenue = Sum(
                 F("quantity_export") * F("unit_price")
             )
         )
         each_product_revenue = export_orders.values('product_id__name').annotate(
+            product_category = F("product_id__category_name__name"),
+            product_quantity_export = Sum("quantity_export"),
             product_revenue = Sum(F("quantity_export") * F("unit_price"))
         ).order_by('-product_revenue')
 
@@ -286,6 +301,7 @@ def reports_revenue(request):
 
     # For rendering reports import section table
     context['page_obj'] = page_obj
+    context['total_products_export'] = total_products_revenue['total_products_export']
     context['total_products_revenue'] = total_products_revenue['total_products_revenue']
     
     # For google chart
@@ -355,9 +371,14 @@ def reports_gross_profits(request):
             accounting_period_id = chosen_accounting_period_id
         )
         total_products_gross_profits = periods_inventory.aggregate(
+            total_products_revenue = Sum("total_revenue"),
+            total_products_cogs = Sum("total_cogs"),
             total_products_gross_profits = Sum("total_revenue") - Sum("total_cogs")
         )
         each_product_gross_profits = periods_inventory.values('product_id__name').annotate(
+            product_category = F("product_id__category_name__name"),
+            product_revenue = F("total_revenue"),
+            product_cogs = F("total_cogs"),
             product_gross_profits = F("total_revenue") - F("total_cogs")
         ).order_by('-product_gross_profits')
 
@@ -384,9 +405,14 @@ def reports_gross_profits(request):
             accounting_period_id__date_end__lte = last_day_of_the_year
         )
         total_products_gross_profits = accounting_periods_inventory.aggregate(
+            total_products_revenue = Sum("total_revenue"),
+            total_products_cogs = Sum("total_cogs"),
             total_products_gross_profits = Sum("total_revenue") - Sum("total_cogs")
         )           
         each_product_gross_profits = accounting_periods_inventory.values('product_id__name').annotate(
+            product_category = F("product_id__category_name__name"),
+            product_revenue = Sum("total_revenue"),
+            product_cogs = Sum("total_cogs"),
             product_gross_profits = Sum(F("total_revenue") - F("total_cogs"))
         ).order_by('-product_gross_profits')
     
@@ -423,11 +449,16 @@ def reports_gross_profits(request):
             export_shipment_id__date__lte = last_day_of_quarter
         )
         total_products_gross_profits = products_export_orders.aggregate(
+            total_products_revenue = Sum(F("quantity_export") * F("unit_price")),
+            total_products_cogs = Sum("total_order_value"),
             total_products_gross_profits = Sum(
                 (F("quantity_export") * F("unit_price")) - F("total_order_value")
             )
         )
         each_product_gross_profits = products_export_orders.values('product_id__name').annotate(
+            product_category = F("product_id__category_name__name"),
+            product_revenue = Sum(F("quantity_export") * F("unit_price")),
+            product_cogs = Sum("total_order_value"),
             product_gross_profits = Sum(
                     (F("quantity_export") * F("unit_price")) - F("total_order_value")
                 )
@@ -463,11 +494,16 @@ def reports_gross_profits(request):
             export_shipment_id__date__lte = last_day_of_the_month,
         )
         total_products_gross_profits = product_export_orders.aggregate(
+            total_products_revenue = Sum(F("quantity_export") * F("unit_price")),
+            total_products_cogs = Sum("total_order_value"),
             total_products_gross_profits = Sum(
                 (F("quantity_export") * F("unit_price")) - F("total_order_value")
             )
         )
         each_product_gross_profits = product_export_orders.values('product_id__name').annotate(
+            product_category = F("product_id__category_name__name"),
+            product_revenue = Sum(F("quantity_export") * F("unit_price")),
+            product_cogs = Sum("total_order_value"),
             product_gross_profits = Sum(
                 (F("quantity_export") * F("unit_price")) - F("total_order_value")
             )
@@ -490,11 +526,16 @@ def reports_gross_profits(request):
             export_shipment_id__date = chosen_date
         )
         total_products_gross_profits = product_export_orders.aggregate(
+            total_products_revenue = Sum(F("quantity_export") * F("unit_price")),
+            total_products_cogs = Sum("total_order_value"),
             total_products_gross_profits = Sum(
                 (F("quantity_export") * F("unit_price")) - F("total_order_value")
             )
         )
         each_product_gross_profits = product_export_orders.values('product_id__name').annotate(
+            product_category = F("product_id__category_name__name"),
+            product_revenue = Sum(F("quantity_export") * F("unit_price")),
+            product_cogs = Sum("total_order_value"),
             product_gross_profits = Sum(
                 (F("quantity_export") * F("unit_price")) - F("total_order_value")
             )
@@ -521,6 +562,8 @@ def reports_gross_profits(request):
 
     # For rendering reports import section table
     context['page_obj'] = page_obj
+    context['total_products_revenue'] = total_products_gross_profits['total_products_revenue']
+    context['total_products_cogs'] = total_products_gross_profits['total_products_cogs']
     context['total_gross_profits'] = total_products_gross_profits['total_products_gross_profits']
     
     # For google chart
