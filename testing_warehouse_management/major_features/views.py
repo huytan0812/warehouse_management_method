@@ -628,6 +628,8 @@ def import_purchase_delete(request, import_purchase_id):
 
     return HttpResponseRedirect(reverse('save_and_continue', kwargs={'import_shipment_code': import_shipment_code}))
 
+# ~~~~~~~~~~~~~~~~~~ Ending Import Section
+
 # Export Section
 
 # Export Shipment Section
@@ -689,6 +691,8 @@ def export_shipment_details(request, export_shipment_code):
     }
 
     return render(request, "major_features/export/export_action_complete.html", context)
+
+# ~~~~~~~~~~~~~~~~ Ending Export Shipment Section
 
 # Export Action Section
 
@@ -1058,6 +1062,12 @@ def actual_method_by_name_export_action(request, export_order_id, product, type)
 
 @transaction.atomic()
 def update_import_purchase(export_order_detail_id):
+    """
+    Only for 'actual_method_by_name' method
+    to update the ImportPurchase object's quantity_remain field
+    using ExportOrderDetail object's quantity_take field
+    """
+
     try:
         export_order_detail_obj = ExportOrderDetail.objects.get(pk=export_order_detail_id)
     except ExportOrderDetail.DoesNotExist:
@@ -1103,7 +1113,7 @@ def update_export_order_value_for_actual_method_by_name(export_order_id):
 
 def weighted_average(request, export_order_id):
     """
-    'complete_export_order_by_inventory for displaying export price calculation info
+    'complete_export_order_by_inventory' view for displaying export price calculation info
     for weighted average method
     """
 
@@ -1135,7 +1145,9 @@ def weighted_average(request, export_order_id):
     return render(request, "major_features/export/complete_export_by_inventory.html", context)
 
 def complete_export_order_by_inventory(request, export_order_id):
-
+    """
+    Completing an ExportOrder object view & template
+    """
     try:
         export_order_obj = ExportOrder.objects.select_related('export_shipment_id', 'product_id').get(pk=export_order_id)
     except ExportOrder.DoesNotExist:
@@ -1158,6 +1170,7 @@ def complete_export_order_by_inventory(request, export_order_id):
 
     return render(request, "major_features/export/complete_export_by_inventory.html", context)
     
+# ~~~~~~~~~~~~~~~~~~~~~~~~ Ending Export Section
 
 def get_date_utc_now():
     datetime_now = datetime.now()
