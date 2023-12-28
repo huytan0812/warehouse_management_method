@@ -406,6 +406,10 @@ def import_shipment_details(request, import_shipment_code):
 
     products_purchase_value = {}
 
+    total_initial_value = 0
+    total_current_value = 0
+    total_current_quantity = 0
+
     for purchase in import_shipment_purchases:
         if purchase.product_id.name not in products_purchase_value:
             products_purchase_value[purchase.product_id.name] = {'purchase_value': purchase.quantity_import * purchase.import_cost,
@@ -415,11 +419,18 @@ def import_shipment_details(request, import_shipment_code):
             products_purchase_value[purchase.product_id.name]['purchase_value'] += purchase.quantity_import * purchase.import_cost
             products_purchase_value[purchase.product_id.name]['remain_value'] += purchase.quantity_remain * purchase.import_cost
             products_purchase_value[purchase.product_id.name]['current_quantity_remain'] += purchase.quantity_remain
+        
+        total_initial_value += purchase.quantity_import * purchase.import_cost 
+        total_current_value += purchase.quantity_remain * purchase.import_cost
+        total_current_quantity += purchase.quantity_remain
 
     context = {
         'import_shipment_obj': import_shipment_obj,
         'import_purchases': import_shipment_purchases,
-        'products_purchase_value': products_purchase_value
+        'products_purchase_value': products_purchase_value,
+        'total_initial_value': total_initial_value,
+        'total_current_value': total_current_value,
+        'total_current_quantity': total_current_quantity,
     }
 
     return render(request, "major_features/import/import_shipment_details.html", context)

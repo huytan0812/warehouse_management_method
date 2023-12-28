@@ -35,15 +35,23 @@
     <tbody>
       {% for export_order in export_shipment_orders %}
       <tr>
-        <td>{{ export_order.product_id.name }}</td>
-        <td>{{ export_order.unit_price|intcomma }}</td>
-        <td>{{ export_order.quantity_export}}</td>
-        <td>{{ export_order.total_order_value|intcomma }}</td>
-        <td>{{ export_order.quantity_export|multiply:export_order.unit_price|intcomma }}</td>
+        <td><strong>{{ export_order.product_id.name }}</strong></td>
+        <td style="text-align: right;">{{ export_order.unit_price|intcomma }}</td>
+        <td style="text-align: right;">{{ export_order.quantity_export}}</td>
+        <td style="text-align: right;">{{ export_order.total_order_value|intcomma }}</td>
+        <td style="text-align: right;">{{ export_order.quantity_export|multiply:export_order.unit_price|intcomma }}</td>
         <td><a href="{% url 'complete_export_order_by_inventory' export_order.pk %}">Chi tiết đơn hàng</a></td>
       </tr>
       {% endfor %}
     </tbody>
+    <tfoot>
+      <tr>
+        <td colspan="3" style="color: #00FFFF; text-align: right;"><strong>Tổng</strong></td>
+        <td style="color: #00FFFF; text-align: right;">{{ export_shipment_value|intcomma }}</td>
+        <td style="color: #00FFFF; text-align: right;">{{export_shipment_obj.shipment_revenue|intcomma }}</td>
+        <td></td>
+      </tr>
+    </tfoot>
 </table>
 
 <p>Tổng giá trị xuất kho của lô hàng {{ export_shipment_code }}: <strong>{{ export_shipment_value|intcomma }}</strong></p>

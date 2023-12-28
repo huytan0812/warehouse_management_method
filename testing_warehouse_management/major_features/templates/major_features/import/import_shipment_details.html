@@ -48,13 +48,19 @@
       <tbody>
         {% for product, value in products_purchase_value.items %}
         <tr>
-          <td>{{ product }}</td>
-          <td>{{ value.purchase_value|intcomma }}</td>
-          <td>{{ value.remain_value|intcomma }}</td>
-          <td>{{ value.current_quantity_remain }}</td>
+          <td><strong>{{ product }}</strong></td>
+          <td style="text-align: right;">{{ value.purchase_value|intcomma }}</td>
+          <td style="text-align: right;">{{ value.remain_value|intcomma }}</td>
+          <td style="text-align: right;">{{ value.current_quantity_remain }}</td>
         </tr>
         {% endfor %}
       </tbody>
+      <tfoot>
+        <td style="color: #00FFFF; text-align: right;"><strong>Tổng</strong></td>
+        <td style="color: #00FFFF; text-align: right;">{{ total_initial_value|intcomma }}</td>
+        <td style="color: #00FFFF; text-align: right;">{{ total_current_value|intcomma }}</td>
+        <td style="color: #00FFFF; text-align: right;">{{ total_current_quantity|intcomma }}</td>
+      </tfoot>
     </table>
 </div>
 {% endblock %}
