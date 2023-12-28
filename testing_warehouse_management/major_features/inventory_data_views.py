@@ -115,7 +115,7 @@ def populating_header(worksheet):
     # STT cell header
     cell_A1 = worksheet["A1"]
     cell_A1.value = "STT"
-    cell_A1.alignment = Alignment(vertical="center")
+    cell_A1.alignment = Alignment(horizontal="center", vertical="center")
     cell_A1.font = Font(name="Times New Roman", bold=True, size=12)
     cell_A1.border = Border(top=thin, left=thin, right=thin, bottom=thin)
 
@@ -233,6 +233,17 @@ def populating_body(worksheet, accounting_periods):
             cell.value = value
             cell.font = Font(name="Times New Roman", size=12)
             cell.border = Border(top=thin, left=thin, right=thin, bottom=thin)
+
+            # Bolding & centering the STT cells
+            if col_num == 1:
+                cell.alignment = Alignment(horizontal="center", vertical="center")
+                cell.font = Font(name="Times New Roman", size=12, bold=True)
+            
+            # Bolding the products name cells
+            if col_num == 2:
+                cell.font = Font(name="Times New Roman", size=12, bold=True)
+
+            # If encountering cell numbers
             if col_num >= 3:
                 cell.number_format = '#,##0'
         
