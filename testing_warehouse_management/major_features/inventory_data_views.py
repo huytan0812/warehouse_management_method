@@ -1,6 +1,6 @@
 import openpyxl
 import re
-import os
+from openpyxl.styles import Border, Font, Alignment, Side
 from io import BytesIO
 from django.contrib import messages
 from . views import *
@@ -111,33 +111,55 @@ def populating_header(worksheet):
         "Xuất kho trong kỳ"
         "Tồn kho cuối kỳ"
     ]
+    thin = Side(border_style="thin", color="000000")
     # STT cell header
     cell_A1 = worksheet["A1"]
     cell_A1.value = "STT"
+    cell_A1.alignment = Alignment(vertical="center")
+    cell_A1.font = Font(name="Times New Roman", bold=True, size=12)
+    cell_A1.border = Border(top=thin, left=thin, right=thin, bottom=thin)
 
     # Product cell header
     cell_B1 = worksheet["B1"]
     cell_B1.value = "Sản phẩm"
+    cell_B1.alignment = Alignment(vertical="center")
+    cell_B1.font = Font(name="Times New Roman", bold=True, size=12)
+    cell_B1.border = Border(top=thin, left=thin, right=thin, bottom=thin)
 
     # Category cell header
     cell_C1 = worksheet["C1"]
     cell_C1.value = "Danh mục"
+    cell_C1.alignment = Alignment(vertical="center")
+    cell_C1.font = Font(name="Times New Roman", bold=True, size=12)
+    cell_C1.border = Border(top=thin, left=thin, right=thin, bottom=thin)
 
     # Starting Inventory cell header
     cell_D1 = worksheet["D1"]
     cell_D1.value = "Tồn kho đầu kỳ"
+    cell_D1.alignment = Alignment(horizontal="center")
+    cell_D1.font = Font(name="Times New Roman", bold=True, size=12)
+    cell_D1.border = Border(top=thin, left=thin, right=thin, bottom=thin)
     
     # Import Inventory cell header
     cell_F1 = worksheet["F1"]
     cell_F1.value = "Nhập kho trong kỳ"
+    cell_F1.alignment = Alignment(horizontal="center")
+    cell_F1.font = Font(name="Times New Roman", bold=True, size=12)
+    cell_F1.border = Border(top=thin, left=thin, right=thin, bottom=thin)
 
     # Export cell header
     cell_H1 = worksheet["H1"]
     cell_H1.value = "Xuất kho trong kỳ"
+    cell_H1.alignment = Alignment(horizontal="center")
+    cell_H1.font = Font(name="Times New Roman", bold=True, size=12)
+    cell_H1.border = Border(top=thin, left=thin, right=thin, bottom=thin)
 
     # Ending inventory cell header
     cell_J1 = worksheet["J1"]
     cell_J1.value = "Tồn kho cuối kỳ"
+    cell_J1.alignment = Alignment(horizontal="center")
+    cell_J1.font = Font(name="Times New Roman", bold=True, size=12)
+    cell_J1.border = Border(top=thin, left=thin, right=thin, bottom=thin)
 
     # Merging rows
     worksheet.merge_cells("A1:A2")
@@ -152,27 +174,44 @@ def populating_header(worksheet):
 
     cell_D2 = worksheet["D2"]
     cell_D2.value = "Số lượng"
+    cell_D2.font = Font(name="Times New Roman", bold=True, size=12)
+    cell_D2.border = Border(top=thin, left=thin, right=thin, bottom=thin)
     cell_E2 = worksheet["E2"]
-    cell_E2.value = "Giá trị"
+    cell_E2.value = "Giá trị"    
+    cell_E2.font = Font(name="Times New Roman", bold=True, size=12)
+    cell_E2.border = Border(top=thin, left=thin, right=thin, bottom=thin)
 
     cell_F2 = worksheet["F2"]
     cell_F2.value = "Số lượng"
+    cell_F2.font = Font(name="Times New Roman", bold=True, size=12)
+    cell_F2.border = Border(top=thin, left=thin, right=thin, bottom=thin)
     cell_G2 = worksheet["G2"]
     cell_G2.value = "Giá trị"
+    cell_G2.font = Font(name="Times New Roman", bold=True, size=12)
+    cell_G2.border = Border(top=thin, left=thin, right=thin, bottom=thin)
 
     cell_H2 = worksheet["H2"]
     cell_H2.value = "Số lượng"
+    cell_H2.font = Font(name="Times New Roman", bold=True, size=12)
+    cell_H2.border = Border(top=thin, left=thin, right=thin, bottom=thin)
     cell_I2 = worksheet["I2"]
     cell_I2.value = "Giá trị"
+    cell_I2.font = Font(name="Times New Roman", bold=True, size=12)
+    cell_I2.border = Border(top=thin, left=thin, right=thin, bottom=thin)
 
     cell_J2 = worksheet["J2"]
     cell_J2.value = "Số lượng"
+    cell_J2.font = Font(name="Times New Roman", bold=True, size=12)
+    cell_J2.border = Border(top=thin, left=thin, right=thin, bottom=thin)
     cell_K2 = worksheet["K2"]
     cell_K2.value = "Giá trị"
+    cell_K2.font = Font(name="Times New Roman", bold=True, size=12)
+    cell_K2.border = Border(top=thin, left=thin, right=thin, bottom=thin)
 
     return worksheet
 
 def populating_body(worksheet, accounting_periods):
+    thin = Side(border_style="thin", color="000000")
     row_num = 3
     counter = 1
     for _, period in enumerate(accounting_periods, 1):
@@ -192,6 +231,10 @@ def populating_body(worksheet, accounting_periods):
         for col_num, value in enumerate(row, 1):
             cell = worksheet.cell(row=row_num, column=col_num)
             cell.value = value
+            cell.font = Font(name="Times New Roman", size=12)
+            cell.border = Border(top=thin, left=thin, right=thin, bottom=thin)
+            if col_num >= 3:
+                cell.number_format = '#,##0'
         
         row_num += 1
         counter += 1
@@ -199,6 +242,7 @@ def populating_body(worksheet, accounting_periods):
     return worksheet
 
 def populating_footer(worksheet, summarize_factors):
+    thin = Side(border_style="thin", color="000000")
     START_FACTOR_VALUE_INDEX = 4
 
     # Col span the summarize cell
@@ -206,6 +250,9 @@ def populating_footer(worksheet, summarize_factors):
     footer_row = max_row + 1
     footer_summarize_cell = worksheet.cell(row=footer_row, column=1)
     footer_summarize_cell.value = "Tổng"
+    footer_summarize_cell.alignment = Alignment(horizontal="right")
+    footer_summarize_cell.font = Font(name="Times New Roman", bold=True, size=12)
+    footer_summarize_cell.border = Border(top=thin, left=thin, right=thin, bottom=thin)
     col_span_group = f"A{footer_row}:C{footer_row}"
     worksheet.merge_cells(col_span_group)
 
@@ -214,6 +261,9 @@ def populating_footer(worksheet, summarize_factors):
     for factor, value in summarize_factors.items():
         cell = worksheet.cell(row=footer_row, column=col_num)
         cell.value = value
+        cell.font = Font(name="Times New Roman")
+        cell.number_format = "#,##0"
+        cell.border = Border(top=thin, left=thin, right=thin, bottom=thin)
         col_num += 1
 
     return worksheet
