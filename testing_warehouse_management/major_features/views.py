@@ -516,23 +516,20 @@ def save_and_continue(request, import_shipment_code):
         else:
             return HttpResponse("Invalid form", content_type="text/plain")
 
-    import_shipment_purchases = ImportPurchase.objects.select_related('product_id').filter(import_shipment_id=import_shipment_obj)
-
-    purchase_additional_information = {}
-    for purchase in import_shipment_purchases:
-        if purchase.product_id.name not in purchase_additional_information:
-            purchase_additional_information[purchase.product_id.name] = {'purchase_quantity_import': purchase.quantity_import, 
-                                                                         'purchase_value': purchase.quantity_import * purchase.import_cost}
-        else:
-            purchase_additional_information[purchase.product_id.name]['purchase_quantity_import'] += purchase.quantity_import
-            purchase_additional_information[purchase.product_id.name]['purchase_value'] += purchase.quantity_import * purchase.import_cost
+    import_shipment_purchases = ImportPurchase.objects.select_related('product_id').filter(import_shipment_id=import_shipment_obj).order_by('product_id__name')
+    purchases_summarize_on_per_product = import_shipment_purchases.values('product_id__name').annotate(
+        total_quantity_import_on_shipment = Sum("quantity_import"),
+        total_import_inventory_on_shipment = Sum(
+            F("quantity_import") * F("import_cost")
+        )
+    ).order_by('product_id__name')
 
     context = {
         'import_shipment_code': import_shipment_obj.import_shipment_code,
         'import_shipment_supplier': import_shipment_obj.supplier_id,
         'import_shipment_date': import_shipment_obj.date,
         'import_shipment_purchases': import_shipment_purchases,
-        'purchase_additional_fields': purchase_additional_information,
+        'purchases_summarize_on_per_product': purchases_summarize_on_per_product,
         "import_purchase_form": ImportPurchaseForm()
     }
     return render(request, "major_features/import/save_and_continue.html", context)
@@ -549,7 +546,9 @@ def save_and_complete(request, import_shipment_code):
     if import_shipment_obj[0].total_shipment_value > 0:
         return HttpResponse("Save_and_complete_error: You cannot backward after finishing the import shipment object", content_type="text/plain") 
 
-    import_shipment_purchases = ImportPurchase.objects.select_related('import_shipment_id','product_id').filter(import_shipment_id=import_shipment_obj[0])
+    import_shipment_purchases = ImportPurchase.objects.select_related('import_shipment_id','product_id').filter(
+        import_shipment_id=import_shipment_obj[0]
+    ).order_by('product_id__name')
 
     total_import_shipment_value = 0
 
@@ -594,6 +593,7 @@ def save_and_complete(request, import_shipment_code):
         'import_shipment_date': import_shipment_obj[0].date,
         'import_shipment_purchases': import_shipment_purchases,
         'import_shipment_value': import_shipment_obj[0].total_shipment_value,
+        'total_import_shipment_value': total_import_shipment_value,
         "import_purchase_form": ImportPurchaseForm()
     }
     return render(request, "major_features/import/save_and_complete.html", context)

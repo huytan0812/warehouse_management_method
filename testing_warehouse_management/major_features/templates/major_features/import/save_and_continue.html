@@ -17,46 +17,54 @@
 </div>
 
 <div id="import-shipment-purchases">
-    <table class="table table-bordered table-striped table-dark w-auto" style="margin: auto;">
-        <thead>
-          <tr>
-            <th scope="col">Sản phẩm</th>
-            <th scope="col">Số lượng nhập kho</th>
-            <th scope="col">Đơn giá nhập kho</th>
-            <th scope="col">Giá trị</th>
-            <th scope="col">Thực hiện</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for import_purchase in import_shipment_purchases %}
-          <tr>
-            <td>{{ import_purchase.product_id.name }}</td>
-            <td>{{ import_purchase.quantity_import }}</td>
-            <td>{{ import_purchase.import_cost }}</td>
-            <td>{{ import_purchase.quantity_import|multiply:import_purchase.import_cost|intcomma }}</td>
-            <td>
-              <a href="{% url 'import_purchase_update' import_purchase.id %}">Sửa</a> / 
-              <a href="{% url 'import_purchase_delete' import_purchase.id %}">Xóa</a>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+  <table class="table table-bordered table-striped table-dark w-auto" style="margin: auto;">
+    <caption>Bảng thống kê từng đơn hàng theo lô hàng nhập kho {{ import_shipment_code }}</caption>
+    <thead>
+      <tr>
+        <th scope="col">Mã đơn hàng</th>
+        <th scope="col">Sản phẩm</th>
+        <th scope="col">Số lượng nhập kho</th>
+        <th scope="col">Đơn giá nhập kho</th>
+        <th scope="col">Giá trị</th>
+        <th scope="col">Thực hiện</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for import_purchase in import_shipment_purchases %}
+      <tr>
+        <td>{{ import_purchase.pk }}</td>
+        <td>{{ import_purchase.product_id.name }}</td>
+        <td>{{ import_purchase.quantity_import }}</td>
+        <td>{{ import_purchase.import_cost }}</td>
+        <td>{{ import_purchase.quantity_import|multiply:import_purchase.import_cost|intcomma }}</td>
+        <td>
+          <a href="{% url 'import_purchase_update' import_purchase.id %}">Sửa</a> / 
+          <a href="{% url 'import_purchase_delete' import_purchase.id %}">Xóa</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 </div>
 
-<div id="purchase-additional-information">
-  <ul class="list-group">
-
-    {% for purchase, value_container in purchase_additional_fields.items %}
-      <li class="list-group-item">
-        <p><strong>{{ purchase }}: </strong>
-          Số lượng nhập kho trong lô hàng trên <strong>{{ value_container.purchase_quantity_import|intcomma }}</strong>
-          Giá trị nhập kho trong lô hàng trên <strong>{{ value_container.purchase_value|intcomma }}</strong>
-        </p>
-      </li>
-    {% endfor %}
-    
-  </ul>
+<div class="container d-flex justify-content-center" style="margin-top: 15px; margin-bottom: 15px;">
+  <table class="table table-bordered table-striped table-dark" style="width: fit-content;">
+    <caption>Bảng số lượng nhập kho và giá trị nhập kho của từng sản phẩm theo lô hàng {{ import_shipment_code }}</caption>
+    <thead>
+      <th scope="col">Sản phẩm</th>
+      <th scope="col">SL nhập kho</th>
+      <th scope="col">Giá trị nhập kho</th>
+    </thead>
+    <tbody>
+      {% for product in purchases_summarize_on_per_product %}
+      <tr>
+        <td scope="col"><strong>{{ product.product_id__name }}</strong></td>
+        <td scope="col" style="text-align: right;">{{ product.total_quantity_import_on_shipment|intcomma }}</td>
+        <td scope="col" style="text-align: right;">{{ product.total_import_inventory_on_shipment|intcomma }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 </div>
 
 <div class="container d-flex justify-content-center">

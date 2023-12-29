@@ -18,6 +18,7 @@
             <th scope="col">Số lượng nhập kho</th>
             <th scope="col">Số lượng còn lại</th>
             <th scope="col">Đơn giá nhập kho</th>
+            <th scope="col">Giá trị</th>
           </tr>
         </thead>
         <tbody>
@@ -28,6 +29,7 @@
             <td>{{ import_purchase.quantity_import }}</td>
             <td>{{ import_purchase.quantity_remain }}</td>
             <td>{{ import_purchase.import_cost|intcomma }}</td>
+            <td>{{ import_purchase.value_import|intcomma }}</td>
           </tr>
           {% endfor %}
         </tbody>

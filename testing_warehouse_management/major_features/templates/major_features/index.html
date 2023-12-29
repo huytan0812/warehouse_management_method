@@ -42,15 +42,15 @@
 <div id="today-transactions" class="container d-flex justify-content-around">
   <div id="today-import-shipments" class="border-div">
     <h6><strong>SL lô hàng nhập kho trong ngày:</strong></h6> 
-    <p style="text-align: center;">{{ today_import_shipments_count }}</p>
+    <p style="text-align: center; font-size: 16px;">{{ today_import_shipments_count }}</p>
   </div>
   <div id="today-export-shipments" class="border-div">
     <h6><strong>SL lô hàng xuất kho trong ngày:</strong></h6>
-    <p style="text-align: center;">{{ today_export_shipments_count }}</p>
+    <p style="text-align: center; font-size: 16px;">{{ today_export_shipments_count }}</p>
   </div>
   <div id="today-revenue" class="border-div">
     <h6><strong>Doanh thu trong ngày:</strong></h6>
-    <p style="text-align: center;">{{ today_revenue }}</p>
+    <p style="text-align: center; font-size: 16px;">{{ today_revenue }}</p>
   </div>
 </div>
 
@@ -61,6 +61,7 @@
         <tr>
           <th scope="col" style="text-align: left;">Mã sản phẩm</th>
           <th scope="col" style="text-align: left;">Tên sản phẩm</th>
+          <th scope="col" style="text-align: left;">Danh mục</th>
           <th scope="col" style="text-align: right;">Số lượng tồn kho</th>
           <th scope="col" style="text-align: right;">Tổng giá trị tồn kho</th>
           <th scope="col" style="text-align: right;">Tỷ lệ (%) giá trị HTK so với tổng giá trị HTK</th>
@@ -71,6 +72,7 @@
           <tr>
               <td scope="col">{{ product.product_id.sku }}</td>
               <td scope="col">{{ product.product_id.name }}</td>
+              <td scope="col">{{ product.product_id.category_name.name }}</td>
               <td scope="col" style="text-align: right;">{{ product.ending_quantity|intcomma }}</td>
               <td scope="col" style="text-align: right;">{{ product.ending_inventory|intcomma }}</td>
               <td scope="col" style="text-align: right;">{{ product.ending_inventory|to_percentage:total_inventory_value|round_float:2 }}%</td>
@@ -81,12 +83,13 @@
         <tr>
           <td scope="col">...</td>
           <td scope="col">...</td>
+          <td scope="col">...</td>
           <td scope="col" style="text-align: right;">...</td>
           <td scope="col" style="text-align: right;">...</td>
           <td scope="col" style="text-align: right;">...</td>
         </tr>
         <tr>
-          <td scope="col" colspan="3" style="text-align: right; color: #00FFFF;"><strong>Tổng giá trị HTK hiện tại của tất cả sản phẩm</strong></td>
+          <td scope="col" colspan="4" style="text-align: right; color: #00FFFF;"><strong>Tổng giá trị HTK hiện tại của tất cả sản phẩm</strong></td>
           <td scope="col" style="text-align: right; color: #00FFFF;">{{ total_inventory_value|intcomma }}</td>
           <td scope="col" style="text-align: right; color: #00FFFF;">100%</td>
         </tr>
