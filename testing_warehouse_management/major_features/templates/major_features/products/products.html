@@ -31,7 +31,7 @@
               <td scope="col">{{ product.product_id.sku }}</td>
               <td scope="col">{{ product.product_id.name }}</td>
               <td scope="col">{{ product.product_id.minimum_quantity }}</td>
-              <td scope="col"><a href="{% url 'edit_product' product.product_id.sku %}">Sửa</a></td>
+              <td scope="col"><a href="{% url 'edit_product' product.product_id.sku %}" style="color: #00FFFF;">Sửa</a></td>
               <td scope="col" style="text-align: right;">{{ product.ending_quantity|intcomma }}</td>
               <td scope="col" style="text-align: right;">{{ product.ending_inventory|intcomma }}</td>
               {% if product.is_below_minimum_quantity %}

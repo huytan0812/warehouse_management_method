@@ -5,8 +5,20 @@
 {% endblock %}
 
 {% block body %}
-<div class="container d-flex justify-content-center">
+{% for category in categories %}
+<div>
+    <p><strong>{{ category.name }}: </strong>{{ category.get_descendant_count }} sản phẩm</p>
+    {% if category.get_descendant_count > 0 %}
+    <ul>
+        {% for product in category.product_category_name.all %}
+        <li>
+            {{ product }}
+        </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
 </div>
+{% endfor %}
 <p>
     <a href="{% url 'add_category' %}">Thêm danh mục sản phẩm</a>
 </p>

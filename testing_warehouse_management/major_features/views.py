@@ -170,7 +170,10 @@ def index_category_inventory_pie_chart(current_accounting_period):
 
 @login_required
 def categories(request):
-    context = {}
+    categories = Category.objects.all()
+    context = {
+        'categories': categories
+    }
     return render(request, "major_features/categories/categories.html", context)
 
 @login_required

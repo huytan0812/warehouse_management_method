@@ -393,29 +393,33 @@ class ActualMethodInventory(forms.Form):
 class AddProductForm(ModelForm):
     class Meta:
         model = Product
-        fields = ["sku", "name", "minimum_quantity"]
+        fields = ["sku", "name", "minimum_quantity", "category_name"]
         widgets = {
             'sku': forms.TextInput(attrs={'class': 'form-control', 'required': True, 'placeholder': "Mã sản phẩm"}),
             'name': forms.TextInput(attrs={'class': 'form-control', 'required': True, 'placeholder': "Tên sản phẩm"}),
-            'minimum_quantity': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': "SL tồn kho tối thiểu"})
+            'minimum_quantity': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': "SL tồn kho tối thiểu"}),
+            'category_name': forms.Select(attrs={'class': 'form-control select', 'required': False})
         }
         labels = {
             'sku': "Mã sản phẩm",
             'name': "Tên sản phẩm",
-            'minimum_quantity': "Số lượng tồn kho tối thiểu"
+            'minimum_quantity': "Số lượng tồn kho tối thiểu",
+            'category_name': "Danh mục sản phẩm"
         }
 
 class EditProductForm(ModelForm):
     class Meta:
         model = Product
-        fields = ["name", "minimum_quantity"]
+        fields = ["name", "minimum_quantity", "category_name"]
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': "Tên sản phẩm"}),
-            'minimum_quantity': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': "SL tồn kho tối thiểu"})
+            'minimum_quantity': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': "SL tồn kho tối thiểu"}),
+            'category_name': forms.Select(attrs={'class': 'form-control select', 'required': False})
         }
         labels = {
             'name': "Tên sản phẩm",
-            'minimum_quantity': "Số lượng tồn kho tối thiểu"
+            'minimum_quantity': "Số lượng tồn kho tối thiểu",
+            'category_name': "Danh mục sản phẩm"
         }
 
 class AddCategoryForm(ModelForm):

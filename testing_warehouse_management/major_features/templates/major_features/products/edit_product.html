@@ -5,16 +5,20 @@
 {% endblock %}
 
 {% block body %}
-<form action="{% url 'edit_product' product.sku %}" method="post">
-    {% csrf_token %}
-    <div class="form-group">
-        <fieldset>
-            <legend>
-                Thay đổi thông tin sản phẩm {{ product.name }} với mã sản phẩm là {{ product.sku }}
-            </legend>
-            {{ edit_product_form.as_p }}
-        </fieldset>
+<div class="container d-flex justify-content-center">
+    <div class="form-container">
+        <form action="{% url 'edit_product' product.sku %}" method="post" class="shipment-form">
+            {% csrf_token %}
+            <div class="form-group">
+                <fieldset>
+                    <legend>
+                        Thay đổi thông tin sản phẩm {{ product.name }} với mã sản phẩm là {{ product.sku }}
+                    </legend>
+                    {{ edit_product_form.as_p }}
+                </fieldset>
+            </div>
+            <button type="submit" class="submit-button">Xác nhận</button>
+        </form>
     </div>
-    <button type="submit" class="submit-button">Xác nhận</button>
-</form>
+</div>
 {% endblock %}
