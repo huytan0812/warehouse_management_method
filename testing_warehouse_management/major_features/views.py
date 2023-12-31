@@ -170,9 +170,31 @@ def index_category_inventory_pie_chart(current_accounting_period):
 
 @login_required
 def categories(request):
-    categories = Category.objects.all()
+    current_accounting_period = AccoutingPeriod.objects.select_related('warehouse_management_method').latest('id')
+    products_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').filter(
+        accounting_period_id = current_accounting_period
+    )
+    categories_inventory = products_inventory.values('product_id__category_name__name').annotate(
+        category_id = F("product_id__category_name__pk"),
+        category_inventory_value = Sum("ending_inventory")
+    ).order_by('-category_inventory_value')
+
+    category_containers = {}
+    for category in categories_inventory:
+        # Initializing the category dictionary
+        category_containers[category['product_id__category_name__name']] = {
+            'category_inventory_value': category['category_inventory_value']
+        }
+        c = category_containers[category['product_id__category_name__name']]
+
+        # Get all the products for the corresponding category
+        category_products = products_inventory.filter(
+            product_id__category_name = category['category_id']
+        ).order_by('product_id__name')
+        c['category_products'] = category_products
+
     context = {
-        'categories': categories
+        'categories': category_containers
     }
     return render(request, "major_features/categories/categories.html", context)
 

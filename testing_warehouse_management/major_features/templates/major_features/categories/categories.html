@@ -1,21 +1,49 @@
 {% extends "major_features/layout.html" %}
 
+{% load humanize %}
+
+{% load custom_filters %}
+
 {% block title %}
 <h3 style="text-align: center; margin-top: 10px;">Danh mục sản phẩm</h3>
 {% endblock %}
 
 {% block body %}
-{% for category in categories %}
+{% for category, value in categories.items %}
 <div>
-    <p><strong>{{ category.name }}: </strong>{{ category.get_descendant_count }} sản phẩm</p>
-    {% if category.get_descendant_count > 0 %}
-    <ul>
-        {% for product in category.product_category_name.all %}
-        <li>
-            {{ product }}
-        </li>
-        {% endfor %}
-    </ul>
+    <p><strong>{{ category }}: </strong>{{ value.category_products|length }} sản phẩm</p>
+    {% if value.category_products|length > 0 %}
+    <table class="table table-striped">
+        <thead class="thead-light">
+            <th scope="col" style="text-align: center;">STT</th>
+            <th scope="col">Mã sản phẩm</th>
+            <th scope="col">Tên sản phẩm</th>
+            <th scope="col" style="text-align: right;">SL HTK</th>
+            <th scope="col" style="text-align: right;">Giá trị HTK</th>
+            <th scope="col" style="text-align: right;">Tỷ lệ (%) giá trị HTK</th>
+        </thead>
+        <tbody>
+            {% for product in value.category_products %}
+            <tr>
+                <td scope="col" style="text-align: center;"><strong>{{ forloop.counter }}</strong></td>
+                <td scope="col"><strong>{{ product.product_id.sku }}</strong></td>
+                <td scope="col"><strong>{{ product.product_id.name }}</strong></td>
+                <td scope="col" style="text-align: right;">{{ product.ending_quantity|intcomma }}</td>
+                <td scope="col" style="text-align: right;">{{ product.ending_inventory|intcomma }}</td>
+                <td scope="col" style="text-align: right;">{{ product.ending_inventory|to_percentage:value.category_inventory_value|round_float:2 }}%</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="4" style="text-align: right;">
+                    <strong>Tổng</strong>
+                </td>
+                <td style="text-align: right;"><strong>{{ value.category_inventory_value|intcomma }}</strong></td>
+                <td style="text-align: right;"><strong>100%</strong></td>
+            </tr>
+        </tfoot>
+    </table>
     {% endif %}
 </div>
 {% endfor %}

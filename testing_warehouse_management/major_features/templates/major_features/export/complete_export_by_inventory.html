@@ -40,6 +40,7 @@
   <thead>
     <tr>
       <th scope="col">Mã đơn hàng nhập kho</th>
+      <th scope="col">Sản phẩm</th>
       <th scope="col">Số lượng lấy ra</th>
       <th scope="col">Đơn giá nhập kho</th>
       <th scope="col">Đơn giá xuất kho</th>
@@ -52,6 +53,7 @@
     {% for export_order_detail in export_order_details %}
     <tr>
       <td>{{ export_order_detail.import_purchase_id.pk }}</td>
+      <td>{{ export_order_obj.product_id.name }}</td>
       <td>{{ export_order_detail.quantity_take }}</td>
       <td>{{ export_order_detail.import_purchase_id.import_cost|intcomma }}</td>
       <td>{{ export_order_detail.export_price|intcomma }}</td>
@@ -63,7 +65,7 @@
   </tbody>
   <tfoot>
     <tr>
-      <td colspan="5" style="color: #00FFFF; text-align: right;"><strong>Tổng</strong></td>
+      <td colspan="6" style="color: #00FFFF; text-align: right;"><strong>Tổng</strong></td>
       <td style="color: #00FFFF; text-align: right;">{{ export_order_obj.total_order_value|intcomma }}</td>
       <td style="color: #00FFFF; text-align: right;">{{ export_order_obj.quantity_export|multiply:export_order_obj.unit_price|intcomma }}</td>
     </tr>

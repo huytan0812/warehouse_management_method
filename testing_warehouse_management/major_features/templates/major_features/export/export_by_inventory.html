@@ -230,6 +230,7 @@
     <div class="form-container">
         <form action="{% url 'actual_method_by_name_export_action' export_order_id product type %}" method="post" class="shipment-form">
             {% csrf_token %}
+            <p>Xuất kho cho sản phẩm <strong>{{ product }}</strong></p>
             <fieldset>
 
                 {% if starting_inventory_form %}
