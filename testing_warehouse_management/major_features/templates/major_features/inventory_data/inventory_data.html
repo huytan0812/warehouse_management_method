@@ -30,56 +30,65 @@
 </form>
 {% if not non_record_msg %}
 <div class="container d-flex justify-content-center">
-    <table class="table table-bordered table-striped table-dark">
+    <table class="table table-bordered table-striped table-dark" style="width: fit-content;">
         <thead>
             <tr>
-                <th scope="col" rowspan="2" style="text-align: center; vertical-align: middle;">STT</th>
-                <th scope="col" rowspan="2" style="text-align: left; vertical-align: middle;">Sản phẩm</th>
-                <th scope="col" rowspan="2" style="text-align: left; vertical-align: middle;">Danh mục</th>
-                <th scope="col" rowspan="1" colspan="2" style="text-align: left;">Tồn kho đầu kỳ</th>
-                <th scope="col" rowspan="1" colspan="2" style="text-align: left;">Nhập kho trong kỳ</th>
-                <th scope="col" rowspan="1" colspan="2" style="text-align: center;">Xuất kho trong kỳ</th>
-                <th scope="col" rowspan="1" colspan="2" style="text-align: center;">Tồn kho cuối kỳ</th>
+                <th scope="col" rowspan="2" style="font-size: 12px; text-align: center; vertical-align: middle;">STT</th>
+                <th scope="col" rowspan="2" style="font-size: 12px; text-align: left; vertical-align: middle;">Sản phẩm</th>
+                <th scope="col" rowspan="2" style="font-size: 12px; text-align: left; vertical-align: middle;">Danh mục</th>
+                <th scope="col" rowspan="1" colspan="2" style="font-size: 12px; text-align: left;">Tồn kho đầu kỳ</th>
+                <th scope="col" rowspan="1" colspan="2" style="font-size: 12px; text-align: left;">Nhập kho trong kỳ</th>
+                <th scope="col" rowspan="1" colspan="2" style="font-size: 12px; text-align: center;">Xuất kho trong kỳ</th>
+                <th scope="col" rowspan="1" colspan="2" style="font-size: 12px; text-align: center;">Tồn kho cuối kỳ</th>
+                <th scope="col" rowspan="2" style="font-size: 12px; text-align: left; vertical-align: middle;">Doanh thu</th>
+                <th scope="col" rowspan="2" style="font-size: 12px; text-align: left; vertical-align: middle;">GVHB</th>
+                <th scope="col" rowspan="2" style="font-size: 12px; text-align: left; vertical-align: middle;">Lợi nhuận</th>
             </tr>
             <tr>
-                <th scope="col" rowspan="1" colspan="1" style="text-align: left;">Số lượng</th>
-                <th scope="col" rowspan="1" colspan="1" style="text-align: left;">Giá trị</th>
-                <th scope="col" rowspan="1" colspan="1" style="text-align: left;">Số lượng</th>
-                <th scope="col" rowspan="1" colspan="1" style="text-align: left;">Giá trị</th>
-                <th scope="col" rowspan="1" colspan="1" style="text-align: left;">Số lượng</th>
-                <th scope="col" rowspan="1" colspan="1" style="text-align: left;">Giá trị</th>
-                <th scope="col" rowspan="1" colspan="1" style="text-align: left;">Số lượng</th>
-                <th scope="col" rowspan="1" colspan="1" style="text-align: left;">Giá trị</th>
+                <th scope="col" rowspan="1" colspan="1" style="font-size: 12px; text-align: left;">Số lượng</th>
+                <th scope="col" rowspan="1" colspan="1" style="font-size: 12px; text-align: left;">Giá trị</th>
+                <th scope="col" rowspan="1" colspan="1" style="font-size: 12px; text-align: left;">Số lượng</th>
+                <th scope="col" rowspan="1" colspan="1" style="font-size: 12px; text-align: left;">Giá trị</th>
+                <th scope="col" rowspan="1" colspan="1" style="font-size: 12px; text-align: left;">Số lượng</th>
+                <th scope="col" rowspan="1" colspan="1" style="font-size: 12px; text-align: left;">Giá trị</th>
+                <th scope="col" rowspan="1" colspan="1" style="font-size: 12px; text-align: left;">Số lượng</th>
+                <th scope="col" rowspan="1" colspan="1" style="font-size: 12px; text-align: left;">Giá trị</th>
             </tr>
         </thead>
         <tbody>
             {% for period in accounting_periods_inventory %}
             <tr>
-                <td scope="col" style="text-align: center;">{{ forloop.counter }}</td>
-                <td scope="col" style="text-align: left;">{{ period.product_id.name }}</td>
-                <td scope="col" style="text-align: left;">{{ period.product_id.category_name.name }}</td>
-                <td scope="col" style="text-align: right;">{{ period.starting_quantity|intcomma }}</td>
-                <td scope="col" style="text-align: right;">{{ period.starting_inventory|intcomma }}</td>
-                <td scope="col" style="text-align: right;">{{ period.import_quantity|intcomma }}</td>
-                <td scope="col" style="text-align: right;">{{ period.import_inventory|intcomma }}</td>
-                <td scope="col" style="text-align: right;">{{ period.total_quantity_export|intcomma }}</td>
-                <td scope="col" style="text-align: right;">{{ period.total_cogs|intcomma }}</td>
-                <td scope="col" style="text-align: right;">{{ period.ending_quantity|intcomma }}</td>
-                <td scope="col" style="text-align: right;">{{ period.ending_inventory|intcomma }}</td>
+                <td scope="col" style="font-size: 12px; text-align: center;">{{ forloop.counter }}</td>
+                <td scope="col" style="font-size: 12px; text-align: left;">{{ period.product_id.name }}</td>
+                <td scope="col" style="font-size: 12px; text-align: left;">{{ period.product_id.category_name.name }}</td>
+                <td scope="col" style="font-size: 12px;text-align: right;">{{ period.starting_quantity|intcomma }}</td>
+                <td scope="col" style="font-size: 12px; text-align: right;">{{ period.starting_inventory|intcomma }}</td>
+                <td scope="col" style="font-size: 12px; text-align: right;">{{ period.import_quantity|intcomma }}</td>
+                <td scope="col" style="font-size: 12px; text-align: right;">{{ period.import_inventory|intcomma }}</td>
+                <td scope="col" style="font-size: 12px; text-align: right;">{{ period.total_quantity_export|intcomma }}</td>
+                <td scope="col" style="font-size: 12px; text-align: right;">{{ period.total_cogs|intcomma }}</td>
+                <td scope="col" style="font-size: 12px; text-align: right;">{{ period.ending_quantity|intcomma }}</td>
+                <td scope="col" style="font-size: 12px; text-align: right;">{{ period.ending_inventory|intcomma }}</td>
+                <td scope="col" style="font-size: 12px; text-align: right;">{{ period.total_revenue|intcomma }}</td>
+                <td scope="col" style="font-size: 12px; text-align: right;">{{ period.total_cogs|intcomma }}</td>
+                <td scope="col" style="font-size: 12px; text-align: right;">{{ period.total_revenue|subtract:period.total_cogs|intcomma }}</td>
             </tr>
             {% endfor %}
         </tbody>
         <tfoot>
             <tr>
-                <td scope="col" colspan="3" style="text-align: right; color: #00FFFF;"><strong>Tổng</strong></td>
-                <td scope="col" style="text-align: right; color: #00FFFF;">{{ total_starting_quantity|intcomma }}</td>
-                <td scope="col" style="text-align: right; color: #00FFFF;">{{ total_starting_inventory|intcomma }}</td>
-                <td scope="col" style="text-align: right; color: #00FFFF;">{{ total_import_quantity|intcomma }}</td>
-                <td scope="col" style="text-align: right; color: #00FFFF;">{{ total_import_inventory|intcomma }}</td>
-                <td scope="col" style="text-align: right; color: #00FFFF;">{{ total_export_quantity|intcomma }}</td>
-                <td scope="col" style="text-align: right; color: #00FFFF;">{{ total_products_cogs|intcomma }}</td>
-                <td scope="col" style="text-align: right; color: #00FFFF;">{{ total_ending_quantity|intcomma }}</td>
-                <td scope="col" style="text-align: right; color: #00FFFF;">{{ total_ending_inventory|intcomma }}</td>
+                <td scope="col" colspan="3" style="font-size: 12px; text-align: right; color: #00FFFF;"><strong>Tổng</strong></td>
+                <td scope="col" style="font-size: 12px; text-align: right; color: #00FFFF;">{{ total_starting_quantity|intcomma }}</td>
+                <td scope="col" style="font-size: 12px; text-align: right; color: #00FFFF;">{{ total_starting_inventory|intcomma }}</td>
+                <td scope="col" style="font-size: 12px; text-align: right; color: #00FFFF;">{{ total_import_quantity|intcomma }}</td>
+                <td scope="col" style="font-size: 12px; text-align: right; color: #00FFFF;">{{ total_import_inventory|intcomma }}</td>
+                <td scope="col" style="font-size: 12px; text-align: right; color: #00FFFF;">{{ total_export_quantity|intcomma }}</td>
+                <td scope="col" style="font-size: 12px; text-align: right; color: #00FFFF;">{{ total_products_cogs|intcomma }}</td>
+                <td scope="col" style="font-size: 12px; text-align: right; color: #00FFFF;">{{ total_ending_quantity|intcomma }}</td>
+                <td scope="col" style="font-size: 12px; text-align: right; color: #00FFFF;">{{ total_ending_inventory|intcomma }}</td>
+                <td scope="col" style="font-size: 12px; text-align: right; color: #00FFFF;">{{ total_products_revenue|intcomma }}</td>
+                <td scope="col" style="font-size: 12px; text-align: right; color: #00FFFF;">{{ total_products_cogs|intcomma }}</td>
+                <td scope="col" style="font-size: 12px; text-align: right; color: #00FFFF;">{{ total_gross_profits|intcomma }}</td>
             </tr>
         </tfoot>
     </table>

@@ -31,7 +31,9 @@ def inventory_data(request):
         total_export_quantity = Sum("total_quantity_export"),
         total_products_cogs = Sum("total_cogs"),
         total_ending_quantity = Sum("ending_quantity"),
-        total_ending_inventory = Sum("ending_inventory")
+        total_ending_inventory = Sum("ending_inventory"),
+        total_products_revenue = Sum("total_revenue"),
+        total_gross_profits = Sum("total_revenue") - Sum("total_cogs")
     )
 
     context = {
@@ -46,7 +48,9 @@ def inventory_data(request):
         'total_export_quantity': periods_summarizing_factors['total_export_quantity'],
         'total_products_cogs': periods_summarizing_factors['total_products_cogs'],
         'total_ending_quantity': periods_summarizing_factors['total_ending_quantity'],
-        'total_ending_inventory': periods_summarizing_factors['total_ending_inventory']
+        'total_ending_inventory': periods_summarizing_factors['total_ending_inventory'],
+        'total_products_revenue': periods_summarizing_factors['total_products_revenue'],
+        'total_gross_profits': periods_summarizing_factors['total_gross_profits']
     }
 
     if accounting_periods_inventory.count() == 0:
@@ -73,9 +77,12 @@ def export_data_to_excel(request, accounting_period_id):
         total_import_quantity = Sum("import_quantity"),
         total_import_inventory = Sum("import_inventory"),
         total_export_quantity = Sum("total_quantity_export"),
-        total_products_cogs = Sum("total_cogs"),
+        total_products_export_value = Sum("total_cogs"),
         total_ending_quantity = Sum("ending_quantity"),
-        total_ending_inventory = Sum("ending_inventory")
+        total_ending_inventory = Sum("ending_inventory"),
+        total_products_revenue = Sum("total_revenue"),
+        total_products_cogs = Sum("total_cogs"),
+        total_gross_profits = Sum("total_revenue") - Sum("total_cogs")
     )
 
     # Create a new workbook
@@ -102,14 +109,17 @@ def export_data_to_excel(request, accounting_period_id):
     return download_excelfile(request, excelfile, filename)
 
 def populating_header(worksheet):
-    titles = [
+    headers = [
         "STT",
         "Sản phẩm",
         "Danh mục",
         "Tồn kho đầu kỳ",
         "Nhập kho trong kỳ",
         "Xuất kho trong kỳ"
-        "Tồn kho cuối kỳ"
+        "Tồn kho cuối kỳ",
+        "Doanh thu",
+        "GVHB",
+        "Lợi nhuận"
     ]
     thin = Side(border_style="thin", color="000000")
     # STT cell header
@@ -161,10 +171,34 @@ def populating_header(worksheet):
     cell_J1.font = Font(name="Times New Roman", bold=True, size=12)
     cell_J1.border = Border(top=thin, left=thin, right=thin, bottom=thin)
 
+    # Revenue cell header
+    cell_L1 = worksheet["L1"]
+    cell_L1.value = "Doanh thu"
+    cell_L1.alignment = Alignment(vertical="center")
+    cell_L1.font = Font(name="Times New Roman", bold=True, size=12)
+    cell_L1.border = Border(top=thin, left=thin, right=thin, bottom=thin)
+
+    # COGS cell header
+    cell_M1 = worksheet["M1"]
+    cell_M1.value = "GVHB"
+    cell_M1.alignment = Alignment(vertical="center")
+    cell_M1.font = Font(name="Times New Roman", bold=True, size=12)
+    cell_M1.border = Border(top=thin, left=thin, right=thin, bottom=thin)
+
+    # Gross Profits header
+    cell_N1 = worksheet["N1"]
+    cell_N1.value = "Lợi nhuận"
+    cell_N1.alignment = Alignment(vertical="center")
+    cell_N1.font = Font(name="Times New Roman", bold=True, size=12)
+    cell_N1.border = Border(top=thin, right=thin, left=thin, bottom=thin)
+
     # Merging rows
     worksheet.merge_cells("A1:A2")
     worksheet.merge_cells("B1:B2")
     worksheet.merge_cells("C1:C2")
+    worksheet.merge_cells("L1:L2")
+    worksheet.merge_cells("M1:M2")
+    worksheet.merge_cells("N1:N2")
 
     # Merging columns
     worksheet.merge_cells("D1:E1")
@@ -226,7 +260,10 @@ def populating_body(worksheet, accounting_periods):
             period.total_quantity_export,
             period.total_cogs,
             period.ending_quantity,
-            period.ending_inventory
+            period.ending_inventory,
+            period.total_revenue,
+            period.total_cogs,
+            period.total_revenue - period.total_cogs
         ]
         for col_num, value in enumerate(row, 1):
             cell = worksheet.cell(row=row_num, column=col_num)
