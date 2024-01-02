@@ -17,6 +17,7 @@ from . models import *
 from . forms import *
 from . decorators import is_activating_accounting_period
 from . warehouse_management_methods import *
+from . inventory_data_views import *
 
 # Create your views here.
 @login_required
@@ -476,6 +477,7 @@ def delete_unfinish_import_shipment(request, import_shipment_code):
 
 @is_activating_accounting_period
 def import_action(request):
+    # Get the current accounting period obj
     latest_accounting_period_obj = AccoutingPeriod.objects.select_related('warehouse_management_method').latest('id')
 
     if request.method == "POST":
@@ -485,9 +487,12 @@ def import_action(request):
         if import_shipment_form.is_valid() and import_purchase_form.is_valid():
 
             import_shipment_obj = import_shipment_form.save(commit=False)
+            # Save the import shipment obj's current_accounting_period field
+            # with the current accounting period obj
             import_shipment_obj.current_accounting_period = latest_accounting_period_obj
             import_shipment_obj.save()
 
+            # Save fields to import purchase obj
             import_purchase_obj = import_purchase_form.save(commit=False)
             import_purchase_obj.import_shipment_id = import_shipment_obj
             import_purchase_obj.quantity_remain = import_purchase_obj.quantity_import
@@ -738,6 +743,7 @@ def export_action(request):
     Creating & saving new export shipment object to the database
     """
 
+    # Get the current accounting period obj
     latest_accounting_period_obj = AccoutingPeriod.objects.select_related('warehouse_management_method').latest('id')
     export_shipment_form = ExportShipmentForm()
 
@@ -749,7 +755,10 @@ def export_action(request):
             # Export Shipment    
             export_shipment_form_obj = export_shipment_form.save(commit=False)
             export_shipment_code = export_shipment_form_obj.export_shipment_code
-            export_shipment_form_obj.current_accounting_period=latest_accounting_period_obj
+
+            # Save the export shipment obj's current_accounting_period field
+            # with the current accounting period obj
+            export_shipment_form_obj.current_accounting_period = latest_accounting_period_obj
             export_shipment_form_obj.save()
 
             return HttpResponseRedirect(reverse('export_order_action', kwargs={'export_shipment_code': export_shipment_code}))
@@ -1221,27 +1230,27 @@ def get_date_utc_now():
 def keep_current_method(request):
     if request.method == "POST":
         keep_method_form = KeepMethodForm(request.POST)
+
         if keep_method_form.is_valid():
             is_keep = keep_method_form.cleaned_data["is_keep"]
             if is_keep == True:
-                renew_previous_method()
-                return HttpResponseRedirect(reverse('index'))
-            else:
-                return HttpResponseRedirect(reverse('apply_warehouse_management'))
-        else:
-            return HttpResponse("Invalid", content_type="text/plain")
+                current_warehouse_management_method = WarehouseManagementMethod.objects.filter(is_currently_applied=True)[0]
+                renew_previous_method(current_warehouse_management_method)
+                return HttpResponseRedirect(reverse('inventory_data'))
+            
+            return HttpResponseRedirect(reverse('apply_warehouse_management'))
+        
+        return HttpResponse("Invalid", content_type="text/plain")
 
 def apply_warehouse_management(request):
 
-    if request.method == "GET":
-        # Only setting method_count = 0
-        # or datepicker is last day of a month
-        # when deploy production
-        warehouse_management_method_form = WarehouseManagementMethodForm()
-        context = {
-            'warehouse_management_method_form': warehouse_management_method_form
-        }
-        return render(request, "major_features/apply_warehouse_management.html", context)
+    # Only setting method_count = 0
+    # or datepicker is last day of a month
+    # when deploy production
+    warehouse_management_method_form = WarehouseManagementMethodForm()
+    context = {
+        'warehouse_management_method_form': warehouse_management_method_form
+    }
     
     if request.method == "POST":
         warehouse_management_method_form = WarehouseManagementMethodForm(request.POST)
@@ -1252,7 +1261,7 @@ def apply_warehouse_management(request):
             try:
                 method = WarehouseManagementMethod.objects.get(pk=int(method_id_by_POST))
             except WarehouseManagementMethod.DoesNotExits:
-                raise Exception("Invalid Method")
+                raise Exception("Không tồn tại Phương pháp xác định giá trị hàng tồn kho")
             
             if WarehouseManagementMethod.objects.filter(is_currently_applied=True).count() == 1:
                 deactivating_previous_method()
@@ -1261,10 +1270,16 @@ def apply_warehouse_management(request):
 
             create_new_accounting_period(method)
 
-            return HttpResponseRedirect(reverse('index'))
+            return HttpResponseRedirect(reverse('inventory_data'))
+    
+    return render(request, "major_features/apply_warehouse_management.html", context)
 
 def activating_accounting_period(request):
-
+    """
+    For decorators view.
+    Displaying KeepMethodForm() for user to keep the current method &
+    a link for choosing another warehouse management method
+    """
     context = {}
     chosen_method = WarehouseManagementMethod.objects.filter(is_currently_applied=True)
     context["keep_method_form"] = KeepMethodForm()
@@ -1289,29 +1304,25 @@ def create_new_accounting_period(method):
 
     return new_accounting_period_obj
 
-def renew_previous_method():
-    # Get the latest accounting period
-    # Knowing that the latest accounting period is the activating method
-    get_latest_accounting_period_id = AccoutingPeriod.objects.aggregate(Max("id")).get("id__max", 0)
-    latest_accounting_period = AccoutingPeriod.objects.get(pk=get_latest_accounting_period_id)
-
-    next_day_of_new_month = latest_accounting_period.date_end + timedelta(days=1)
-
-    last_day_of_new_month = calendar.monthrange(next_day_of_new_month.year, next_day_of_new_month.month)[1]
-    last_day_of_new_month_obj = date(next_day_of_new_month.year, next_day_of_new_month.month, last_day_of_new_month)
-
-    latest_accounting_period.date_end = last_day_of_new_month_obj
-
-    latest_accounting_period_obj = latest_accounting_period.save(update_fields=["date_end"])
-    return latest_accounting_period_obj
+def renew_previous_method(method):
+    new_accounting_period_obj = create_new_accounting_period(method)
+    return new_accounting_period_obj
 
 def deactivating_previous_method():
+    """
+    Deactivating WarehouseManagmentMethod object's
+    is_currently_applied to True
+    """
     previous_chosen_method = WarehouseManagementMethod.objects.filter(is_currently_applied=True)[0]
     previous_chosen_method.is_currently_applied = False
     previous_chosen_method_save_obj = previous_chosen_method.save(update_fields=["is_currently_applied"])
     return previous_chosen_method_save_obj
 
 def activating_new_chosen_method(method):
+    """
+    Activating WarehouseManagmentMethod object's
+    is_currently_applied to True
+    """
     method.is_currently_applied = True
     method_obj = method.save(update_fields=["is_currently_applied"])
     return method_obj
