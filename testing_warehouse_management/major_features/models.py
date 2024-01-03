@@ -1,6 +1,6 @@
 from django.db import models
 from mptt.models import MPTTModel, TreeForeignKey
-from django.db.models import Q, F, Max
+from django.db.models import Q, F, Max, Sum
 from django.contrib.auth.models import User
 from datetime import datetime, timedelta
 

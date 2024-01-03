@@ -1,25 +1,35 @@
 import openpyxl
 import re
+from django.http import HttpResponseRedirect, HttpResponse
+from django.urls import reverse
+from django.shortcuts import render
 from openpyxl.styles import Border, Font, Alignment, Side
 from io import BytesIO
 from django.contrib import messages
-from . views import *
 from . reports_views import validating_period_id
+from . models import *
 
-def inventory_data(request):
-    chosen_period_id_param = request.GET.get("accounting_period", None)
+def inventory_data(request, accounting_period_id):
+    # Default redirecting to 'inventory_data' view
+    # with current accounting_period_id
+    if accounting_period_id == 0:
+        accounting_period_id = AccoutingPeriod.objects.select_related('warehouse_management_method').latest('id').pk
+        return HttpResponseRedirect(reverse('inventory_data', kwargs={'accounting_period_id': accounting_period_id}))
 
-    if chosen_period_id_param:
-        chosen_period_id = validating_period_id(chosen_period_id_param)
-    else:
-        chosen_period_id = AccoutingPeriod.objects.select_related('warehouse_management_method').latest('id').pk
+    if request.method == "POST":
+        chosen_period_id_param = request.POST.get("accounting_period", None)
+        accounting_period_id = validating_period_id(chosen_period_id_param)
+
+        # Redirecting to 'inventory_data' view
+        # with the chosen period id in POST request
+        return HttpResponseRedirect(reverse('inventory_data', kwargs={'accounting_period_id': accounting_period_id}))
 
     # For rendering select input in the form
     accounting_periods = AccoutingPeriod.objects.select_related('warehouse_management_method').all()
 
     # For displaying each accounting period in the table
     accounting_periods_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').filter(
-        accounting_period_id = chosen_period_id
+        accounting_period_id = accounting_period_id
     )
 
     # For summarizing factors
@@ -38,7 +48,7 @@ def inventory_data(request):
 
     context = {
         'accounting_periods': accounting_periods,
-        'chosen_period_id': chosen_period_id,
+        'chosen_period_id': accounting_period_id,
         'accounting_periods_inventory': accounting_periods_inventory,
 
         'total_starting_quantity': periods_summarizing_factors['total_starting_quantity'],

@@ -11,7 +11,8 @@
 {% endblock %}
 
 {% block body %}
-<form action="{% url 'inventory_data' %}" class="d-flex justify-content-start margin-form" method="GET">
+<form action="{% url 'inventory_data' chosen_period_id %}" class="d-flex justify-content-start margin-form" method="POST">
+    {% csrf_token %}
     <label for="accounting_period" class="col-form-label inline-margin">Kỳ kế toán: </label>
     <select name="accounting_period" class="form-select select" style="width: fit-content;">
         {% for period in accounting_periods %}
@@ -36,8 +37,8 @@
                 <th scope="col" rowspan="2" style="font-size: 12px; text-align: center; vertical-align: middle;">STT</th>
                 <th scope="col" rowspan="2" style="font-size: 12px; text-align: left; vertical-align: middle;">Sản phẩm</th>
                 <th scope="col" rowspan="2" style="font-size: 12px; text-align: left; vertical-align: middle;">Danh mục</th>
-                <th scope="col" rowspan="1" colspan="2" style="font-size: 12px; text-align: left;">Tồn kho đầu kỳ</th>
-                <th scope="col" rowspan="1" colspan="2" style="font-size: 12px; text-align: left;">Nhập kho trong kỳ</th>
+                <th scope="col" rowspan="1" colspan="2" style="font-size: 12px; text-align: center;">Tồn kho đầu kỳ</th>
+                <th scope="col" rowspan="1" colspan="2" style="font-size: 12px; text-align: center;">Nhập kho trong kỳ</th>
                 <th scope="col" rowspan="1" colspan="2" style="font-size: 12px; text-align: center;">Xuất kho trong kỳ</th>
                 <th scope="col" rowspan="1" colspan="2" style="font-size: 12px; text-align: center;">Tồn kho cuối kỳ</th>
                 <th scope="col" rowspan="2" style="font-size: 12px; text-align: left; vertical-align: middle;">Doanh thu</th>

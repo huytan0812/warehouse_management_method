@@ -71,7 +71,7 @@ urlpatterns = [
      path("reports/export_section", reports_views.reports_export_section, name="reports_export_section"),
 
      # Inventory Data section
-     path("inventory_data", inventory_data_views.inventory_data, name="inventory_data"),
+     path("inventory_data/accounting_period_id=<int:accounting_period_id>", inventory_data_views.inventory_data, name="inventory_data"),
      path("inventory_data/export_data_to_excel/accounting_period_id=<int:accounting_period_id>", inventory_data_views.export_data_to_excel, name="export_data_to_excel"),
 
      # decorators view

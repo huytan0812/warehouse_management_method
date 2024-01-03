@@ -1235,8 +1235,8 @@ def keep_current_method(request):
             is_keep = keep_method_form.cleaned_data["is_keep"]
             if is_keep == True:
                 current_warehouse_management_method = WarehouseManagementMethod.objects.filter(is_currently_applied=True)[0]
-                renew_previous_method(current_warehouse_management_method)
-                return HttpResponseRedirect(reverse('inventory_data'))
+                new_accounting_period_obj = renew_previous_method(current_warehouse_management_method)
+                return HttpResponseRedirect(reverse('inventory_data', kwargs={'accounting_period_id': new_accounting_period_obj.pk}))
             
             return HttpResponseRedirect(reverse('apply_warehouse_management'))
         
@@ -1268,9 +1268,9 @@ def apply_warehouse_management(request):
             
             activating_new_chosen_method(method)
 
-            create_new_accounting_period(method)
+            new_accounting_period_obj = create_new_accounting_period(method)
 
-            return HttpResponseRedirect(reverse('inventory_data'))
+            return HttpResponseRedirect(reverse('inventory_data', kwargs={'accounting_period_id': new_accounting_period_obj.pk}))
     
     return render(request, "major_features/apply_warehouse_management.html", context)
 
