@@ -11,6 +11,7 @@
 {% endblock %}
 
 {% block body %}
+<p><strong>{{ chosen_period_id }}</strong></p>
 <form action="{% url 'inventory_data' chosen_period_id %}" class="d-flex justify-content-start margin-form" method="POST">
     {% csrf_token %}
     <label for="accounting_period" class="col-form-label inline-margin">Kỳ kế toán: </label>
@@ -106,11 +107,20 @@
     {% endfor %}
 </ul>
 {% endif %}
+<p><strong>{{ chosen_period_id }}</strong></p>
 <form action="{% url 'export_data_to_excel' chosen_period_id %}" id="filename-excel-form" class="flex-form margin-form" style="display: none;">
     <label for="filename" class="col-form-label inline-margin">Tên file Excel: </label>
     <input type="text" name="filename" class="form-control" style="width: fit-content;" placeholder="Ví dụ: hangtonkho">
     <button type="submit" class="btn btn-secondary btn-sm inline-margin filter-bar-submit-btn" value="Xác nhận">Xác nhận</button>
 </form>
+
+{% if chosen_period_id < current_accounting_period_id %}
+<p>
+    <a href="{% url 'inventory_data' current_accounting_period_id %}">
+        Chuyển đến kỳ kế toán hiện tại
+    </a>
+</p>
+{% endif %}
 
 {% else %}
 <p><strong>{{ non_record_msg }}</strong></p>

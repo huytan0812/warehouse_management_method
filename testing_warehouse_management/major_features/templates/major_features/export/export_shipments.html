@@ -8,7 +8,11 @@
 
 {% block body %}
 <ul>
-  <li><strong style="color: black;">Phương pháp xác định giá trị hàng tồn kho đang được chọn: </strong>{{ current_method.name }}</li>
+  <li><strong style="color: black;">Phương pháp xác định giá trị hàng tồn kho đang được chọn: </strong>
+    <strong>
+      <u>{{ current_method.name }}</u>
+    </strong>
+  </li>
   <li>
     <strong style="color: black;">Tổng giá trị xuất kho của toàn bộ sản phẩm trong kỳ: </strong>{{ current_total_cogs|intcomma }} / 
     <a href="#">Xem chi tiết</a>
@@ -25,11 +29,13 @@
         <thead>
           <tr>
             <th scope="col">Mã lô hàng</th>
-            <th scope="col">Xuất cho đại lý</th>
+            <th scope="col">Đại ly</th>
+            <th scope="col">Phương pháp</th>
             <th scope="col">Ngày xuất kho</th>
-            <th scope="col">Tổng giá trị lô hàng (Đơn vị tính: VND)</th>
+            <th scope="col">Tổng giá trị lô hàng</th>
             <th scope="col">Theo dõi chi tiết</th>
             <th scope="col">Trạng thái</th>
+            <th scope="col">Thực hiện</th>
           </tr>
         </thead>
         <tbody>
@@ -37,6 +43,7 @@
           <tr>
             <td style="text-align: left;">{{ export_shipment.export_shipment_code }}</td>
             <td style="text-align: left;">{{ export_shipment.agency_id.name }}</td>
+            <td style="text-align: left;">{{ export_shipment.current_accounting_period.warehouse_management_method }}</td>
             <td style="text-align: left;">{{ export_shipment.date|date:"d/m/Y" }}</td>
             <td style="text-align: right;">{{ export_shipment.total_shipment_value|intcomma }}</td>
 
@@ -55,6 +62,7 @@
             </td>
             <td style="color: #f5c6cb;">Chưa hoàn tất</td>
             {% endif %}
+            <td>{{ export_shipment.by_admin }}</td>
 
           </tr>
           {% endfor %}
@@ -64,7 +72,7 @@
             <td  style="color: #0d6efd; background-color: white !important;"><strong>Kết quả: </strong>
               {{ results_count }} dòng
             </td>
-            <td colspan="5" style="text-align: right; background-color: white !important;">
+            <td colspan="7" style="text-align: right; background-color: white !important;">
 
               <nav aria-label="Page navigation example" style="display: inline-block; position: static;">
               <ul class="pagination" style="margin-top: 15px;">

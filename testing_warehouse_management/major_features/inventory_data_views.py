@@ -10,10 +10,11 @@ from . reports_views import validating_period_id
 from . models import *
 
 def inventory_data(request, accounting_period_id):
+    current_accounting_period_id = AccoutingPeriod.objects.select_related('warehouse_management_method').latest('id').pk
     # Default redirecting to 'inventory_data' view
     # with current accounting_period_id
     if accounting_period_id == 0:
-        accounting_period_id = AccoutingPeriod.objects.select_related('warehouse_management_method').latest('id').pk
+        accounting_period_id = current_accounting_period_id
         return HttpResponseRedirect(reverse('inventory_data', kwargs={'accounting_period_id': accounting_period_id}))
 
     if request.method == "POST":
@@ -48,6 +49,7 @@ def inventory_data(request, accounting_period_id):
 
     context = {
         'accounting_periods': accounting_periods,
+        'current_accounting_period_id': current_accounting_period_id,
         'chosen_period_id': accounting_period_id,
         'accounting_periods_inventory': accounting_periods_inventory,
 

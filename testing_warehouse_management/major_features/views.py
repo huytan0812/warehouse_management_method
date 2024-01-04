@@ -400,7 +400,7 @@ def date_handling(request):
 # Import Shipment Section
 def import_shipments(request):
 
-    import_shipments = ImportShipment.objects.select_related('supplier_id').all().order_by('-date', '-id')
+    import_shipments = ImportShipment.objects.select_related('supplier_id', 'current_accounting_period', 'by_admin').all().order_by('-date', '-id')
     import_shipments_paginator = Paginator(import_shipments, 10)
 
     page_number = request.GET.get("page")
@@ -427,7 +427,7 @@ def import_shipments(request):
     return render(request, "major_features/import/import_shipments.html", context)
 
 def import_shipment_details(request, import_shipment_code):
-    import_shipment_obj = ImportShipment.objects.get(import_shipment_code=import_shipment_code)
+    import_shipment_obj = ImportShipment.objects.select_related('current_accounting_period', 'by_admin').get(import_shipment_code=import_shipment_code)
     import_shipment_purchases = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').filter(import_shipment_id=import_shipment_obj).order_by('product_id__name', '-id')
 
     products_purchase_value = {}
@@ -480,6 +480,9 @@ def import_action(request):
     # Get the current accounting period obj
     latest_accounting_period_obj = AccoutingPeriod.objects.select_related('warehouse_management_method').latest('id')
 
+    # Get the authenticated admin
+    admin = request.user
+
     if request.method == "POST":
         import_shipment_form = ImportShipmentForm(request.POST)
         import_purchase_form = ImportPurchaseForm(request.POST)
@@ -490,6 +493,7 @@ def import_action(request):
             # Save the import shipment obj's current_accounting_period field
             # with the current accounting period obj
             import_shipment_obj.current_accounting_period = latest_accounting_period_obj
+            import_shipment_obj.by_admin = admin
             import_shipment_obj.save()
 
             # Save fields to import purchase obj
@@ -680,7 +684,7 @@ def export_shipments(request):
     Rendering all export shipments paginately
     """
 
-    export_shipments = ExportShipment.objects.select_related('agency_id').all().order_by('-date', '-id')
+    export_shipments = ExportShipment.objects.select_related('agency_id', 'current_accounting_period', 'by_admin').all().order_by('-date', '-id')
     export_shipments_paginator = Paginator(export_shipments, 10)
     page_number = request.GET.get("page")
     page_obj = export_shipments_paginator.get_page(page_number)
@@ -706,7 +710,7 @@ def export_shipments(request):
 
 def export_shipment_details(request, export_shipment_code):
     try:
-        export_shipment_obj = ExportShipment.objects.select_related('current_accounting_period', 'agency_id').get(export_shipment_code=export_shipment_code)
+        export_shipment_obj = ExportShipment.objects.select_related('agency_id', 'current_accounting_period', 'by_admin').get(export_shipment_code=export_shipment_code)
     except ExportShipment.DoesNotExist:
         raise Exception("Không tồn tại mã lô hàng xuất kho")
     
@@ -747,6 +751,9 @@ def export_action(request):
     latest_accounting_period_obj = AccoutingPeriod.objects.select_related('warehouse_management_method').latest('id')
     export_shipment_form = ExportShipmentForm()
 
+    # Get the authenticated admin
+    admin = request.user
+
     if request.method == "POST":
         export_shipment_form = ExportShipmentForm(request.POST)
 
@@ -759,6 +766,7 @@ def export_action(request):
             # Save the export shipment obj's current_accounting_period field
             # with the current accounting period obj
             export_shipment_form_obj.current_accounting_period = latest_accounting_period_obj
+            export_shipment_form_obj.by_admin = admin
             export_shipment_form_obj.save()
 
             return HttpResponseRedirect(reverse('export_order_action', kwargs={'export_shipment_code': export_shipment_code}))
@@ -776,7 +784,7 @@ def export_action(request):
 @cache_control(no_cache=True, must_revalidate=True)
 @transaction.atomic()
 def export_action_complete(request, export_shipment_code):
-    export_shipment_obj = ExportShipment.objects.select_related('current_accounting_period', 'agency_id').select_for_update(of=("self",)).filter(
+    export_shipment_obj = ExportShipment.objects.select_related('agency_id', 'current_accounting_period').select_for_update(of=("self",)).filter(
         export_shipment_code = export_shipment_code
     )
 
@@ -1234,9 +1242,10 @@ def keep_current_method(request):
         if keep_method_form.is_valid():
             is_keep = keep_method_form.cleaned_data["is_keep"]
             if is_keep == True:
-                current_warehouse_management_method = WarehouseManagementMethod.objects.filter(is_currently_applied=True)[0]
+                prev_accounting_period = AccoutingPeriod.objects.select_related('warehouse_management_method').latest('id')
+                current_warehouse_management_method = prev_accounting_period.warehouse_management_method
                 new_accounting_period_obj = renew_previous_method(current_warehouse_management_method)
-                return HttpResponseRedirect(reverse('inventory_data', kwargs={'accounting_period_id': new_accounting_period_obj.pk}))
+                return HttpResponseRedirect(reverse('inventory_data', kwargs={'accounting_period_id': prev_accounting_period.pk}))
             
             return HttpResponseRedirect(reverse('apply_warehouse_management'))
         
@@ -1263,14 +1272,20 @@ def apply_warehouse_management(request):
             except WarehouseManagementMethod.DoesNotExits:
                 raise Exception("Không tồn tại Phương pháp xác định giá trị hàng tồn kho")
             
+            prev_accounting_period_pk = None
             if WarehouseManagementMethod.objects.filter(is_currently_applied=True).count() == 1:
                 deactivating_previous_method()
+                prev_accounting_period_pk = AccoutingPeriod.objects.select_related('warehouse_management_method').latest('id').pk
             
             activating_new_chosen_method(method)
 
             new_accounting_period_obj = create_new_accounting_period(method)
+            redirect_accounting_period_pk = new_accounting_period_obj.pk
 
-            return HttpResponseRedirect(reverse('inventory_data', kwargs={'accounting_period_id': new_accounting_period_obj.pk}))
+            if prev_accounting_period_pk:
+                redirect_accounting_period_pk = prev_accounting_period_pk
+
+            return HttpResponseRedirect(reverse('inventory_data', kwargs={'accounting_period_id': redirect_accounting_period_pk}))
     
     return render(request, "major_features/apply_warehouse_management.html", context)
 
@@ -1313,6 +1328,8 @@ def deactivating_previous_method():
     Deactivating WarehouseManagmentMethod object's
     is_currently_applied to True
     """
+    # In the database, only one WarehouseManagementMethod object
+    # must have the field 'is_currently_applied' is True
     previous_chosen_method = WarehouseManagementMethod.objects.filter(is_currently_applied=True)[0]
     previous_chosen_method.is_currently_applied = False
     previous_chosen_method_save_obj = previous_chosen_method.save(update_fields=["is_currently_applied"])

@@ -3,11 +3,22 @@
 {% load humanize %}
 
 {% block title %}
-<h2>Trang nhập kho</h2>
+<h3 style="text-align: center; margin-top: 15px; margin-bottom: 15px;">Chi tiết lô hàng nhập kho {{ import_shipment_obj.import_shipment_code }}</h3>
 {% endblock %}
 
 {% block body %}
-<h3>Chi tiết lô hàng nhập kho {{ import_shipment_obj.import_shipment_code }}</h3>
+<div>
+  <p>
+    Phương pháp xác định giá trị Hàng tồn kho: <strong>{{ import_shipment_obj.current_accounting_period.warehouse_management_method }}</strong>
+  </p>
+  <p>
+    <strong>Thời gian: </strong>
+    Từ {{ import_shipment_obj.current_accounting_period.date_applied|date:"d/m/Y" }} đến {{ import_shipment_obj.current_accounting_period.date_end|date:"d/m/Y" }}
+  </p>
+  <p>
+    Thực hiện nhập kho bởi <strong>{{ import_shipment_obj.by_admin }}</strong>
+  </p>
+</div>
 <div id="import-shipment-details" style="margin-top: 20px; margin-bottom: 20px;">
     <table class="table table-bordered table-striped table-dark w-auto" style="margin: auto;">
       <caption>Chi tiết các đơn hàng trong lô hàng nhập kho {{ import_shipment_obj.import_shipment_code }}</caption>
