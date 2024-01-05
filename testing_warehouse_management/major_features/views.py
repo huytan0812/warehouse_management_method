@@ -225,6 +225,9 @@ def vntz_to_utc():
     current_time_utc = UTC.localize(current_time)
     return current_time_utc
 
+# ~~~~~~~~~~~~~~~~~~~~~
+# Registration section
+
 def login_view(request):
     if request.method == "POST":
 
@@ -300,6 +303,28 @@ def user_activities(request):
         'results_count': results_count
     }
     return render(request, "major_features/registration/user_activities.html", context)
+
+def staffs(request):
+    staffs = User.objects.all()
+    context = {
+        'staffs': staffs
+    }
+    return render(request, "major_features/registration/staffs.html", context)
+
+def staff_information(request, staff_id):
+    try:
+        staff = User.objects.get(pk=staff_id)
+    except User.DoesNotExist:
+        raise Exception("Không tồn tại nhân viên")
+    
+    context = {
+        'staff': staff
+    }
+
+    return render(request, "major_features/registration/staff_information.html", context)
+
+# ~~~~~~~~~~~~~~~~~~~
+# End Registration section
 
 def products(request):
     current_accounting_period = AccoutingPeriod.objects.latest('id')

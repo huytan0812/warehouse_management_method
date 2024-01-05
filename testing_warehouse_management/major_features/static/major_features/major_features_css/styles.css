@@ -197,9 +197,20 @@ input {
 
 #user-activities {
     padding: 10px;
+    border-right: 2px #01257D solid;
 }
 
 #user-activities:hover a{
+    color: #01257D;
+    font-weight: 600;
+    transition: 0.3s;
+}
+
+#staff-information {
+    padding: 10px;
+}
+
+#staff-information:hover a{
     color: #01257D;
     font-weight: 600;
     transition: 0.3s;
@@ -242,4 +253,12 @@ input {
 .margin-form {
     margin-top: 15px;
     margin-bottom: 15px;
+}
+
+.card {
+    width: 500px;
+    padding: 15px 15px 15px 15px;
+    border: 2px solid #01257D;
+    border-radius: 4px;
+    box-shadow: 0 0 10px #7CB9E8;
 }

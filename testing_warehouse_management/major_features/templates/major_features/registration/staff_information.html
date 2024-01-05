@@ -1,15 +1,14 @@
 {% extends "major_features/layout.html" %}
 
+{% load humanize %}
+
+{% load custom_filters %}
+
 {% block title %}
-<h3 style="margin-top: 10px; text-align: center;">Trang đăng ký tài khoản admin</h3>
+<h3 style="text-align: center; margin-top: 15px; margin-bottom: 15px;">Chi tiết hoạt động của nhân viên {{ staff.username }}</h3>
 {% endblock %}
 
 {% block body %}
-
-{% if message %}
-    <p>{{ message }}</p>
-{% endif %}
-
 <div id="admin-management">
 
     {% if 'register' in request.resolver_match.url_name %}
@@ -44,23 +43,21 @@
 
 </div>
 
-<div class="container d-flex justify-content-center" style="margin-top: 15px;">
-    <div class="form-container">
-        <form action="{% url 'register' %}" method="post" class="registration-form">
-            {% csrf_token %}
-            <div class="form-group">
-                <fieldset>
-
-                    <legend>Cấp tài khoản cho nhân viên:</legend>
-                
-                    <input class="form-control registration-input" autofocus type="text" name="username" placeholder="Tên đăng nhập">
-                    <input class="form-control registration-input" type="password" name="password" placeholder="Mật khẩu">
-                    <input class="form-control registration-input" type="password" name="confirmation" placeholder="Xác nhận mật khẩu">
-
-                </fieldset>
-            </div>
-            <button type="submit" class="submit-button">Đăng ký</button>
-        </form>
+<div class="container d-flex justify-content-center" style="margin-top: 15px; margin-bottom: 15px;">
+    <div class="card">
+        <p><strong>Username: </strong>{{ staff.username }}</p>
+        <p><strong>Họ: </strong>{{ staff.first_name }}</p>
+        <p><strong>Tên: </strong>{{ staff.last_name }}</p>
+        <p><strong>Email: </strong>{{ staff.email }}</p>
+        <p><strong>Ngày tạo: </strong>{{ staff.date_joined|date:"d/m/Y - h:i:s" }}</p>
+        <p>
+            <strong>Trạng thái: </strong>
+            {% if staff.is_active == True %}
+            <span style="color: green;">Đã kích hoạt</span>
+            {% else %}
+            <span style="color: red;">Chưa kích hoạt</span>
+            {% endif %}
+        </p>
     </div>
 </div>
 {% endblock %}

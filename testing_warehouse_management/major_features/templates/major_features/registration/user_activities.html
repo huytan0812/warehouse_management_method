@@ -10,21 +10,31 @@
 
     {% if 'register' in request.resolver_match.url_name %}
     <div id="register">
-        <a style="text-decoration: none;" class="active-a" href="{% url 'register' %}">Cấp tài khoản cho nhân viên</a>
+        <a style="text-decoration: none;" class="active-a" href="{% url 'register' %}">Cấp tài khoản nhân viên</a>
     </div>
     {% else %}
     <div id="register">
-        <a style="text-decoration: none;" href="{% url 'register' %}">Cấp tài khoản cho nhân viên</a>
+        <a style="text-decoration: none;" href="{% url 'register' %}">Cấp tài khoản nhân viên</a>
     </div>
     {% endif %}
 
     {% if 'user_activities' in request.resolver_match.url_name %}
     <div id="user-activities">
-        <a style="text-decoration: none;" class="active-a" href="{% url 'user_activities' %}">Theo dõi các phiên hoạt động của nhân viên</a>
+        <a style="text-decoration: none;" class="active-a" href="{% url 'user_activities' %}">Theo dõi phiên hoạt động của nhân viên</a>
     </div>
     {% else %}
     <div id="user-activities">
-        <a style="text-decoration: none;" href="{% url 'user_activities' %}">Theo dõi các phiên hoạt động của nhân viên</a>
+        <a style="text-decoration: none;" href="{% url 'user_activities' %}">Theo dõi phiên hoạt động của nhân viên</a>
+    </div>
+    {% endif %}
+
+    {% if 'staff' in request.resolver_match.url_name %}
+    <div id="staff-information">
+        <a style="text-decoration: none;" class="active-a" href="{% url 'staffs' %}">Thông tin nhân viên</a>
+    </div>
+    {% else %}
+    <div id="staff-information">
+        <a style="text-decoration: none;" href="{% url 'staffs' %}">Thông tin nhân viên</a>
     </div>
     {% endif %}
 
@@ -43,7 +53,9 @@
         <tbody>
             {% for user_activity in page_obj %}
             <tr>
-                <th scope="row">{{ user_activity.user_id.username }}</th>
+                <th scope="col">
+                    <a href="{% url 'staff_information' user_activity.user_id.pk %}" style="text-decoration: none;">{{ user_activity.user_id.username }}</a>
+                </th>
                 <td>{{ user_activity.login_time|date:"d/m/Y - H:i:s" }}</td>
                 <td>{{ user_activity.logout_time|date:"d/m/Y - H:i:s" }}</td>
                 <td>{{ user_activity.get_diff_str_login_logout_time }}</td>

@@ -1,15 +1,10 @@
 {% extends "major_features/layout.html" %}
 
 {% block title %}
-<h3 style="margin-top: 10px; text-align: center;">Trang đăng ký tài khoản admin</h3>
+<h3 style="text-align: center; margin-top: 15px; margin-bottom: 15px;">Thông tin nhân viên</h3>
 {% endblock %}
 
 {% block body %}
-
-{% if message %}
-    <p>{{ message }}</p>
-{% endif %}
-
 <div id="admin-management">
 
     {% if 'register' in request.resolver_match.url_name %}
@@ -43,24 +38,12 @@
     {% endif %}
 
 </div>
-
-<div class="container d-flex justify-content-center" style="margin-top: 15px;">
-    <div class="form-container">
-        <form action="{% url 'register' %}" method="post" class="registration-form">
-            {% csrf_token %}
-            <div class="form-group">
-                <fieldset>
-
-                    <legend>Cấp tài khoản cho nhân viên:</legend>
-                
-                    <input class="form-control registration-input" autofocus type="text" name="username" placeholder="Tên đăng nhập">
-                    <input class="form-control registration-input" type="password" name="password" placeholder="Mật khẩu">
-                    <input class="form-control registration-input" type="password" name="confirmation" placeholder="Xác nhận mật khẩu">
-
-                </fieldset>
-            </div>
-            <button type="submit" class="submit-button">Đăng ký</button>
-        </form>
-    </div>
+<div style="margin-top: 15px; margin-bottom: 15px;">
+    {% for staff in staffs %}
+    <p>
+        <strong>{{ staff.username }}</strong>
+        <a href="{% url 'staff_information' staff.pk %}" style="text-decoration: none;">Chi tiết</a>
+    </p>
+    {% endfor %}
 </div>
 {% endblock %}
