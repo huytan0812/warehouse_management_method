@@ -1,0 +1,43 @@
+{% extends "major_features/layout.html" %}
+
+{% block title %}
+<h3 style="text-align: center; margin-top: 15px; margin-bottom: 15px;">Chỉnh sửa thông tin của nhân viên {{ staff.username }}</h3>
+{% endblock %}
+
+{% block body %}
+<div class="container d-flex justify-content-center">
+    <div class="form-container">
+        <form action="{% url 'edit_staff_information' staff.pk %}" method="post" class="shipment-form">
+            {% csrf_token %}
+            <fieldset>
+                <legend>Chỉnh sửa thông tin nhân viên {{ staff.username }}</legend>
+            </fieldset>
+            {% for field in edit_staff_info_form %}
+            <div class="form-group">
+                <label for="{{ field.auto_id }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.html_name == 'is_active' %}
+                    {% if field.value == True %}
+                    <p style="margin-top: 10px; margin-bottom: 10px;">
+                        Trạng thái: <span style="color: green;">Đã kích hoạt</span>
+                    </p>
+                    <p style="margin-top: 10px; margin-bottom: 10px;">
+                        Hủy kích hoạt sẽ làm cho tài khoản này không thể đăng nhập được
+                    </p>
+                    {% else %}
+                    <p style="margin-top: 10px; margin-bottom: 10px;">
+                        Trạng thái: <span style="color: red;">Chưa kích hoạt</span>
+                    </p>
+                    <p style="margin-top: 10px; margin-bottom: 10px;">
+                        Kích hoạt sẽ làm cho tài khoản này có thể đăng nhập được
+                    </p>
+                    {% endif %}
+                {% endif %}
+            </div>
+            {% endfor %}
+
+            <button type="submit" class="submit-button">Xác nhận</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

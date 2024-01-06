@@ -1,11 +1,7 @@
 {% extends "major_features/layout.html" %}
 
-{% load humanize %}
-
-{% load custom_filters %}
-
 {% block title %}
-<h3 style="text-align: center; margin-top: 15px; margin-bottom: 15px;">Chi tiết hoạt động của nhân viên {{ staff.username }}</h3>
+<h3 style="text-align: center; margin-top: 15px; margin-bottom: 15px;">Chi tiết thông tin của nhân viên {{ staff.username }}</h3>
 {% endblock %}
 
 {% block body %}
@@ -45,7 +41,12 @@
 
 <div class="container d-flex justify-content-center" style="margin-top: 15px; margin-bottom: 15px;">
     <div class="card">
-        <p><strong>Username: </strong>{{ staff.username }}</p>
+        <p>
+            <strong>Username: </strong>{{ staff.username }}
+            {% if staff.is_superuser %}
+            - <strong>Admin</strong>
+            {% endif %}
+        </p>
         <p><strong>Họ: </strong>{{ staff.first_name }}</p>
         <p><strong>Tên: </strong>{{ staff.last_name }}</p>
         <p><strong>Email: </strong>{{ staff.email }}</p>
@@ -60,4 +61,7 @@
         </p>
     </div>
 </div>
+<p>
+    <a href="{% url 'edit_staff_information' staff.pk %}">Chỉnh sửa thông tin nhân viên</a>
+</p>
 {% endblock %}

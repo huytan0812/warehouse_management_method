@@ -15,7 +15,8 @@ urlpatterns = [
      path("register", views.register, name="register"),
      path("user_activities", views.user_activities, name="user_activities"),
      path("staff_information", views.staffs, name="staffs"),
-     path("staff_information/staff_id=<staff_id>", views.staff_information, name="staff_information"),
+     path("staff_information/staff_id=<int:staff_id>", views.staff_information, name="staff_information"),
+     path("edit_staff_information/staff_id=<int:staff_id>", views.edit_staff_information, name="edit_staff_information"),
 
      path("date_handling", views.date_handling, name="date_handling"),
      path("apply_warehouse_management", views.apply_warehouse_management, name="apply_warehouse_management"),

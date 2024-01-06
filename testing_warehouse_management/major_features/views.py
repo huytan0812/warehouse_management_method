@@ -323,6 +323,34 @@ def staff_information(request, staff_id):
 
     return render(request, "major_features/registration/staff_information.html", context)
 
+def edit_staff_information(request, staff_id):
+    try:
+        staff = User.objects.get(pk=staff_id)
+    except User.DoesNotExist:
+        raise Exception("Không tồn tại nhân viên")
+    
+    edit_staff_info_form = EditUserInfoForm(instance=staff)
+
+    if request.method == "POST":
+        edit_bound_staff_info_form = EditUserInfoForm(request.POST, instance=staff)
+
+        if edit_bound_staff_info_form.is_valid():
+            edit_bound_staff_info_form.save()
+            success_msg = f"Chỉnh sửa thông tin cho nhân viên {staff.username}"
+            messages.success(request, success_msg)
+            return HttpResponseRedirect(reverse('staff_information', kwargs={'staff_id': staff_id}))
+        
+        messages.error(request, edit_bound_staff_info_form.errors)
+        return render(request, "major_features/registration/edit_staff_information.html", {
+            'edit_staff_info_form': edit_staff_info_form
+        })
+    
+    context = {
+        'staff': staff,
+        'edit_staff_info_form': edit_staff_info_form
+    }
+    return render(request, "major_features/registration/edit_staff_information.html", context)
+
 # ~~~~~~~~~~~~~~~~~~~
 # End Registration section
 

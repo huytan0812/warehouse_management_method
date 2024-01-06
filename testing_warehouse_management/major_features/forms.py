@@ -434,3 +434,42 @@ class AddCategoryForm(ModelForm):
             'name': "Tên danh mục",
             'parent': "Danh mục gốc"
         }
+
+
+class EditUserInfoForm(ModelForm):
+    class Meta:
+        model = User
+        fields = ["first_name", "last_name", "email", "is_active"]
+        widgets = {
+            'first_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': "Họ", 'required': False}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': "Tên", 'required': False}),
+            'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': "Email", 'required': False}),
+            'is_active': forms.CheckboxInput(attrs={'required': False})
+        }
+        labels = {
+            'first_name': "Họ",
+            'last_name': "Tên",
+            'email': "Email"
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.instance = None
+
+        if "instance" in kwargs:
+            self.instance = kwargs["instance"]
+
+        active_state = False
+        if self.instance:
+            active_state = self.check_admin_state(self.instance)
+
+        if active_state == True:
+            self.fields["is_active"].label = "Hủy kích hoạt"
+        else:
+            self.fields["is_active"].label = "Kích hoạt"
+
+    def check_admin_state(self, instance):
+        if instance.is_active == True:
+            return True
+        return False
