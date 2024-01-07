@@ -45,6 +45,8 @@
             <strong>Username: </strong>{{ staff.username }}
             {% if staff.is_superuser %}
             - <strong>Admin</strong>
+            {% else %}
+            - <strong>Nhân viên</strong>
             {% endif %}
         </p>
         <p><strong>Họ: </strong>{{ staff.first_name }}</p>

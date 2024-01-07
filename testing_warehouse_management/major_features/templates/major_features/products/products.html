@@ -7,45 +7,41 @@
 {% endblock %}
 
 {% block body %}
-<div id="products-container">
-    <table class="table table-bordered table-striped table-dark">
-      <caption>Bảng thống kê giá trị tồn kho hiện tại của từng sản phẩm</caption>
-        <thead>
-          <tr>
-            <th scope="col" style="text-align: left;">Mã SP</th>
-            <th scope="col" style="text-align: left;">Tên SP</th>
-            <th scope="col" style="text-align: left;">SL tồn kho tối thiểu</th>
-            <th scope="col" style="text-align: left;">Thực hiện</th>
-            <th scope="col" style="text-align: right;">Số lượng tồn kho</th>
-            <th scope="col" style="text-align: right;">Giá trị tồn kho</th>
-            <th scope="col" style="text-align: right; max-width: 300px;">Ghi chú</th>
-          </tr>
-        </thead>
-        <tbody>
-            {% for product in products_inventory %}
-            {% if product.is_below_minimum_quantity %}
-            <tr style="color: rgb(252, 32, 32);">
-            {% else %}
-            <tr style="color: #31e05a">
-            {% endif %}
-              <td scope="col">{{ product.product_id.sku }}</td>
-              <td scope="col">{{ product.product_id.name }}</td>
-              <td scope="col">{{ product.product_id.minimum_quantity }}</td>
-              <td scope="col"><a href="{% url 'edit_product' product.product_id.sku %}" style="color: #00FFFF;">Sửa</a></td>
-              <td scope="col" style="text-align: right;">{{ product.ending_quantity|intcomma }}</td>
-              <td scope="col" style="text-align: right;">{{ product.ending_inventory|intcomma }}</td>
-              {% if product.is_below_minimum_quantity %}
-              <td scope="col" style="text-align: right; max-width: 300px;">
-                SL sản phẩm tồn kho thấp hơn mức tối thiểu.
-                Cần lưu ý đặt thêm hàng
-              </td>
-              {% else %}
-              <td scope="col" style="text-align: right; max-width: 300px;"></td>
-              {% endif %}
+<div class="container d-flex justify-content-center">
+  <div id="products-container">
+      <table class="table table-bordered table-striped table-dark" style="width: fit-content;">
+        <caption>Bảng thống kê giá trị tồn kho hiện tại của từng sản phẩm</caption>
+          <thead>
+            <tr>
+              <th scope="col" style="text-align: left;">Mã SP</th>
+              <th scope="col" style="text-align: left;">Tên SP</th>
+              <th scope="col" style="text-align: left;">SL tồn kho tối thiểu</th>
+              <th scope="col" style="text-align: left;">Thực hiện</th>
+              <th scope="col" style="text-align: right;">Số lượng tồn kho</th>
+              <th scope="col" style="text-align: right;">Giá trị tồn kho</th>
             </tr>
-            {% endfor %}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+              {% for product in products_inventory %}
+              <tr>
+                <td scope="col"><strong>{{ product.product_id.sku }}</strong></td>
+                <td scope="col"><strong>{{ product.product_id.name }}</strong></td>
+                <td scope="col">{{ product.product_id.minimum_quantity }}</td>
+                <td scope="col"><a href="{% url 'edit_product' product.product_id.sku %}" style="color: #00FFFF;">Sửa</a></td>
+                {% if product.is_below_minimum_quantity %}
+                <td scope="col" style="text-align: right; color: red;">{{ product.ending_quantity|intcomma }}*</td>
+                {% else %}
+                <td scope="col" style="text-align: right; color: rgb(25, 197, 25);">{{ product.ending_quantity|intcomma }}</td>
+                {% endif %}
+                <td scope="col" style="text-align: right;">{{ product.ending_inventory|intcomma }}</td>
+              </tr>
+              {% endfor %}
+          </tbody>
+        </table>
+  </div>
+</div>
+<div class="alert alert-danger" role="alert">
+  *: Số lượng hàng tồn kho của sản phẩm này đang ở dưới mức tồn kho tối thiểu. Lưu ý cần nhập thêm hàng hóa cho sản phẩm này
 </div>
 <a href="{% url 'add_product' %}">Thêm sản phẩm khác</a>
 {% endblock %}

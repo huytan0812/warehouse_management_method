@@ -264,6 +264,9 @@ def logout_view(request):
 
 
 def register(request):
+    if request.user.is_superuser == False:
+        return render(request, "major_features/alerts/permissions_alert.html", {})
+    
     if request.method == "POST":
         username = request.POST["username"]
 
@@ -290,6 +293,9 @@ def register(request):
     return render(request, "major_features/registration/register.html")
 
 def user_activities(request):
+    if request.user.is_superuser == False:
+        return render(request, "major_features/alerts/permissions_alert.html", {})
+
     user_activities = UserActivity.objects.select_related('user_id').order_by('-login_time')
     user_activities_paginator = Paginator(user_activities, 10)
 
@@ -305,6 +311,9 @@ def user_activities(request):
     return render(request, "major_features/registration/user_activities.html", context)
 
 def staffs(request):
+    if request.user.is_superuser == False:
+        return render(request, "major_features/alerts/permissions_alert.html", {})
+
     staffs = User.objects.all()
     context = {
         'staffs': staffs
@@ -312,6 +321,8 @@ def staffs(request):
     return render(request, "major_features/registration/staffs.html", context)
 
 def staff_information(request, staff_id):
+    if request.user.is_superuser == False:
+        return render(request, "major_features/alerts/permissions_alert.html", {})
     try:
         staff = User.objects.get(pk=staff_id)
     except User.DoesNotExist:
@@ -324,6 +335,9 @@ def staff_information(request, staff_id):
     return render(request, "major_features/registration/staff_information.html", context)
 
 def edit_staff_information(request, staff_id):
+    if request.user.is_superuser == False:
+        return render(request, "major_features/alerts/permissions_alert.html", {})
+
     try:
         staff = User.objects.get(pk=staff_id)
     except User.DoesNotExist:
