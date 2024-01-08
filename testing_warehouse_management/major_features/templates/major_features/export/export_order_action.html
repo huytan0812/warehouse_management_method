@@ -5,8 +5,14 @@
 {% endblock %}
 
 {% block body %}
+
 <h3>Đơn xuất kho sản phẩm theo lô hàng {{ export_shipment.export_shipment_code }}</h3>
 <p>Phương pháp tính giá xuất kho hiện tại: <strong>{{ current_method.name }}</strong></p>
+{% if messages %}
+  {% for message in messages %}
+    <p style="text-align: center; color: red;">{{ message }}</p>
+  {% endfor %}
+{% endif %}
 <div class="container d-flex justify-content-center">
     <div class="form-container">
       <form action="{% url 'export_order_action' export_shipment_code %}" method="post" class="shipment-form">

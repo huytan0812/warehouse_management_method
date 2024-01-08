@@ -943,6 +943,7 @@ def export_order_action(request, export_shipment_code):
         if export_order_form.is_valid():
 
             export_order_form_obj = export_order_form.save(commit=False)
+
             export_order_form_obj.export_shipment_id = export_shipment_obj
             export_order_form_obj.save()
 
@@ -962,7 +963,8 @@ def export_order_action(request, export_shipment_code):
                 
             return HttpResponseRedirect(reverse('complete_export_order_by_inventory', kwargs={'export_order_id': export_order_form_obj.id}))
 
-        return HttpResponse("Invalid Form", content_type="text/plain")
+        messages.error(request, "Số lượng xuất kho của sản phẩm vượt quá Số lượng HTK của sản phẩm")
+        return HttpResponseRedirect(reverse('export_order_action', kwargs={'export_shipment_code': export_shipment_code}))
 
     context = {
         'export_shipment_code': export_shipment_code,

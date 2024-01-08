@@ -104,7 +104,6 @@
             <p style="color: green;">{{ message }}</p>
         {% endif %}
     {% endfor %}
-</ul>
 {% endif %}
 <form action="{% url 'export_data_to_excel' chosen_period_id %}" id="filename-excel-form" class="flex-form margin-form" style="display: none;">
     <label for="filename" class="col-form-label inline-margin">Tên file Excel: </label>
