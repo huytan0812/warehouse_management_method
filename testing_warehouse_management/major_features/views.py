@@ -848,6 +848,15 @@ def export_action(request):
 
     return render(request, "major_features/export/export_action.html", context)
 
+def delete_unfinish_export_shipment(request, export_shipment_code):
+    try:
+        export_shipment_obj = ExportShipment.objects.get(export_shipment_code=export_shipment_code)
+    except ExportShipment.DoesNotExist:
+        raise Exception("Không tồn tại mã lô hàng xuất kho")
+    
+    export_shipment_obj.delete()
+    return HttpResponseRedirect(reverse('export_shipments'))
+
 @cache_control(no_cache=True, must_revalidate=True)
 @transaction.atomic()
 def export_action_complete(request, export_shipment_code):

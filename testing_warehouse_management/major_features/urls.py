@@ -45,6 +45,7 @@ urlpatterns = [
      path("export_shipments", views.export_shipments, name="export_shipments"),
      path("export_shipment_details/<str:export_shipment_code>", views.export_shipment_details, name="export_shipment_details"),
      path("export_action", views.export_action, name="export_action"),
+     path("export_shipment_delete/export_shipment=<str:export_shipment_code>", views.delete_unfinish_export_shipment, name="delete_export_shipment"),
      path("export_action_complete/<str:export_shipment_code>", views.export_action_complete, name="export_action_complete"),
      path("export_action/export_order_action/<str:export_shipment_code>", views.export_order_action, name="export_order_action"),
      path("export_action/type_of_inventory/<int:export_order_id>", views.choose_type_of_inventory, name="choose_type_of_inventory"),

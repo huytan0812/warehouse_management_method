@@ -52,11 +52,11 @@
             <td style="color: #c3e6cb">Đã hoàn tất</td>
             {% else %}
             <td>
-              <a href="#">
+              <a href="{% url 'delete_export_shipment' export_shipment.export_shipment_code %}">
                 Xóa  
               </a>
               <span> / </span>
-              <a href="#">
+              <a href="{% url 'export_order_action' export_shipment.export_shipment_code %}">
                 Tiếp tục
               </a>
             </td>

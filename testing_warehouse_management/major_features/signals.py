@@ -40,6 +40,13 @@ def create_product_inventory(sender, instance, created, **kwargs):
 
 @receiver(post_delete, sender=ExportOrder)
 def return_inventory(sender, instance, **kwargs):
+    """
+    Return 'total_cogs', 'total_quantity_export',
+    'ending_inventory', 'ending_quantity',
+    'total_revenue' fields
+    for the product's AccountingPeriodInventory object
+    """
+
     if instance.export_shipment_id.total_shipment_value == 0:
         # do nothing
         return
@@ -54,10 +61,15 @@ def return_inventory(sender, instance, **kwargs):
         product_accounting_inventory_obj.total_quantity_export -= instance.quantity_export
         product_accounting_inventory_obj.ending_inventory += instance.total_order_value
         product_accounting_inventory_obj.ending_quantity += instance.quantity_export
-        product_accounting_inventory_obj.save(update_fields=["total_cogs", "total_quantity_export", "ending_inventory", "ending_quantity"])
+        product_accounting_inventory_obj.total_revenue -= instance.quantity_export * instance.unit_price
+        product_accounting_inventory_obj.save(update_fields=["total_cogs", "total_quantity_export", "ending_inventory", "ending_quantity", "total_revenue"])
 
 @receiver(post_delete, sender=ExportOrderDetail)
 def return_quantity_for_import_purchase(sender, instance, **kwargs):
+    """
+    Return the quantity for the import purchase
+    after deleting an ExportOrderDetail object
+    """
     with transaction.atomic():
         # ImportPurchase section
         involving_import_purchase = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').select_for_update(of=("self", "import_shipment_id")).get(
