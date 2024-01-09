@@ -187,8 +187,9 @@ class FilteringInventory(forms.Form):
         if self.product != None:
             product_obj = Product.objects.get(name=self.product)
             import_shipments = import_shipments.filter(
-                importpurchase_import_purchases_package__product_id = product_obj
-            ).order_by('import_shipment_code').distinct('import_shipment_code')
+                importpurchase_import_purchases_package__product_id = product_obj,
+                importpurchase_import_purchases_package__quantity_remain__gt = 0
+            ).order_by('pk').distinct('pk')
 
         self.fields['import_shipments'].queryset = import_shipments
 

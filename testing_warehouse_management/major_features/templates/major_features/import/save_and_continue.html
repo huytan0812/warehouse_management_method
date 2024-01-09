@@ -34,8 +34,8 @@
       <tr>
         <td>{{ import_purchase.pk }}</td>
         <td>{{ import_purchase.product_id.name }}</td>
-        <td>{{ import_purchase.quantity_import }}</td>
-        <td>{{ import_purchase.import_cost }}</td>
+        <td>{{ import_purchase.quantity_import|intcomma }}</td>
+        <td>{{ import_purchase.import_cost|intcomma }}</td>
         <td>{{ import_purchase.quantity_import|multiply:import_purchase.import_cost|intcomma }}</td>
         <td>
           <a href="{% url 'import_purchase_update' import_purchase.id %}">Sửa</a> / 
