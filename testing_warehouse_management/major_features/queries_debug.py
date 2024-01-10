@@ -1842,3 +1842,135 @@ def check_product_current_quantity():
 
     for connection_query in connection.queries:
         print(connection_query)
+
+@query_debugger
+def equalizing_ending_inventory():
+    current_accounting_period = AccoutingPeriod.objects.select_related('warehouse_management_method').latest('id')
+    products_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').filter(
+        accounting_period_id = current_accounting_period
+    )
+    summarizing_products_inventory = products_inventory.aggregate(
+        total_starting_quantity = Sum("starting_quantity"),
+        total_starting_inventory = Sum("starting_inventory"),
+        total_import_quantity = Sum("import_quantity"),
+        total_import_inventory = Sum("import_inventory"),
+        total_export_quantity = Sum("total_quantity_export"),
+        total_products_cogs = Sum("total_cogs"),
+        total_ending_quantity = Sum("ending_quantity"),
+        total_ending_inventory = Sum("ending_inventory"),
+        total_products_revenue = Sum("total_revenue"),
+        total_gross_profits = Sum("total_revenue") - Sum("total_cogs")
+    )
+    total_starting_quantity = summarizing_products_inventory["total_starting_quantity"]
+    total_starting_inventory = summarizing_products_inventory["total_starting_inventory"]
+    total_import_quantity = summarizing_products_inventory["total_import_quantity"]
+    total_import_inventory = summarizing_products_inventory["total_import_inventory"]
+    total_export_quantity = summarizing_products_inventory["total_export_quantity"]
+    total_products_cogs = summarizing_products_inventory["total_products_cogs"]
+    total_ending_quantity = summarizing_products_inventory["total_ending_quantity"]
+    total_ending_inventory = summarizing_products_inventory["total_ending_inventory"]
+    total_products_revenue = summarizing_products_inventory["total_products_revenue"]
+    total_gross_profits = summarizing_products_inventory["total_gross_profits"]
+
+    calculated_ending_quantity = total_starting_quantity + total_import_quantity - total_export_quantity
+    if calculated_ending_quantity != total_ending_quantity:
+        return False
+    print(f"Success ending quantity: {calculated_ending_quantity} = {total_ending_quantity}")
+    print("------------------------")
+
+    calculated_ending_inventory = total_starting_inventory + total_import_inventory - total_products_cogs
+    if calculated_ending_inventory != total_ending_inventory:
+        return False
+    print(f"Success ending inventory: {calculated_ending_inventory} = {total_ending_inventory}")
+    print("------------------------")
+
+    calculated_gross_profits = total_products_revenue - total_products_cogs
+    if calculated_gross_profits != total_gross_profits:
+        return False
+    print(f"Success gross profits: {calculated_gross_profits} = {total_gross_profits}")
+    print("------------------------")
+
+    for connection_query in connection.queries:
+        print(connection_query)
+
+    return True
+
+def check_all_products_total_import_inventory():
+    products = Product.objects.all()
+    for product in products:
+        print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+        print(product.name)
+        result = check_each_product_total_import_inventory(product.pk)
+        if not result:
+            return False
+        print(result)
+        print("~~~~~~~~~~~~~~~~~~~~")
+        
+    return True
+
+@query_debugger
+def check_each_product_total_import_inventory(product_id):
+    current_accounting_period = AccoutingPeriod.objects.select_related('warehouse_management_method').latest('id')
+    product_import_purchases = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').filter(
+        import_shipment_id__current_accounting_period = current_accounting_period,
+        product_id = product_id
+    )
+    summarizing_import_purchases = product_import_purchases.aggregate(
+        total_product_import_quantity = Sum("quantity_import"),
+        total_product_import_inventory = Sum("value_import")
+    )
+    summarizing_import_quantity = summarizing_import_purchases["total_product_import_quantity"]
+    summarizing_import_inventory = summarizing_import_purchases["total_product_import_inventory"]
+    if summarizing_import_quantity is None:
+        summarizing_import_quantity = 0
+
+    if summarizing_import_inventory is None:
+        summarizing_import_inventory = 0
+
+    product_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').filter(
+        accounting_period_id = current_accounting_period,
+        product_id = product_id
+    )
+    product_inventory_obj = product_inventory[0]
+    
+    if summarizing_import_quantity != product_inventory_obj.import_quantity:
+        return False
+    print(f"Success Import quantity: {summarizing_import_quantity} = {product_inventory_obj.import_quantity}")
+    print("---------------------")
+
+    if summarizing_import_inventory != product_inventory_obj.import_inventory:
+        return False
+    print(f"Success Import Inventory: {summarizing_import_inventory} = {product_inventory_obj.import_inventory}")
+    print("---------------------")
+
+    for connection_query in connection.queries:
+        print(connection_query)
+
+    return True
+
+def check_all_products_export_value():
+    products = Product.objects.all()
+    for product in products:
+        print("~~~~~~~~~~~~~~~~~")
+        print(product.name)
+
+@query_debugger
+def check_each_product_export_value(product_id):
+    current_accounting_period = AccoutingPeriod.objects.select_related('warehouse_management_method').latest('id')
+    product_export_orders = ExportOrder.objects.select_related('export_shipment_id', 'product_id').filter(
+        export_shipment_id__current_accounting_period = current_accounting_period,
+        product_id = product_id
+    )
+    summarizing_export_orders = product_export_orders.aggregate(
+        total_product_quantity_export = Sum("quantity_export"),
+        total_product_cogs = Sum("total_order_value")
+    )
+
+    total_product_quantity_export = summarizing_export_orders["total_product_quantity_export"]
+    total_product_cogs = summarizing_export_orders["total_product_cogs"]
+
+    product_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').filter(
+        current_accounting_period = current_accounting_period,
+        product_id = product_id
+    )
+    product_inventory_obj = product_inventory[0]
