@@ -2036,3 +2036,90 @@ def check_each_product_ending_inventory(product_id):
         print(connection_query)
 
     return True
+
+def check_all_products_revenue():
+    products = Product.objects.all()
+    for product in products:
+        print("~~~~~~~~~~~~~~~~~~~~")
+        print(product.name)
+        result = check_each_product_revenue(product.pk)
+        if not result:
+            return False
+        print(result)
+    return True
+
+@query_debugger
+def check_each_product_revenue(product_id):
+    current_accounting_period = AccoutingPeriod.objects.select_related('warehouse_management_method').latest('id')
+    product_export_orders = ExportOrder.objects.select_related('export_shipment_id', 'product_id').filter(
+        export_shipment_id__current_accounting_period = current_accounting_period,
+        product_id = product_id
+    )
+    summarizing_product_revenue = product_export_orders.aggregate(
+        total_product_revenue = Sum(
+            F("quantity_export") * F("unit_price")
+        )
+    )
+    total_product_revenue = summarizing_product_revenue["total_product_revenue"]
+
+    product_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').filter(
+        accounting_period_id = current_accounting_period,
+        product_id = product_id
+    )
+    product_inventory_obj = product_inventory[0]
+
+    if total_product_revenue != product_inventory_obj.total_revenue:
+        return False
+    print(f"Success Product Revenue: {total_product_revenue} = {product_inventory_obj.total_revenue}")
+    print("---------------------")
+
+    for connection_query in connection.queries:
+        print(connection_query)
+
+    return True
+
+
+def check_all_products_gross_profits():
+    products = Product.objects.all()
+    for product in products:
+        print("~~~~~~~~~~~~~~~~~~")
+        print(product.name)
+        result = check_each_product_gross_profits(product.pk)
+        if not result:
+            return False
+        print(result)
+    return True
+
+@query_debugger
+def check_each_product_gross_profits(product_id):
+    current_accounting_period = AccoutingPeriod.objects.select_related('warehouse_management_method').latest('id')
+    product_export_orders = ExportOrder.objects.select_related('export_shipment_id', 'product_id').filter(
+        export_shipment_id__current_accounting_period = current_accounting_period,
+        product_id = product_id
+    )
+    summarizing_product_gross_profits = product_export_orders.aggregate(
+        product_revenue = Sum(
+            F("quantity_export") * F("unit_price")
+        ),
+        product_cogs = Sum("total_order_value")
+    )
+    total_product_revenue = summarizing_product_gross_profits["product_revenue"]
+    total_product_cogs = summarizing_product_gross_profits["product_cogs"]
+    total_product_gross_profits = total_product_revenue - total_product_cogs
+
+    product_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').filter(
+        accounting_period_id = current_accounting_period,
+        product_id = product_id
+    )
+    product_inventory_obj = product_inventory[0]
+
+    if total_product_gross_profits != (product_inventory_obj.total_revenue - product_inventory_obj.total_cogs):
+        return False
+    
+    print(f"Success Product Gross Profits: {total_product_gross_profits} = {product_inventory_obj.total_revenue - product_inventory_obj.total_cogs}")
+    print("---------------------")
+
+    for connection_query in connection.queries:
+        print(connection_query)
+
+    return True
