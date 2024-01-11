@@ -32,6 +32,11 @@
 {% if not non_record_msg %}
 <div class="container d-flex justify-content-center">
     <table class="table table-bordered table-striped table-dark" style="width: fit-content;">
+        <caption style="color: black;">
+            <strong>
+            Bảng thống kê kỳ kế toán {{ chosen_accounting_period.warehouse_management_method }} từ {{ chosen_accounting_period.date_applied|date:"d/m/Y" }} đến {{ chosen_accounting_period.date_end|date:"d/m/Y" }}
+            </strong>
+        </caption>
         <thead>
             <tr>
                 <th scope="col" rowspan="2" style="font-size: 12px; text-align: center; vertical-align: middle;">STT</th>

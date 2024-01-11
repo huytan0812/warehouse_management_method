@@ -1,5 +1,6 @@
 import openpyxl
 import re
+from datetime import datetime
 from django.http import HttpResponseRedirect, HttpResponse
 from django.urls import reverse
 from django.shortcuts import render
@@ -46,10 +47,12 @@ def inventory_data(request, accounting_period_id):
         total_products_revenue = Sum("total_revenue"),
         total_gross_profits = Sum("total_revenue") - Sum("total_cogs")
     )
+    chosen_accounting_period = AccoutingPeriod.objects.select_related('warehouse_management_method').get(pk=accounting_period_id)
 
     context = {
         'accounting_periods': accounting_periods,
         'current_accounting_period_id': current_accounting_period_id,
+        'chosen_accounting_period': chosen_accounting_period,
         'chosen_period_id': accounting_period_id,
         'accounting_periods_inventory': accounting_periods_inventory,
 
@@ -110,7 +113,7 @@ def export_data_to_excel(request, accounting_period_id):
     worksheet = populating_body(worksheet, accounting_periods_inventory)
 
     # Populating footer
-    worksheet = populating_footer(worksheet, periods_summarizing_factors)
+    worksheet = populating_footer(worksheet, periods_summarizing_factors, accounting_period_id)
 
     # Create a temporary memory object using BytesIO
     excelfile = BytesIO()
@@ -301,7 +304,7 @@ def populating_body(worksheet, accounting_periods):
     
     return worksheet
 
-def populating_footer(worksheet, summarize_factors):
+def populating_footer(worksheet, summarize_factors, accounting_period_id):
     thin = Side(border_style="thin", color="000000")
     START_FACTOR_VALUE_INDEX = 4
 
@@ -325,6 +328,25 @@ def populating_footer(worksheet, summarize_factors):
         cell.number_format = "#,##0"
         cell.border = Border(top=thin, left=thin, right=thin, bottom=thin)
         col_num += 1
+
+    note_cell_row = footer_row + 1
+    note_cell = worksheet.cell(row=note_cell_row, column=1)
+
+    # Get the chosen accounting period id object
+    chosen_accounting_period = AccoutingPeriod.objects.select_related('warehouse_management_method').get(pk=accounting_period_id)
+
+    # Fomating the date_applied field & date_end field
+    # of the chosen_accounting_period object
+    period_date_applied = chosen_accounting_period.date_applied
+    format_date_applied = datetime.strftime(period_date_applied, "%d/%m/%Y")
+    period_date_end = chosen_accounting_period.date_end
+    format_date_end = datetime.strftime(period_date_end, "%d/%m/%Y")
+
+    # Assigning value for the note cell
+    note_cell.value = f"Bảng thống kê Kỳ kế toán {chosen_accounting_period.warehouse_management_method} từ {format_date_applied} đến {format_date_end}"
+    note_cell.font = Font(name="Times New Roman", bold=True, size=12)
+    note_cell_span_group = f"A{note_cell_row}:N{note_cell_row}"
+    worksheet.merge_cells(note_cell_span_group)
 
     return worksheet
 

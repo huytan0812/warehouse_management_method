@@ -163,7 +163,7 @@
       <tr>
         <td><strong>{{ product.product_id__name }}</strong></td>
         <td>{{ product.product_category }}</td>
-        <td style="text-align: right;">{{ product.product_quantity_export }}</td>
+        <td style="text-align: right;">{{ product.product_quantity_export|intcomma }}</td>
         <td style="text-align: right;">{{product.product_revenue|intcomma }}</td>
       </tr>
       {% endfor %}
