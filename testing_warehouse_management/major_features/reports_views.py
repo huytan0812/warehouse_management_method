@@ -52,6 +52,15 @@ def get_months():
     }
     return months
 
+def get_last_day_of_the_month(year, month):
+    """
+    Return the date object
+    for the last day of the month
+    """
+    last_day_of_the_month = calendar.monthrange(year, month)[1]
+    last_day_of_the_month_obj = datetime(year, month, last_day_of_the_month).date()
+    return last_day_of_the_month_obj
+
 def get_modified_path(request, GET_requests_params):
     # path handling
     path = request.path
@@ -193,7 +202,7 @@ def reports_revenue(request):
         first_month_of_quarter = chosen_quarter_months[0]
         last_month_of_quarter = chosen_quarter_months[2]
         first_day_of_quarter = datetime(chosen_year, first_month_of_quarter, 1).date()
-        last_day_of_quarter = get_lastday_of_month(date(chosen_year, last_month_of_quarter, 1))
+        last_day_of_quarter = get_last_day_of_the_month(chosen_year, last_month_of_quarter)
 
         export_orders = ExportOrder.objects.select_related('export_shipment_id', 'product_id').filter(
             export_shipment_id__date__gte = first_day_of_quarter,
@@ -231,10 +240,10 @@ def reports_revenue(request):
         context['chosen_month_year'] = chosen_month_year
 
         GET_requests_params['period_type'] = chosen_period_type
-        GET_requests_params['chosen_period_type_param'] = f"{chosen_month}&chosen_month_year={chosen_month_year}"
+        GET_requests_params['chosen_period_type_param'] = f"{chosen_month}&month_year={chosen_month_year}"
 
         first_day_of_the_month = datetime(chosen_month_year, chosen_month, 1).date()
-        last_day_of_the_month = get_lastday_of_month(first_day_of_the_month)
+        last_day_of_the_month = get_last_day_of_the_month(chosen_month_year, chosen_month)
 
         export_orders = ExportOrder.objects.select_related('export_shipment_id', 'product_id').filter(
             export_shipment_id__date__gte = first_day_of_the_month,
@@ -442,7 +451,7 @@ def reports_gross_profits(request):
         first_month_of_quarter = chosen_quarter_months[0]
         last_month_of_quarter = chosen_quarter_months[2]
         first_day_of_quarter = datetime(chosen_year, first_month_of_quarter, 1).date()
-        last_day_of_quarter = get_lastday_of_month(date(chosen_year, last_month_of_quarter, 1))
+        last_day_of_quarter = get_last_day_of_the_month(chosen_year, last_month_of_quarter)
 
         products_export_orders = ExportOrder.objects.select_related('export_shipment_id', 'product_id').filter(
             export_shipment_id__date__gte = first_day_of_quarter,
@@ -484,10 +493,10 @@ def reports_gross_profits(request):
         context['chosen_month_year'] = chosen_month_year
 
         GET_requests_params['period_type'] = chosen_period_type
-        GET_requests_params['chosen_period_type_param'] = f"{chosen_month}&chosen_month_year={chosen_month_year}"
+        GET_requests_params['chosen_period_type_param'] = f"{chosen_month}&month_year={chosen_month_year}"
 
         first_day_of_the_month = datetime(chosen_month_year, chosen_month, 1).date()
-        last_day_of_the_month = get_lastday_of_month(first_day_of_the_month)
+        last_day_of_the_month = get_last_day_of_the_month(chosen_month_year, chosen_month)
 
         product_export_orders = ExportOrder.objects.select_related('export_shipment_id', 'product_id').filter(
             export_shipment_id__date__gte = first_day_of_the_month,
@@ -703,7 +712,7 @@ def reports_import_section(request):
         first_month_of_quarter = chosen_quarter_months[0]
         last_month_of_quarter = chosen_quarter_months[2]
         first_day_of_quarter = datetime(chosen_year, first_month_of_quarter, 1).date()
-        last_day_of_quarter = get_lastday_of_month(date(chosen_year, last_month_of_quarter, 1))
+        last_day_of_quarter = get_last_day_of_the_month(chosen_year, last_month_of_quarter)
 
         products_import_purchases = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').filter(
             import_shipment_id__date__gte = first_day_of_quarter,
@@ -739,10 +748,10 @@ def reports_import_section(request):
         context['chosen_month_year'] = chosen_month_year
 
         GET_requests_params['period_type'] = chosen_period_type
-        GET_requests_params['chosen_period_type_param'] = f"{chosen_month}&chosen_month_year={chosen_month_year}"
+        GET_requests_params['chosen_period_type_param'] = f"{chosen_month}&month_year={chosen_month_year}"
 
         first_day_of_the_month = datetime(chosen_month_year, chosen_month, 1).date()
-        last_day_of_the_month = get_lastday_of_month(first_day_of_the_month)
+        last_day_of_the_month = get_last_day_of_the_month(chosen_month_year, chosen_month)
 
         products_import_purchases = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').filter(
             import_shipment_id__date__gte = first_day_of_the_month,
@@ -948,7 +957,7 @@ def reports_export_section(request):
         first_month_of_quarter = chosen_quarter_months[0]
         last_month_of_quarter = chosen_quarter_months[2]
         first_day_of_quarter = datetime(chosen_year, first_month_of_quarter, 1).date()
-        last_day_of_quarter = get_lastday_of_month(date(chosen_year, last_month_of_quarter, 1))
+        last_day_of_quarter = get_last_day_of_the_month(chosen_year, last_month_of_quarter)
 
         products_export_orders = ExportOrder.objects.select_related('export_shipment_id', 'product_id').filter(
             export_shipment_id__date__gte = first_day_of_quarter,
@@ -984,10 +993,10 @@ def reports_export_section(request):
         context['chosen_month_year'] = chosen_month_year
 
         GET_requests_params['period_type'] = chosen_period_type
-        GET_requests_params['chosen_period_type_param'] = f"{chosen_month}&chosen_month_year={chosen_month_year}"
+        GET_requests_params['chosen_period_type_param'] = f"{chosen_month}&month_year={chosen_month_year}"
 
         first_day_of_the_month = datetime(chosen_month_year, chosen_month, 1).date()
-        last_day_of_the_month = get_lastday_of_month(first_day_of_the_month)
+        last_day_of_the_month = get_last_day_of_the_month(chosen_month_year, chosen_month)
 
         products_export_orders = ExportOrder.objects.select_related('export_shipment_id', 'product_id').filter(
             export_shipment_id__date__gte = first_day_of_the_month,
