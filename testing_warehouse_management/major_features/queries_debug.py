@@ -2123,3 +2123,31 @@ def check_each_product_gross_profits(product_id):
         print(connection_query)
 
     return True
+
+def check_all_requirements():
+    total_ending_inventory_result = equalizing_ending_inventory()
+    if not total_ending_inventory_result:
+        return False
+    
+    import_inventory_result = check_all_products_total_import_inventory()
+    if not import_inventory_result:
+        return False
+    
+    export_value_result = check_all_products_export_value()
+    if not export_value_result:
+        return False
+    
+    all_products_ending_inventory_result = check_all_products_ending_inventory()
+    if not all_products_ending_inventory_result:
+        return False
+    
+    revenue_result = check_all_products_revenue()
+    if not revenue_result:
+        return False
+    
+    gross_profits_result = check_all_products_gross_profits()
+    if not gross_profits_result:
+        return False
+    
+    print("All is True")
+    return True
