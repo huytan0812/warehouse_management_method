@@ -30,9 +30,9 @@
       {% for import_purchase in import_shipment_purchases %}
       <tr>
         <td>{{ import_purchase.product_id.name }}</td>
-        <td>{{ import_purchase.import_cost|intcomma }}</td>
-        <td>{{ import_purchase.quantity_import|intcomma }}</td>
-        <td>{{ import_purchase.quantity_import|multiply:import_purchase.import_cost|intcomma }}</td>
+        <td style="text-align: right;">{{ import_purchase.import_cost|intcomma }}</td>
+        <td style="text-align: right;">{{ import_purchase.quantity_import|intcomma }}</td>
+        <td style="text-align: right;">{{ import_purchase.quantity_import|multiply:import_purchase.import_cost|intcomma }}</td>
       </tr>
       {% endfor %}
     </tbody>

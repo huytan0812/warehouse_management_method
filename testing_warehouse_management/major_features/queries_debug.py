@@ -1974,6 +1974,12 @@ def check_each_product_export_value(product_id):
     total_product_quantity_export = summarizing_export_orders["total_product_quantity_export"]
     total_product_cogs = summarizing_export_orders["total_product_cogs"]
 
+    if total_product_quantity_export is None:
+        total_product_quantity_export = 0
+
+    if total_product_cogs is None:
+        total_product_cogs = 0
+
     product_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').filter(
         accounting_period_id = current_accounting_period,
         product_id = product_id
@@ -2062,6 +2068,9 @@ def check_each_product_revenue(product_id):
     )
     total_product_revenue = summarizing_product_revenue["total_product_revenue"]
 
+    if total_product_revenue is None:
+        total_product_revenue = 0
+
     product_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').filter(
         accounting_period_id = current_accounting_period,
         product_id = product_id
@@ -2105,6 +2114,12 @@ def check_each_product_gross_profits(product_id):
     )
     total_product_revenue = summarizing_product_gross_profits["product_revenue"]
     total_product_cogs = summarizing_product_gross_profits["product_cogs"]
+
+    if total_product_revenue is None:
+        total_product_revenue = 0
+    if total_product_cogs is None:
+        total_product_cogs = 0
+
     total_product_gross_profits = total_product_revenue - total_product_cogs
 
     product_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').filter(

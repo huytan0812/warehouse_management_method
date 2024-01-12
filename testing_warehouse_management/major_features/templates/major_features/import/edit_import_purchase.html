@@ -1,15 +1,23 @@
 {% extends "major_features/layout.html" %}
 
 {% block title %}
-<h2>Trang nhập kho</h2>
+<h3 style="text-align: center; margin-top: 15px; margin-bottom: 15px;">Chỉnh sửa đơn hàng nhập kho thuộc lô hàng {{ import_purchase_obj.import_shipment_id.import_shipment_code }}</h3>
 {% endblock %}
 
 {% block body %}
-<h3>Chỉnh sửa đơn hàng nhập kho thuộc lô hàng {{ import_purchase_obj.import_shipment_id.import_shipment_code }}</h3>
 
-<form action="{% url 'import_purchase_update' import_purchase_obj.id %}" method="post">
-    {% csrf_token %}
-    {{ import_purchase_form.as_p }}
-    <input type="submit" value="submit">
-</form>
+<div class="container d-flex justify-content-center">
+    <div class="form-container">
+        <form action="{% url 'import_purchase_update' import_purchase_obj.id %}" method="post" class="shipment-form">
+            {% csrf_token %}
+            <fieldset>
+                <legend>
+                    Chỉnh sửa đơn hàng nhập kho {{ import_purchase_id }}
+                </legend>
+                {{ import_purchase_form.as_p }}
+            </fieldset>
+            <button type="submit" class="submit-button">Xác nhận</button>
+        </form>
+    </div>
+</div>
 {% endblock %}

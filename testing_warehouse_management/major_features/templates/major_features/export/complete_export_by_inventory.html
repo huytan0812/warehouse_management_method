@@ -54,12 +54,12 @@
     <tr>
       <td>{{ export_order_detail.import_purchase_id.pk }}</td>
       <td>{{ export_order_obj.product_id.name }}</td>
-      <td>{{ export_order_detail.quantity_take }}</td>
-      <td>{{ export_order_detail.import_purchase_id.import_cost|intcomma }}</td>
-      <td>{{ export_order_detail.export_price|intcomma }}</td>
-      <td>{{ export_order_detail.export_order_id.unit_price|intcomma }}</td>
-      <td>{{ export_order_detail.quantity_take|multiply:export_order_detail.export_price|intcomma }}</td>
-      <td>{{ export_order_detail.quantity_take|multiply:export_order_detail.export_order_id.unit_price|intcomma }}</td>
+      <td style="text-align: right;">{{ export_order_detail.quantity_take|intcomma }}</td>
+      <td style="text-align: right;">{{ export_order_detail.import_purchase_id.import_cost|intcomma }}</td>
+      <td style="text-align: right;">{{ export_order_detail.export_price|intcomma }}</td>
+      <td style="text-align: right;">{{ export_order_detail.export_order_id.unit_price|intcomma }}</td>
+      <td style="text-align: right;">{{ export_order_detail.quantity_take|multiply:export_order_detail.export_price|intcomma }}</td>
+      <td style="text-align: right;">{{ export_order_detail.quantity_take|multiply:export_order_detail.export_order_id.unit_price|intcomma }}</td>
     </tr>
     {% endfor %}
   </tbody>
@@ -89,10 +89,10 @@
       {% for export_order in export_shipment_orders %}
       <tr>
         <td>{{ export_order.product_id.name }}</td>
-        <td>{{ export_order.unit_price|intcomma }}</td>
-        <td>{{ export_order.quantity_export}}</td>
-        <td>{{ export_order.total_order_value|intcomma }}</td>
-        <td>{{ export_order.quantity_export|multiply:export_order.unit_price|intcomma }}</td>
+        <td style="text-align: right;">{{ export_order.unit_price|intcomma }}</td>
+        <td style="text-align: right;">{{ export_order.quantity_export|intcomma}}</td>
+        <td style="text-align: right;">{{ export_order.total_order_value|intcomma }}</td>
+        <td style="text-align: right;">{{ export_order.quantity_export|multiply:export_order.unit_price|intcomma }}</td>
         <td><a href="{% url 'complete_export_order_by_inventory' export_order.pk %}" style="text-decoration: none; color: #0d6efd;">Chi tiết đơn hàng</a></td>
       </tr>
       {% endfor %}

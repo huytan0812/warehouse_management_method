@@ -724,7 +724,8 @@ def import_purchase_update(request, import_purchase_id):
 
     context = {
         'import_purchase_form': import_purchase_form,
-        'import_purchase_obj': import_purchase_obj
+        'import_purchase_obj': import_purchase_obj,
+        'import_purchase_id': import_purchase_id
     }
 
     return render(request, "major_features/import/edit_import_purchase.html", context)
