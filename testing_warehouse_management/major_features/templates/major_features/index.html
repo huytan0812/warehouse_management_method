@@ -21,12 +21,6 @@
 </div>
 {% endif %}
 
-<form action="{% url 'date_handling' %}" method="post">
-    {% csrf_token %}
-    {{ date_picker_form.as_p }}
-    <input type="submit" value="Submit">
-</form>
-
 <p>
   <strong style="display: block; color: red;">Chỉ dành cho mục đích kiểm thử</strong>
   <a href="{% url 'apply_warehouse_management' %}">Chọn phương pháp khác để kiểm thử</a>

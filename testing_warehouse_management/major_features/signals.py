@@ -17,8 +17,8 @@ def create_product_inventory(sender, instance, created, **kwargs):
     if created:
         new_accounting_period = instance
         prev_accounting_period = AccoutingPeriod.objects.select_related('warehouse_management_method').filter(
-            date_applied__lt = new_accounting_period.date_applied
-        ).order_by('-date_applied').first()
+            pk__lt = new_accounting_period.pk
+        ).order_by('-pk').first()
         prev_products_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').select_for_update(of=("self",)).filter(
             accounting_period_id = prev_accounting_period
         )
