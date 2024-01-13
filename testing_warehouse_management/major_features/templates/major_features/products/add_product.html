@@ -5,6 +5,11 @@
 {% endblock %}
 
 {% block body %}
+{% if messages %}
+    {% for message in messages %}
+        <p style="color: red; text-align: center;">{{ message }}</p>
+    {% endfor %}
+{% endif %}
 <div class="container d-flex justify-content-center">
     <div class="form-container">
         <form action="{% url 'add_product' %}" method="post" class="shipment-form">

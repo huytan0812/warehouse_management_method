@@ -31,7 +31,11 @@ def index(request):
             login_time = vntz_to_utc(),
             session_key = current_session_key
         )
-         
+
+    accounting_periods_count = AccoutingPeriod.objects.all().count()
+    if accounting_periods_count == 0:
+        return HttpResponseRedirect(reverse('apply_warehouse_management'))    
+
     current_accounting_period = AccoutingPeriod.objects.select_related('warehouse_management_method').latest('id')
 
     # Get total products inventory value
@@ -390,7 +394,8 @@ def add_product(request):
         if add_product_form.is_valid():
             add_product_form.save()
             return HttpResponseRedirect(reverse('products'))
-        return HttpResponse("Invalid form", content_type="text/plain")
+        messages.error(request, "Đã tồn tại sản phẩm")
+        return HttpResponseRedirect(reverse('add_product'))
     
     context = {
         'add_product_form': add_product_form
