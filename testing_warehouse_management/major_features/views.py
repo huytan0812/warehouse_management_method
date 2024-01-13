@@ -583,7 +583,23 @@ def import_action(request):
                 return HttpResponseRedirect(reverse('save_and_complete', kwargs={'import_shipment_code': import_shipment_obj.import_shipment_code}))
 
         else:
-            return HttpResponse("Invalid Form", content_type="text/plain")
+            error_msg = None
+
+            bound_import_shipment_form = ImportShipmentForm(request.POST)
+            if bound_import_shipment_form.errors:
+                error_msg = "Mã lô hàng nhập kho đã tồn tại"
+
+            bound_import_purchase_form = ImportPurchaseForm(request.POST)
+            if bound_import_purchase_form.errors:
+                error_msg = "Đơn hàng không hợp lệ"
+
+            messages.error(request, error_msg)
+
+            context = {
+                'import_shipment_form': bound_import_shipment_form,
+                'import_purchase_form': bound_import_purchase_form,
+            }
+            return render(request, "major_features/import/import_action.html", context)
             
     context = {
         'import_shipment_form': ImportShipmentForm(),
@@ -1259,7 +1275,7 @@ def weighted_average(request, export_order_id):
         raise Exception("Không tồn tại mã đơn hàng xuất kho")
     
     weighted_average_cost_info = weighted_average_constantly(export_order_obj)
-    completing_weighted_average_constantly_method(export_order_obj, weighted_average_cost_info["export_price"])
+    completing_weighted_average_constantly_method(export_order_obj, weighted_average_cost_info["unround_export_price"])
 
     export_order_details_obj = ExportOrderDetail.objects.select_related('export_order_id', 'import_purchase_id').filter(export_order_id__pk=export_order_obj.pk)
 

@@ -12,8 +12,8 @@
 
 {% if method %}
 <p>Phương pháp xác định giá trị hàng tồn kho đang được chọn: <strong>{{ method.name }}</strong></p>
-<p><strong>Ngày bắt đầu ghi sổ kế toán: </strong>{{ accounting_period.date_applied }}</p>
-<p><strong>Ngày kết thúc: </strong>{{ accounting_period.date_end }}</p>
+<p><strong>Ngày bắt đầu ghi sổ kế toán: </strong>{{ accounting_period.date_applied|date:"d/m/Y" }}</p>
+<p><strong>Ngày kết thúc: </strong>{{ accounting_period.date_end|date:"d/m/Y" }}</p>
 {% else %}
 <div class="alert alert-danger" role="alert">
     Không có phương pháp nào được chọn

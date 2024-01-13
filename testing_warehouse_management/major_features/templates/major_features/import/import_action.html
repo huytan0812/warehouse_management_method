@@ -7,7 +7,13 @@
 {% endblock %}
 
 {% block body %}
-<h3>Đơn nhập kho lô hàng</h3>
+<h3 style="text-align: center; margin-top: 15px; margin-bottom: 15px;">Đơn nhập kho lô hàng</h3>
+
+{% if messages %}
+  {% for message in messages %}
+  <p style="color: red; text-align: center;">{{ message }}</p>
+  {% endfor %}
+{% endif %}
 
 <div class="container d-flex justify-content-center">
   <div class="form-container">

@@ -87,12 +87,17 @@ class ExportOrderForm(ModelForm):
         quantity_export = self.cleaned_data["quantity_export"]
         if 'product_id' in self.cleaned_data:
             product = self.cleaned_data["product_id"]
-            current_accounting_period = AccoutingPeriod.objects.latest('id')
-            product_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').get(
-                accounting_period_id = current_accounting_period,
+            product_import_purchases = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').filter(
                 product_id = product
             )
-            if product_inventory.ending_quantity < quantity_export:
+            product_quantity_remain_summarizing = product_import_purchases.aggregate(
+                total_quantity_remain = Sum("quantity_remain")
+            )
+            product_quantity_remain = product_quantity_remain_summarizing["total_quantity_remain"]
+            if product_quantity_remain is None:
+                product_quantity_remain = 0
+            
+            if product_quantity_remain < quantity_export:
                 raise ValidationError(
                     gettext_lazy("SLCL của sản phẩm %(product)s nhỏ hơn SL xuất kho của đơn hàng"),
                     params = {'product': product}
