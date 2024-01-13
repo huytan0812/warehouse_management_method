@@ -172,27 +172,31 @@ def index_category_inventory_pie_chart(current_accounting_period):
 @login_required
 def categories(request):
     current_accounting_period = AccoutingPeriod.objects.select_related('warehouse_management_method').latest('id')
-    products_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').filter(
-        accounting_period_id = current_accounting_period
-    )
-    categories_inventory = products_inventory.values('product_id__category_name__name').annotate(
-        category_id = F("product_id__category_name__pk"),
-        category_inventory_value = Sum("ending_inventory")
-    ).order_by('-category_inventory_value')
 
     category_containers = {}
-    for category in categories_inventory:
-        # Initializing the category dictionary
-        category_containers[category['product_id__category_name__name']] = {
-            'category_inventory_value': category['category_inventory_value']
-        }
-        c = category_containers[category['product_id__category_name__name']]
+    categories = Category.objects.all()
 
-        # Get all the products for the corresponding category
-        category_products = products_inventory.filter(
-            product_id__category_name = category['category_id']
+    for category in categories:
+        c_inventory_products = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').filter(
+            accounting_period_id = current_accounting_period,
+            product_id__category_name = category.pk
         ).order_by('product_id__name')
-        c['category_products'] = category_products
+        c_inventory_summarizing = c_inventory_products.aggregate(
+            total_category_inventory = Sum("ending_inventory"),
+            total_category_revenue = Sum("total_revenue"),
+            total_category_cogs = Sum("total_cogs")
+        )
+        category_gross_profits = 0
+        if c_inventory_summarizing["total_category_revenue"] and c_inventory_summarizing["total_category_cogs"]:
+            category_gross_profits = c_inventory_summarizing["total_category_revenue"] - c_inventory_summarizing["total_category_cogs"]
+
+        category_containers[category.name] = {
+            'category_inventory_value': c_inventory_summarizing['total_category_inventory'],
+            'category_revenue': c_inventory_summarizing['total_category_revenue'],
+            'category_gross_profits': category_gross_profits
+        }
+        c = category_containers[category.name] 
+        c['category_products'] = c_inventory_products
 
     context = {
         'categories': category_containers
@@ -372,7 +376,7 @@ def products(request):
     current_accounting_period = AccoutingPeriod.objects.latest('id')
     products_inventory = AccountingPeriodInventory.objects.select_related('accounting_period_id', 'product_id').filter(
         accounting_period_id = current_accounting_period
-    )
+    ).order_by('product_id__category_name__name')
     context = {
         'products_inventory': products_inventory
     }

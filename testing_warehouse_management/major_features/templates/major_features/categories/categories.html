@@ -21,6 +21,9 @@
             <th scope="col" style="text-align: right;">SL HTK</th>
             <th scope="col" style="text-align: right;">Giá trị HTK</th>
             <th scope="col" style="text-align: right;">Tỷ lệ (%) giá trị HTK</th>
+            <th scope="col" style="text-align: right;">Doanh thu</th>
+            <th scope="col" style="text-align: right;">Tỷ lệ (%) doanh thu</th>
+            <th scope="col" style="text-align: right;">Lợi nhuận</th>
         </thead>
         <tbody>
             {% for product in value.category_products %}
@@ -31,6 +34,9 @@
                 <td scope="col" style="text-align: right;">{{ product.ending_quantity|intcomma }}</td>
                 <td scope="col" style="text-align: right;">{{ product.ending_inventory|intcomma }}</td>
                 <td scope="col" style="text-align: right;">{{ product.ending_inventory|to_percentage:value.category_inventory_value|round_float:2 }}%</td>
+                <td scope="col" style="text-align: right;">{{ product.total_revenue|intcomma }}</td>
+                <td scope="col" style="text-align: right;">{{ product.total_revenue|to_percentage:value.category_revenue|round_float:2 }}%</td>
+                <td scope="col" style="text-align: right;">{{ product.total_revenue|subtract:product.total_cogs|intcomma }}</td>
             </tr>
             {% endfor %}
         </tbody>
@@ -41,6 +47,9 @@
                 </td>
                 <td style="text-align: right;"><strong>{{ value.category_inventory_value|intcomma }}</strong></td>
                 <td style="text-align: right;"><strong>100%</strong></td>
+                <td style="text-align: right;"><strong>{{ value.category_revenue|intcomma }}</strong></td>
+                <td style="text-align: right;"><strong>100%</strong></td>
+                <td style="text-align: right;"><strong>{{ value.category_gross_profits|intcomma }}</strong></td>
             </tr>
         </tfoot>
     </table>

@@ -15,6 +15,7 @@
             <tr>
               <th scope="col" style="text-align: left;">Mã SP</th>
               <th scope="col" style="text-align: left;">Tên SP</th>
+              <th scope="col" style="text-align: left;">Danh mục SP</th>
               <th scope="col" style="text-align: left;">SL tồn kho tối thiểu</th>
               <th scope="col" style="text-align: left;">Thực hiện</th>
               <th scope="col" style="text-align: right;">Số lượng tồn kho</th>
@@ -26,6 +27,7 @@
               <tr>
                 <td scope="col"><strong>{{ product.product_id.sku }}</strong></td>
                 <td scope="col"><strong>{{ product.product_id.name }}</strong></td>
+                <td scope="col"><strong>{{ product.product_id.category_name }}</strong></td>
                 <td scope="col">{{ product.product_id.minimum_quantity }}</td>
                 <td scope="col"><a href="{% url 'edit_product' product.product_id.sku %}" style="color: #00FFFF;">Sửa</a></td>
                 {% if product.is_below_minimum_quantity %}
