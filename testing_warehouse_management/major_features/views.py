@@ -1368,7 +1368,7 @@ def apply_warehouse_management(request):
             
             try:
                 method = WarehouseManagementMethod.objects.get(pk=int(method_id_by_POST))
-            except WarehouseManagementMethod.DoesNotExits:
+            except WarehouseManagementMethod.DoesNotExist:
                 raise Exception("Không tồn tại Phương pháp xác định giá trị hàng tồn kho")
             
             prev_accounting_period_pk = None

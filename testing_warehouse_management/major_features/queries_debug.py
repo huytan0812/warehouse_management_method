@@ -1,7 +1,6 @@
 from django.db import connection, reset_queries, transaction
 import time
 import functools
-import pytz
 import calendar
 from datetime import date, datetime, timedelta
 from django.db.models import Sum, F, Max
@@ -2166,3 +2165,19 @@ def check_all_requirements():
     
     print("All is True")
     return True
+
+@query_debugger
+def difference_between_update_method_and_select_update_fields():
+    print("save(update_fields=['']):")
+    product = Product.objects.get(name='Cebraton')
+    product.minimum_quantity = 500
+    product.save(update_fields=["minimum_quantity"])
+
+    print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+    print("update() method:")
+    product_obj = Product.objects.filter(name='Cebraton').update(minimum_quantity=1000)
+
+    for connection_query in connection.queries:
+        print(connection_query)
+
+    
