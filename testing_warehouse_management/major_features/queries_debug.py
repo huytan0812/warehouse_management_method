@@ -1,4 +1,5 @@
 from django.db import connection, reset_queries, transaction
+import pytz
 import time
 import functools
 import calendar
@@ -2180,4 +2181,116 @@ def difference_between_update_method_and_select_update_fields():
     for connection_query in connection.queries:
         print(connection_query)
 
-    
+
+@query_debugger
+def python_memory():
+    agency_obj = Agency.objects.create(
+        name = "An Khang",
+        address = "Nha Trang City"
+    )
+    agency_name = agency_obj.name
+    agency_address = agency_obj.address
+
+    print(f"Agency name: {agency_name}")
+    print(f"Agency address: {agency_address}")
+
+    print(f"Agency memory location: {id(agency_obj)}")
+
+    for connection_query in connection.queries:
+        print(connection_query)
+
+def update_agency():
+    agency_obj = Agency.objects.get(name="An Khang")
+    agency_obj.name = "An Khang 2"
+    agency_obj.save(update_fields=["name"])
+
+    return agency_obj
+
+@query_debugger
+def django_refresh_db():
+    agency_obj = update_agency()
+
+    print(agency_obj)
+
+    for connection_query in connection.queries:
+        print(connection_query)
+
+def error_update_block(agency_obj):
+    agency_obj.name = "An Khang 3"
+    agency_obj.save(update_fields=["name"])
+    return agency_obj
+
+@query_debugger
+def error_transaction_atomic_block():
+    """
+    This is error when use function in an atomic block,
+    it will cause TransactionManagementError
+    """
+    agency_obj = Agency.objects.select_for_update(of=("self",)).get(name="An Khang 2")
+    with transaction.atomic():
+        updated_agency_obj = error_update_block(agency_obj)
+        print(updated_agency_obj)
+
+    for connection_query in connection.queries:
+        print(connection_query)
+
+def second_error_update_block(agency_obj):
+    with transaction.atomic():
+        agency_obj.name = "An Khang 3"
+        agency_obj.save(update_fields=["name"])
+    return agency_obj
+
+@query_debugger
+def second_error_transaction_atomic_block():
+    agency_obj = Agency.objects.select_for_update(of=("self",)).get(name="An Khang 2")
+
+    updated_agency_obj = second_error_update_block(agency_obj)
+    print(updated_agency_obj)
+
+    for connection_query in connection.queries:
+        print(connection_query)
+
+def update_block(agency_obj):
+    agency_obj.name = "An Khang 3"
+    agency_obj.save(update_fields=["name"])
+
+@query_debugger
+def transaction_atomic_block():
+    agency_obj = Agency.objects.select_for_update(of=("self",)).get(name="An Khang 2")
+
+    with transaction.atomic():
+        update_block(agency_obj)
+        print(agency_obj)
+
+    for connection_query in connection.queries:
+        print(connection_query)
+
+@query_debugger
+def display_import_purchases():
+    export_order = ExportOrder.objects.select_related('export_shipment_id', 'product_id').latest('id')
+    export_order_detail_objects = export_order.exportorderdetail_involving_import_purchases.all()
+
+    # values() method will return a QuerySet containing dictionaries
+    # values_list() method will return a QuerySet containing tuples
+    # Using kwarg flat=True to get only one field without tuple
+    import_purchases_pk = export_order_detail_objects.values_list('import_purchase_id__pk', flat=True)
+
+    import_purchases = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').filter(
+        pk__in = import_purchases_pk
+    ).order_by('pk')
+    for purchase in import_purchases:
+        print(purchase.pk, purchase.quantity_remain)
+
+    for connection_query in connection.queries:
+        print(connection_query)
+
+@query_debugger
+def testing_trigger_post_delete_signal():
+    export_order = ExportOrder.objects.select_related('export_shipment_id', 'product_id').latest('id')
+    export_order_detail_objects = export_order.exportorderdetail_involving_import_purchases.all()
+
+    # Bulk deleting objects
+    export_order_detail_objects.delete()
+
+    for connection_query in connection.queries:
+        print(connection_query)

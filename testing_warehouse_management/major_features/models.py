@@ -130,6 +130,10 @@ class ExportOrderDetail(models.Model):
     quantity_take = models.IntegerField(null=False, blank=False, default=0)
     export_price = models.IntegerField(null=True, blank=True, default=0)
 
+    def delete(self, *args, **kwargs):
+        print("ExportOrderDetail object's delete() method is called")
+        super().delete(*args, **kwargs)
+
     def __str__(self):
         return f"Export Order Id {self.export_order_id.id} takes {self.quantity_take} of Import Purchase Id {self.import_purchase_id.id}"
 

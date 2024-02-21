@@ -47,6 +47,8 @@ def return_inventory(sender, instance, **kwargs):
     for the product's AccountingPeriodInventory object
     """
 
+    print("Signal is call")
+
     if instance.export_shipment_id.total_shipment_value == 0:
         # do nothing
         return
@@ -70,6 +72,9 @@ def return_quantity_for_import_purchase(sender, instance, **kwargs):
     Return the quantity for the import purchase
     after deleting an ExportOrderDetail object
     """
+
+    print("Post delete ExportOrderDetail object's Signal is call")
+
     with transaction.atomic():
         # ImportPurchase section
         involving_import_purchase = ImportPurchase.objects.select_related('import_shipment_id', 'product_id').select_for_update(of=("self", "import_shipment_id")).get(
