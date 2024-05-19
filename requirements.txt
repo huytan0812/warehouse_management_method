@@ -1,0 +1,5 @@
+django
+django-mptt
+psycopg2
+openpyxl
+pytz
